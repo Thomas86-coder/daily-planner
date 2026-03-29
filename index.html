@@ -608,7 +608,7 @@ body {
         <a class="nav-item" onclick="navigate(&#39;projects&#39;)">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="folder-kanban" aria-hidden="true" class="lucide lucide-folder-kanban"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path><path d="M8 10v4"></path><path d="M12 10v2"></path><path d="M16 10v6"></path></svg> 프로젝트
         </a>
-        <a class="nav-item" onclick="navigate(&#39;recurring&#39;)">
+        <a class="nav-item" id="nav-recurring" onclick="navigate(&#39;recurring&#39;)">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="repeat" aria-hidden="true" class="lucide lucide-repeat"><path d="m17 2 4 4-4 4"></path><path d="M3 11v-1a4 4 0 0 1 4-4h14"></path><path d="m7 22-4-4 4-4"></path><path d="M21 13v1a4 4 0 0 1-4 4H3"></path></svg> 반복 업무
         </a>
       </div>
@@ -620,13 +620,13 @@ body {
       </div>
       <div class="nav-group">
         <div class="nav-group-label">리뷰</div>
-        <a class="nav-item" onclick="navigate(&#39;weekly&#39;)">
+        <a class="nav-item" id="nav-weekly" onclick="navigate(&#39;weekly&#39;)">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="bar-chart-2" aria-hidden="true" class="lucide lucide-bar-chart-2"><path d="M5 21v-6"></path><path d="M12 21V3"></path><path d="M19 21V9"></path></svg> 주간
         </a>
-        <a class="nav-item" onclick="navigate(&#39;monthly&#39;)">
+        <a class="nav-item" id="nav-monthly" onclick="navigate(&#39;monthly&#39;)">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="calendar-range" aria-hidden="true" class="lucide lucide-calendar-range"><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="M8 2v4"></path><path d="M17 14h-6"></path><path d="M13 18H7"></path><path d="M7 14h.01"></path><path d="M17 18h.01"></path></svg> 월간
         </a>
-        <a class="nav-item" onclick="navigate(&#39;yearly&#39;)">
+        <a class="nav-item" id="nav-yearly" onclick="navigate(&#39;yearly&#39;)">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="trophy" aria-hidden="true" class="lucide lucide-trophy"><path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"></path><path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"></path><path d="M18 9h1.5a1 1 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"></path><path d="M6 9H4.5a1 1 0 0 1 0-5H6"></path></svg> 연간
         </a>
       </div>
@@ -657,6 +657,7 @@ body {
       </button>
     </div>
 
+    <div id="view-today">
     <div class="content-grid">
 
       <!-- ROUTINE CARD -->
@@ -875,6 +876,7 @@ body {
       </div>
 
     </div><!-- /content-grid -->
+    </div><!-- /view-today -->
   </main>
 </div>
 
@@ -1285,10 +1287,40 @@ async function goToday() {
 }
 
 // ── 네비게이션 ──
+const PAGES = ['today','recurring','weekly','monthly','yearly'];
 function navigate(page) {
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  if (page === 'today') document.getElementById('nav-today').classList.add('active');
-  else showToast(`"${page}" 페이지는 준비 중이에요 🚧`);
+  const navEl = document.getElementById('nav-' + page);
+  if (navEl) navEl.classList.add('active');
+
+  // 모든 뷰 숨기기
+  document.getElementById('view-today').style.display = 'none';
+  const recView = document.getElementById('view-recurring');
+  if (recView) recView.style.display = 'none';
+  ['weekly','monthly','yearly'].forEach(p => {
+    const v = document.getElementById('view-' + p);
+    if (v) v.style.display = 'none';
+  });
+
+  if (page === 'today') {
+    document.getElementById('view-today').style.display = '';
+  } else if (page === 'recurring') {
+    if (recView) recView.style.display = '';
+  } else if (page === 'weekly') {
+    document.getElementById('view-weekly').style.display = '';
+    loadWeekly();
+  } else if (page === 'monthly') {
+    document.getElementById('view-monthly').style.display = '';
+    loadMonthly();
+  } else if (page === 'yearly') {
+    document.getElementById('view-yearly').style.display = '';
+    loadYearly();
+  } else {
+    // 미구현 페이지
+    document.getElementById('view-today').style.display = '';
+    showToast(`"${page}" 페이지는 준비 중이에요 🚧`);
+    document.getElementById('nav-today').classList.add('active');
+  }
 }
 
 // ── 토스트 ──
@@ -1457,5 +1489,764 @@ async function init() {
 init();
 </script>
 
+
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- 주간/월간/연간 리뷰 페이지 CSS -->
+<!-- ════════════════════════════════════════════════ -->
+<style>
+/* 리뷰 공통 레이아웃 */
+.review-page { display:none; padding:20px 28px; max-width:1100px; }
+.review-header {
+  display:flex; align-items:center; gap:14px; margin-bottom:24px;
+  background:var(--card); border:1px solid var(--border); border-radius:14px;
+  padding:14px 20px;
+}
+.review-title { font-size:18px; font-weight:700; color:var(--text-primary); flex:1; }
+.review-nav-btn {
+  width:34px; height:34px; border-radius:8px; border:1px solid var(--border);
+  background:var(--card); cursor:pointer; display:flex; align-items:center;
+  justify-content:center; color:var(--text-secondary); transition:all .18s;
+}
+.review-nav-btn:hover { background:var(--hover); color:var(--primary); }
+.review-range { font-size:13px; color:var(--text-muted); text-align:center; }
+
+/* 요약 카드 그리드 */
+.rv-stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin-bottom:20px; }
+.rv-stat-card {
+  background:var(--card); border:1px solid var(--border); border-radius:12px;
+  padding:16px 18px; position:relative; overflow:hidden;
+}
+.rv-stat-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background:var(--gradient);
+}
+.rv-stat-label { font-size:11px; color:var(--text-muted); margin-bottom:6px; font-weight:500; letter-spacing:.3px; }
+.rv-stat-value { font-size:24px; font-weight:800; color:var(--text-primary); }
+.rv-stat-sub { font-size:11.5px; color:var(--text-secondary); margin-top:4px; }
+
+/* 섹션 카드 */
+.rv-card {
+  background:var(--card); border:1px solid var(--border); border-radius:14px;
+  padding:20px 22px; margin-bottom:16px;
+}
+.rv-card-title {
+  font-size:13.5px; font-weight:700; color:var(--text-primary);
+  margin-bottom:16px; display:flex; align-items:center; gap:8px;
+}
+
+/* 요일 바 차트 */
+.day-bars { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; align-items:end; }
+.day-bar-wrap { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.day-bar-track { width:100%; height:80px; background:var(--hover); border-radius:6px; display:flex; align-items:flex-end; overflow:hidden; }
+.day-bar-fill { width:100%; border-radius:6px; transition:height .4s ease; min-height:3px; }
+.day-bar-num { font-size:11px; font-weight:600; color:var(--text-secondary); }
+.day-bar-label { font-size:10.5px; color:var(--text-muted); }
+.day-bar-today .day-bar-label { color:var(--primary); font-weight:700; }
+
+/* 프로그레스 바 */
+.prog-item { margin-bottom:12px; }
+.prog-header { display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:5px; }
+.prog-label { color:var(--text-secondary); font-weight:500; }
+.prog-val { color:var(--text-primary); font-weight:700; }
+.prog-track { height:8px; background:var(--hover); border-radius:99px; overflow:hidden; }
+.prog-fill { height:100%; border-radius:99px; background:var(--gradient); transition:width .5s ease; }
+
+/* 루틴 달성 히트맵 */
+.routine-grid { display:grid; grid-template-columns:1fr; gap:10px; }
+.routine-row { display:flex; align-items:center; gap:10px; }
+.routine-row-label { font-size:12px; color:var(--text-secondary); width:130px; flex-shrink:0; }
+.routine-dots { display:flex; gap:5px; }
+.routine-dot {
+  width:22px; height:22px; border-radius:5px; display:flex; align-items:center;
+  justify-content:center; font-size:9px; font-weight:600;
+}
+.routine-dot.done { background:var(--gradient); color:white; }
+.routine-dot.miss { background:var(--hover); color:var(--text-muted); }
+.routine-dot.future { background:transparent; border:1px dashed var(--border); }
+
+/* 성찰 아코디언 */
+.reflect-item { border-bottom:1px solid var(--border); }
+.reflect-item:last-child { border-bottom:none; }
+.reflect-toggle {
+  width:100%; text-align:left; padding:12px 4px; background:none; border:none;
+  cursor:pointer; display:flex; justify-content:space-between; align-items:center;
+  font-family:inherit; color:var(--text-primary); font-size:13px; font-weight:600;
+}
+.reflect-toggle:hover { color:var(--primary); }
+.reflect-toggle .chevron { transition:transform .2s; color:var(--text-muted); font-size:12px; }
+.reflect-toggle.open .chevron { transform:rotate(180deg); }
+.reflect-body { display:none; padding:4px 4px 14px; }
+.reflect-body.open { display:block; }
+.reflect-field { margin-bottom:8px; font-size:12.5px; }
+.reflect-field strong { color:var(--text-secondary); display:block; margin-bottom:2px; font-size:11px; }
+.reflect-field span { color:var(--text-primary); line-height:1.6; }
+
+/* 월간 캘린더 히트맵 */
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.cal-dow { text-align:center; font-size:10px; color:var(--text-muted); padding:4px 0; font-weight:600; }
+.cal-cell {
+  aspect-ratio:1; border-radius:6px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; font-size:10px; font-weight:600;
+  color:var(--text-secondary); cursor:default;
+  transition:transform .15s;
+}
+.cal-cell:hover { transform:scale(1.1); }
+.cal-empty { background:transparent; }
+.cal-c0 { background:var(--hover); }
+.cal-c1 { background:rgba(91,95,199,.2); color:var(--primary); }
+.cal-c2 { background:rgba(91,95,199,.45); color:white; }
+.cal-c3 { background:var(--primary); color:white; }
+.cal-today { box-shadow:0 0 0 2px var(--primary); }
+
+/* 연간 히트맵 */
+.yearly-heatmap { overflow-x:auto; }
+.yearly-months { display:flex; gap:16px; min-width:900px; padding-bottom:8px; }
+.yearly-month-col { flex:1; }
+.yearly-month-label { font-size:11px; font-weight:700; color:var(--text-muted); margin-bottom:6px; text-align:center; }
+.yearly-month-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+.yr-cell {
+  width:100%; aspect-ratio:1; border-radius:2px;
+}
+.yr-c0 { background:var(--hover); }
+.yr-c1 { background:rgba(91,95,199,.25); }
+.yr-c2 { background:rgba(91,95,199,.55); }
+.yr-c3 { background:var(--primary); }
+
+/* 막대 그래프 (월별 완료율) */
+.bar-chart { display:flex; align-items:flex-end; gap:6px; height:100px; }
+.bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; }
+.bar-col-fill { width:100%; border-radius:4px 4px 0 0; background:var(--gradient); transition:height .4s; min-height:2px; }
+.bar-col-label { font-size:9.5px; color:var(--text-muted); }
+.bar-col-val { font-size:10px; color:var(--text-secondary); font-weight:600; }
+
+/* AI 총평 */
+.ai-review-btn {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:10px 20px; border-radius:10px; border:none;
+  background:var(--gradient); color:white; font-family:inherit;
+  font-size:13px; font-weight:600; cursor:pointer; transition:opacity .2s;
+}
+.ai-review-btn:hover { opacity:.88; }
+.ai-review-btn:disabled { opacity:.55; cursor:not-allowed; }
+.ai-review-result {
+  margin-top:14px; padding:16px; border-radius:10px;
+  background:rgba(91,95,199,.06); border:1.5px solid rgba(91,95,199,.15);
+  font-size:13.5px; line-height:1.8; white-space:pre-wrap; color:var(--text-primary);
+  position:relative;
+}
+.ai-review-result::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background:var(--gradient); border-radius:10px 10px 0 0;
+}
+
+/* 스피너 */
+.rv-spinner { text-align:center; padding:40px; color:var(--text-muted); font-size:13px; }
+.rv-empty { text-align:center; padding:30px; color:var(--text-muted); font-size:13px; }
+
+/* TOP 3 */
+.top3-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); }
+.top3-item:last-child { border-bottom:none; }
+.top3-rank { width:26px; height:26px; border-radius:50%; background:var(--gradient); color:white; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.top3-label { flex:1; font-size:13px; color:var(--text-primary); }
+.top3-rate { font-size:13px; font-weight:700; color:var(--primary); }
+</style>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- 주간 리뷰 페이지 HTML -->
+<!-- ════════════════════════════════════════════════ -->
+<div id="view-weekly" class="review-page">
+  <div class="review-header">
+    <button class="review-nav-btn" onclick="weeklyOffset--; loadWeekly()">&#8249;</button>
+    <div style="flex:1;text-align:center">
+      <div class="review-title">주간 리뷰</div>
+      <div class="review-range" id="weekly-range">-</div>
+    </div>
+    <button class="review-nav-btn" onclick="weeklyOffset++; loadWeekly()">&#8250;</button>
+  </div>
+  <div id="weekly-body"><div class="rv-spinner">데이터 불러오는 중...</div></div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- 월간 리뷰 페이지 HTML -->
+<!-- ════════════════════════════════════════════════ -->
+<div id="view-monthly" class="review-page">
+  <div class="review-header">
+    <button class="review-nav-btn" onclick="monthlyOffset--; loadMonthly()">&#8249;</button>
+    <div style="flex:1;text-align:center">
+      <div class="review-title">월간 리뷰</div>
+      <div class="review-range" id="monthly-range">-</div>
+    </div>
+    <button class="review-nav-btn" onclick="monthlyOffset++; loadMonthly()">&#8250;</button>
+  </div>
+  <div id="monthly-body"><div class="rv-spinner">데이터 불러오는 중...</div></div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- 연간 리뷰 페이지 HTML -->
+<!-- ════════════════════════════════════════════════ -->
+<div id="view-yearly" class="review-page">
+  <div class="review-header">
+    <button class="review-nav-btn" onclick="yearlyOffset--; loadYearly()">&#8249;</button>
+    <div style="flex:1;text-align:center">
+      <div class="review-title">연간 리뷰</div>
+      <div class="review-range" id="yearly-range">-</div>
+    </div>
+    <button class="review-nav-btn" onclick="yearlyOffset++; loadYearly()">&#8250;</button>
+  </div>
+  <div id="yearly-body"><div class="rv-spinner">데이터 불러오는 중...</div></div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- 리뷰 페이지 JavaScript -->
+<!-- ════════════════════════════════════════════════ -->
+<script>
+// ── 공통 유틸 ──
+let weeklyOffset = 0, monthlyOffset = 0, yearlyOffset = 0;
+
+const CAT_LABEL = { work:'업무', job:'직무', growth:'성장', personal:'개인' };
+const DOW_LABEL = ['일','월','화','수','목','금','토'];
+const MONTH_LABEL = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+function fmtDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function rateColor(rate) {
+  if (rate === 0) return 'rgba(91,95,199,.08)';
+  if (rate < 50) return 'rgba(91,95,199,.25)';
+  if (rate < 80) return 'rgba(91,95,199,.55)';
+  return 'var(--primary)';
+}
+
+function rateClass(rate) {
+  if (!rate || rate === 0) return 'cal-c0';
+  if (rate < 50) return 'cal-c1';
+  if (rate < 80) return 'cal-c2';
+  return 'cal-c3';
+}
+
+async function callAiReview(userMessage, resultId, btnId) {
+  const apiKey = loadClaudeKey();
+  if (!apiKey) { showToast('API Key를 먼저 저장해주세요 🔑'); return; }
+  const btn = document.getElementById(btnId);
+  const res = document.getElementById(resultId);
+  btn.disabled = true;
+  btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;animation:spin .8s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> 분석 중...';
+  res.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">AI가 분석하고 있어요... ✨</div>';
+  try {
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
+      body:JSON.stringify({
+        model:'gpt-4o-mini', max_tokens:1000,
+        messages:[
+          {role:'system',content:'당신은 개인 생산성 코치입니다. 한국어로 구체적이고 따뜻하게 피드백하세요.'},
+          {role:'user',content:userMessage}
+        ]
+      })
+    });
+    if (!r.ok) throw new Error(`API 오류 ${r.status}`);
+    const data = await r.json();
+    res.innerHTML = `<div class="ai-review-result">${(data.choices?.[0]?.message?.content||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
+  } catch(e) {
+    res.innerHTML = `<div style="color:#dc2626;font-size:12.5px;padding:10px;background:#fee2e2;border-radius:8px;">오류: ${e.message}</div>`;
+  }
+  btn.disabled = false;
+  btn.innerHTML = '✨ AI 총평 다시 받기';
+}
+
+// ════════════════════════════════════════════════
+// ── 주간 리뷰 ──
+// ════════════════════════════════════════════════
+async function loadWeekly() {
+  document.getElementById('weekly-body').innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
+
+  // 이번 주 월요일~일요일 계산
+  const today = new Date();
+  const dow = today.getDay(); // 0=일
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((dow === 0 ? 7 : dow) - 1) + weeklyOffset * 7);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  const startStr = fmtDateStr(monday);
+  const endStr = fmtDateStr(sunday);
+  document.getElementById('weekly-range').textContent =
+    `${monday.getMonth()+1}월 ${monday.getDate()}일 ~ ${sunday.getMonth()+1}월 ${sunday.getDate()}일`;
+
+  // 데이터 조회
+  const [{ data: todoData }, { data: routineData }, { data: reflectData }] = await Promise.all([
+    sb.from('todos').select('log_date,category,done').gte('log_date', startStr).lte('log_date', endStr),
+    sb.from('routine_logs').select('log_date,routine_id,done').gte('log_date', startStr).lte('log_date', endStr),
+    sb.from('reflections').select('log_date,mood,good_things,regrets,tomorrow_goal').gte('log_date', startStr).lte('log_date', endStr).order('log_date', {ascending:false})
+  ]);
+
+  const todos = todoData || [];
+  const logs = routineData || [];
+  const reflects = reflectData || [];
+
+  // 완료율 계산
+  const doneAll = todos.filter(t => t.done).length;
+  const totalAll = todos.length;
+  const overallRate = totalAll > 0 ? Math.round(doneAll / totalAll * 100) : 0;
+
+  // 루틴 달성률
+  const routineDone = logs.filter(l => l.done).length;
+  const routineTotal = logs.length;
+  const routineRate = routineTotal > 0 ? Math.round(routineDone / routineTotal * 100) : 0;
+
+  // 카테고리별
+  const cats = { work:[], job:[], growth:[], personal:[] };
+  todos.forEach(t => { if (cats[t.category]) cats[t.category].push(t); });
+  let bestCat = '-', bestCatRate = -1;
+  Object.entries(cats).forEach(([cat, items]) => {
+    const r = items.length > 0 ? items.filter(t=>t.done).length / items.length * 100 : 0;
+    if (r > bestCatRate) { bestCatRate = r; bestCat = CAT_LABEL[cat] || cat; }
+  });
+
+  // 요일별 완료 수
+  const days = Array.from({length:7}, (_,i) => {
+    const d = new Date(monday); d.setDate(monday.getDate() + i);
+    return { date: d, str: fmtDateStr(d), label: DOW_LABEL[d.getDay()] };
+  });
+  const maxDayDone = Math.max(1, ...days.map(day =>
+    todos.filter(t => t.log_date === day.str && t.done).length
+  ));
+
+  // 루틴 항목별 달성 현황
+  const routineItems = [...(routines.morning || []), ...(routines.daytime || []), ...(routines.night || [])];
+  const routineLogs7 = days.map(day => {
+    const dayLogs = logs.filter(l => l.log_date === day.str);
+    return { date: day, logs: dayLogs };
+  });
+
+  // AI 총평용 메시지
+  const aiMsg = `[주간 리포트: ${startStr} ~ ${endStr}]
+할일 완료율: ${doneAll}/${totalAll} (${overallRate}%)
+루틴 달성률: ${routineDone}/${routineTotal} (${routineRate}%)
+카테고리별: ${Object.entries(cats).map(([k,v])=>`${CAT_LABEL[k]} ${v.filter(t=>t.done).length}/${v.length}`).join(', ')}
+성찰 작성일: ${reflects.length}일
+이번 주 총평을 아래 형식으로 주세요:
+📊 이번 주 성과 요약 / ✅ 잘한 점 2가지 / 💡 아쉬운 점 2가지 / 🎯 다음 주 개선 제안 2가지 / 💬 응원 한마디`;
+
+  // HTML 렌더링
+  const html = `
+  <div class="rv-stat-grid">
+    <div class="rv-stat-card">
+      <div class="rv-stat-label">할일 완료율</div>
+      <div class="rv-stat-value">${overallRate}<span style="font-size:14px;font-weight:500;color:var(--text-muted)">%</span></div>
+      <div class="rv-stat-sub">${doneAll} / ${totalAll} 완료</div>
+    </div>
+    <div class="rv-stat-card">
+      <div class="rv-stat-label">루틴 달성률</div>
+      <div class="rv-stat-value">${routineRate}<span style="font-size:14px;font-weight:500;color:var(--text-muted)">%</span></div>
+      <div class="rv-stat-sub">${routineDone} / ${routineTotal} 달성</div>
+    </div>
+    <div class="rv-stat-card">
+      <div class="rv-stat-label">성찰 작성일</div>
+      <div class="rv-stat-value">${reflects.length}<span style="font-size:14px;font-weight:500;color:var(--text-muted)">일</span></div>
+      <div class="rv-stat-sub">이번 주 7일 중</div>
+    </div>
+    <div class="rv-stat-card">
+      <div class="rv-stat-label">최우수 카테고리</div>
+      <div class="rv-stat-value" style="font-size:18px">${bestCat}</div>
+      <div class="rv-stat-sub">${Math.round(bestCatRate)}% 달성</div>
+    </div>
+  </div>
+
+  <div class="rv-card">
+    <div class="rv-card-title">📅 요일별 할일 완료 현황</div>
+    ${todos.length === 0 ? '<div class="rv-empty">이번 주 할일 데이터가 없어요</div>' : `
+    <div class="day-bars">
+      ${days.map((day, i) => {
+        const doneN = todos.filter(t => t.log_date === day.str && t.done).length;
+        const totalN = todos.filter(t => t.log_date === day.str).length;
+        const rate = totalN > 0 ? doneN / totalN : 0;
+        const h = Math.round(rate * 75);
+        const isToday = day.str === fmtDateStr(new Date());
+        return `<div class="day-bar-wrap ${isToday ? 'day-bar-today' : ''}">
+          <div class="day-bar-num">${doneN}</div>
+          <div class="day-bar-track">
+            <div class="day-bar-fill" style="height:${h}px;background:${rateColor(rate*100)};"></div>
+          </div>
+          <div class="day-bar-label">${day.label}${isToday ? '●' : ''}</div>
+        </div>`;
+      }).join('')}
+    </div>`}
+  </div>
+
+  <div class="rv-card">
+    <div class="rv-card-title">📂 카테고리별 완료율</div>
+    ${Object.entries(cats).map(([cat, items]) => {
+      const r = items.length > 0 ? Math.round(items.filter(t=>t.done).length / items.length * 100) : 0;
+      return `<div class="prog-item">
+        <div class="prog-header">
+          <span class="prog-label">${CAT_LABEL[cat]}</span>
+          <span class="prog-val">${r}% (${items.filter(t=>t.done).length}/${items.length})</span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" style="width:${r}%"></div></div>
+      </div>`;
+    }).join('')}
+  </div>
+
+  <div class="rv-card">
+    <div class="rv-card-title">⚡ 루틴 달성 현황</div>
+    ${routineItems.length === 0 ? '<div class="rv-empty">루틴이 설정되지 않았어요</div>' : `
+    <div class="routine-grid">
+      ${routineItems.map(r => {
+        const dots = days.map(day => {
+          const logEntry = logs.find(l => l.log_date === day.str && l.routine_id === r.id);
+          const isPast = day.date <= new Date();
+          const cls = !isPast ? 'future' : (logEntry && logEntry.done ? 'done' : 'miss');
+          return `<div class="routine-dot ${cls}" title="${day.label}">${cls === 'done' ? '✓' : (cls === 'future' ? '' : '✗')}</div>`;
+        }).join('');
+        const doneCount = days.filter(day => logs.find(l => l.log_date === day.str && l.routine_id === r.id && l.done)).length;
+        return `<div class="routine-row">
+          <div class="routine-row-label">${r.text || r.name || r.id}</div>
+          <div class="routine-dots">${dots}</div>
+          <div style="font-size:11.5px;color:var(--text-muted);margin-left:8px;">${doneCount}/7일</div>
+        </div>`;
+      }).join('')}
+    </div>`}
+  </div>
+
+  ${reflects.length > 0 ? `
+  <div class="rv-card">
+    <div class="rv-card-title">📝 이번 주 성찰 모아보기</div>
+    <div>
+      ${reflects.map((ref, i) => `
+      <div class="reflect-item">
+        <button class="reflect-toggle" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+          <span>${ref.log_date}</span>
+          <span class="chevron">▼</span>
+        </button>
+        <div class="reflect-body">
+          ${ref.mood ? `<div class="reflect-field"><strong>감사한 일</strong><span>${ref.mood}</span></div>` : ''}
+          ${ref.good_things ? `<div class="reflect-field"><strong>잘한 일</strong><span>${ref.good_things}</span></div>` : ''}
+          ${ref.regrets ? `<div class="reflect-field"><strong>아쉬운 점</strong><span>${ref.regrets}</span></div>` : ''}
+          ${ref.tomorrow_goal ? `<div class="reflect-field"><strong>내일 다짐</strong><span>${ref.tomorrow_goal}</span></div>` : ''}
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>` : ''}
+
+  <div class="rv-card">
+    <div class="rv-card-title">🤖 AI 주간 총평</div>
+    <button class="ai-review-btn" id="weekly-ai-btn" onclick="callAiReview(${JSON.stringify(aiMsg).replace(/</g,'\\u003c')},'weekly-ai-result','weekly-ai-btn')">
+      ✨ AI 주간 총평 받기
+    </button>
+    <div id="weekly-ai-result"></div>
+  </div>`;
+
+  document.getElementById('weekly-body').innerHTML = html;
+}
+
+// ════════════════════════════════════════════════
+// ── 월간 리뷰 ──
+// ════════════════════════════════════════════════
+async function loadMonthly() {
+  document.getElementById('monthly-body').innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + monthlyOffset;
+  const targetDate = new Date(year, month, 1);
+  const targetYear = targetDate.getFullYear();
+  const targetMonth = targetDate.getMonth();
+
+  const startDate = new Date(targetYear, targetMonth, 1);
+  const endDate = new Date(targetYear, targetMonth + 1, 0);
+  const startStr = fmtDateStr(startDate);
+  const endStr = fmtDateStr(endDate);
+
+  document.getElementById('monthly-range').textContent =
+    `${targetYear}년 ${targetMonth + 1}월`;
+
+  const [{ data: todoData }, { data: routineData }, { data: reflectData }] = await Promise.all([
+    sb.from('todos').select('log_date,category,done').gte('log_date', startStr).lte('log_date', endStr),
+    sb.from('routine_logs').select('log_date,routine_id,done').gte('log_date', startStr).lte('log_date', endStr),
+    sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr)
+  ]);
+
+  const todos = todoData || [];
+  const logs = routineData || [];
+  const reflects = reflectData || [];
+
+  // 날짜별 완료율 맵
+  const dayMap = {};
+  todos.forEach(t => {
+    if (!dayMap[t.log_date]) dayMap[t.log_date] = { done: 0, total: 0 };
+    dayMap[t.log_date].total++;
+    if (t.done) dayMap[t.log_date].done++;
+  });
+
+  // 통계
+  const totalDone = todos.filter(t=>t.done).length;
+  const totalTasks = todos.length;
+  const routineDone = logs.filter(l=>l.done).length;
+  const routineTotal = logs.length;
+  const routineRate = routineTotal > 0 ? Math.round(routineDone/routineTotal*100) : 0;
+  const reflectDays = reflects.length;
+
+  // 요일별 생산성
+  const dowScore = Array(7).fill(0).map(()=>({done:0,total:0}));
+  todos.forEach(t => {
+    const d = new Date(t.log_date);
+    dowScore[d.getDay()].total++;
+    if (t.done) dowScore[d.getDay()].done++;
+  });
+  const bestDow = dowScore.reduce((best, cur, i) => {
+    const r = cur.total > 0 ? cur.done/cur.total : 0;
+    const bestR = best.total > 0 ? best.done/best.total : 0;
+    return r > bestR ? {...cur, i} : best;
+  }, {...dowScore[0], i:0});
+
+  // 루틴 TOP 3
+  const routineItems = [...(routines.morning||[]), ...(routines.daytime||[]), ...(routines.night||[])];
+  const routineRates = routineItems.map(r => {
+    const relevant = logs.filter(l => l.routine_id === r.id);
+    const rate = relevant.length > 0 ? Math.round(relevant.filter(l=>l.done).length / endDate.getDate() * 100) : 0;
+    return { text: r.text || r.name || r.id, rate };
+  }).sort((a,b) => b.rate - a.rate).slice(0,3);
+
+  // 캘린더 그리드
+  const firstDow = startDate.getDay();
+  const daysInMonth = endDate.getDate();
+  const todayStr2 = fmtDateStr(new Date());
+
+  const catData = { work:[], job:[], growth:[], personal:[] };
+  todos.forEach(t => { if (catData[t.category]) catData[t.category].push(t); });
+
+  const aiMsg = `[월간 리포트: ${targetYear}년 ${targetMonth+1}월]
+할일 총 완료: ${totalDone}/${totalTasks}
+루틴 달성률: ${routineRate}%
+성찰 작성일: ${reflectDays}일
+이번 달 총평을 아래 형식으로 주세요:
+📊 이번 달 성과 요약 / ✅ 잘한 점 2가지 / 💡 아쉬운 점 2가지 / 🎯 다음 달 개선 제안 2가지 / 💬 응원 한마디`;
+
+  const calCells = [];
+  for (let i = 0; i < firstDow; i++) calCells.push('<div class="cal-cell cal-empty"></div>');
+  for (let d = 1; d <= daysInMonth; d++) {
+    const str = `${targetYear}-${String(targetMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dp = dayMap[str];
+    const rate = dp && dp.total > 0 ? Math.round(dp.done / dp.total * 100) : (dp ? 0 : -1);
+    const cls = rate < 0 ? 'cal-c0' : rateClass(rate);
+    const todayCls = str === todayStr2 ? 'cal-today' : '';
+    calCells.push(`<div class="cal-cell ${cls} ${todayCls}" title="${d}일 ${rate>=0?rate+'%':'데이터없음'}">${d}</div>`);
+  }
+
+  const html = `
+  <div class="rv-stat-grid">
+    <div class="rv-stat-card">
+      <div class="rv-stat-label">총 완료 할일</div>
+      <div class="rv-stat-value">${totalDone}</div>
+      <div class="rv-stat-sub">전체 ${totalTasks}개 중</div>
+    </div>
+    <div class="rv-stat-card">
+      <div class="rv-stat-label">루틴 달성률</div>
+      <div class="rv-stat-value">${routineRate}<span style="font-size:14px;font-weight:500;color:var(--text-muted)">%</span></div>
+      <div class="rv-stat-sub">${routineDone}/${routineTotal} 달성</div>
+    </div>
+    <div class="rv-stat-card">
+      <div class="rv-stat-label">성찰 작성일</div>
+      <div class="rv-stat-value">${reflectDays}<span style="font-size:14px;color:var(--text-muted)">일</span></div>
+      <div class="rv-stat-sub">${daysInMonth}일 중</div>
+    </div>
+    <div class="rv-stat-card">
+      <div class="rv-stat-label">가장 생산적인 요일</div>
+      <div class="rv-stat-value" style="font-size:20px">${DOW_LABEL[bestDow.i]}요일</div>
+      <div class="rv-stat-sub">${bestDow.total > 0 ? Math.round(bestDow.done/bestDow.total*100) : 0}% 완료율</div>
+    </div>
+  </div>
+
+  <div class="rv-card">
+    <div class="rv-card-title">📆 월간 캘린더 히트맵</div>
+    <div class="cal-grid">
+      ${DOW_LABEL.map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+      ${calCells.join('')}
+    </div>
+    <div style="display:flex;gap:12px;margin-top:10px;font-size:11px;color:var(--text-muted);flex-wrap:wrap;">
+      <span><span style="display:inline-block;width:12px;height:12px;background:var(--hover);border-radius:3px;vertical-align:middle;"></span> 데이터없음</span>
+      <span><span style="display:inline-block;width:12px;height:12px;background:rgba(91,95,199,.2);border-radius:3px;vertical-align:middle;"></span> 1~49%</span>
+      <span><span style="display:inline-block;width:12px;height:12px;background:rgba(91,95,199,.55);border-radius:3px;vertical-align:middle;"></span> 50~79%</span>
+      <span><span style="display:inline-block;width:12px;height:12px;background:var(--primary);border-radius:3px;vertical-align:middle;"></span> 80~100%</span>
+    </div>
+  </div>
+
+  <div class="rv-card">
+    <div class="rv-card-title">📂 카테고리별 완료 현황</div>
+    ${Object.entries(catData).map(([cat, items]) => {
+      const done = items.filter(t=>t.done).length;
+      const rate = items.length > 0 ? Math.round(done/items.length*100) : 0;
+      return `<div class="prog-item">
+        <div class="prog-header">
+          <span class="prog-label">${CAT_LABEL[cat]}</span>
+          <span class="prog-val">${done}개 / ${rate}%</span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" style="width:${rate}%"></div></div>
+      </div>`;
+    }).join('')}
+  </div>
+
+  ${routineRates.length > 0 ? `
+  <div class="rv-card">
+    <div class="rv-card-title">🏆 이번 달 잘 지킨 루틴 TOP 3</div>
+    ${routineRates.map((r,i) => `
+    <div class="top3-item">
+      <div class="top3-rank">${i+1}</div>
+      <div class="top3-label">${r.text}</div>
+      <div class="top3-rate">${r.rate}%</div>
+    </div>`).join('')}
+  </div>` : ''}
+
+  <div class="rv-card">
+    <div class="rv-card-title">🤖 AI 월간 총평</div>
+    <button class="ai-review-btn" id="monthly-ai-btn" onclick="callAiReview(${JSON.stringify(aiMsg).replace(/</g,'\\u003c')},'monthly-ai-result','monthly-ai-btn')">
+      ✨ AI 월간 총평 받기
+    </button>
+    <div id="monthly-ai-result"></div>
+  </div>`;
+
+  document.getElementById('monthly-body').innerHTML = html;
+}
+
+// ════════════════════════════════════════════════
+// ── 연간 리뷰 ──
+// ════════════════════════════════════════════════
+async function loadYearly() {
+  document.getElementById('yearly-body').innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
+
+  const targetYear = new Date().getFullYear() + yearlyOffset;
+  const startStr = `${targetYear}-01-01`;
+  const endStr = `${targetYear}-12-31`;
+
+  document.getElementById('yearly-range').textContent = `${targetYear}년`;
+
+  const [{ data: todoData }, { data: routineData }, { data: reflectData }] = await Promise.all([
+    sb.from('todos').select('log_date,done').gte('log_date', startStr).lte('log_date', endStr),
+    sb.from('routine_logs').select('log_date,done').gte('log_date', startStr).lte('log_date', endStr),
+    sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr)
+  ]);
+
+  const todos = todoData || [];
+  const logs = routineData || [];
+  const reflects = reflectData || [];
+
+  // 날짜별 완료율 맵
+  const dayMap = {};
+  todos.forEach(t => {
+    if (!dayMap[t.log_date]) dayMap[t.log_date] = { done:0, total:0 };
+    dayMap[t.log_date].total++;
+    if (t.done) dayMap[t.log_date].done++;
+  });
+
+  // 월별 통계
+  const monthStats = Array.from({length:12}, (_,m) => {
+    const ms = `${targetYear}-${String(m+1).padStart(2,'0')}`;
+    const mTodos = todos.filter(t => t.log_date.startsWith(ms));
+    const mLogs = logs.filter(l => l.log_date.startsWith(ms));
+    const rate = mTodos.length > 0 ? Math.round(mTodos.filter(t=>t.done).length/mTodos.length*100) : 0;
+    const rRate = mLogs.length > 0 ? Math.round(mLogs.filter(l=>l.done).length/mLogs.length*100) : 0;
+    return { month:m+1, rate, rRate, done:mTodos.filter(t=>t.done).length, total:mTodos.length };
+  });
+
+  const totalDone = todos.filter(t=>t.done).length;
+  const routineDone = logs.filter(l=>l.done).length;
+  const routineTotal = logs.length;
+  const routineRate = routineTotal > 0 ? Math.round(routineDone/routineTotal*100) : 0;
+  const bestMonth = monthStats.reduce((b,m) => m.rate > b.rate ? m : b, monthStats[0]);
+
+  // 히트맵 — 월별 날짜 컬럼
+  const isLeap = (targetYear % 4 === 0 && targetYear % 100 !== 0) || targetYear % 400 === 0;
+  const daysInMonth = [31,isLeap?29:28,31,30,31,30,31,31,30,31,30,31];
+  const todayStr3 = fmtDateStr(new Date());
+
+  const maxBar = Math.max(1, ...monthStats.map(m=>m.rate));
+
+  const aiMsg = `[연간 리포트: ${targetYear}년]
+총 완료 할일: ${totalDone}개
+루틴 달성률: ${routineRate}%
+성찰 작성일: ${reflects.length}일
+가장 생산적인 달: ${bestMonth.month}월 (${bestMonth.rate}%)
+연간 총평을 아래 형식으로 주세요:
+📊 올해 성과 요약 / ✅ 잘한 점 2가지 / 💡 아쉬운 점 2가지 / 🎯 내년을 위한 개선 제안 2가지 / 💬 응원 한마디`;
+
+  const html = `
+  <div class="rv-stat-grid">
+    <div class="rv-stat-card">
+      <div class="rv-stat-label">총 완료 할일</div>
+      <div class="rv-stat-value">${totalDone}</div>
+      <div class="rv-stat-sub">전체 ${todos.length}개 중</div>
+    </div>
+    <div class="rv-stat-card">
+      <div class="rv-stat-label">루틴 달성률</div>
+      <div class="rv-stat-value">${routineRate}<span style="font-size:14px;color:var(--text-muted)">%</span></div>
+      <div class="rv-stat-sub">${routineDone}/${routineTotal} 달성</div>
+    </div>
+    <div class="rv-stat-card">
+      <div class="rv-stat-label">성찰 작성일</div>
+      <div class="rv-stat-value">${reflects.length}<span style="font-size:14px;color:var(--text-muted)">일</span></div>
+      <div class="rv-stat-sub">${targetYear}년 전체</div>
+    </div>
+    <div class="rv-stat-card">
+      <div class="rv-stat-label">가장 생산적인 달</div>
+      <div class="rv-stat-value" style="font-size:20px">${bestMonth.month}월</div>
+      <div class="rv-stat-sub">${bestMonth.rate}% 완료율</div>
+    </div>
+  </div>
+
+  <div class="rv-card">
+    <div class="rv-card-title">🌱 연간 히트맵 (GitHub 잔디)</div>
+    <div class="yearly-heatmap">
+      <div class="yearly-months">
+        ${Array.from({length:12}, (_,m) => {
+          const dim = daysInMonth[m];
+          const firstDay = new Date(targetYear, m, 1).getDay();
+          const cells = [];
+          for (let i=0; i<firstDay; i++) cells.push('<div class="yr-cell" style="background:transparent"></div>');
+          for (let d=1; d<=dim; d++) {
+            const str = `${targetYear}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const dp = dayMap[str];
+            const rate = dp && dp.total > 0 ? Math.round(dp.done/dp.total*100) : (dp ? 0 : -1);
+            const cls = rate < 0 ? 'yr-c0' : (rate===0?'yr-c0':rate<50?'yr-c1':rate<80?'yr-c2':'yr-c3');
+            const isTd = str === todayStr3;
+            cells.push(`<div class="yr-cell ${cls}" style="${isTd?'box-shadow:0 0 0 1.5px var(--primary);':''}" title="${m+1}/${d} ${rate>=0?rate+'%':''}"></div>`);
+          }
+          return `<div class="yearly-month-col">
+            <div class="yearly-month-label">${m+1}월</div>
+            <div class="yearly-month-grid">${cells.join('')}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div class="rv-card">
+    <div class="rv-card-title">📊 월별 할일 완료율</div>
+    ${monthStats.every(m=>m.total===0) ? '<div class="rv-empty">아직 데이터가 없어요</div>' : `
+    <div class="bar-chart" style="align-items:flex-end;">
+      ${monthStats.map(m => {
+        const h = maxBar > 0 ? Math.round(m.rate / maxBar * 88) : 0;
+        return `<div class="bar-col">
+          <div class="bar-col-val">${m.rate > 0 ? m.rate+'%' : ''}</div>
+          <div class="bar-col-fill" style="height:${h}px;"></div>
+          <div class="bar-col-label">${m.month}월</div>
+        </div>`;
+      }).join('')}
+    </div>`}
+  </div>
+
+  <div class="rv-card">
+    <div class="rv-card-title">🤖 AI 연간 총평</div>
+    <button class="ai-review-btn" id="yearly-ai-btn" onclick="callAiReview(${JSON.stringify(aiMsg).replace(/</g,'\\u003c')},'yearly-ai-result','yearly-ai-btn')">
+      ✨ AI 연간 총평 받기
+    </button>
+    <div id="yearly-ai-result"></div>
+  </div>`;
+
+  document.getElementById('yearly-body').innerHTML = html;
+}
+</script>
 
 </body></html>
