@@ -606,7 +606,23 @@ body {
 }
 
 
-@keyframes spin { to { transform: rotate(360deg); } }
+  /* 반복업무 관리 페이지용 CSS */
+  .recurring-section { margin-bottom: 24px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .recurring-header { font-size: 16px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; color: var(--text); }
+  .recurring-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; border-bottom: 1px solid var(--border); }
+  .recurring-item:last-child { border-bottom: none; }
+  .recurring-label { flex: 1; font-size: 15px; }
+  .recurring-actions { display: flex; gap: 8px; }
+  .recurring-btn { background: none; border: none; padding: 4px; border-radius: 4px; cursor: pointer; color: var(--text-muted); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+  .recurring-btn:hover { background: rgba(0,0,0,0.05); color: var(--text); }
+  .recurring-btn.delete:hover { color: #ef4444; background: #fee2e2; }
+  .add-routine-box { display: flex; gap: 8px; margin-top: 12px; padding: 0 4px; }
+  .add-routine-input { flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s; background: var(--bg); color: var(--text); }
+  .add-routine-input:focus { border-color: var(--primary); }
+  .add-routine-btn { background: var(--primary); color: white; border: none; padding: 0 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+  .add-routine-btn:hover { opacity: 0.9; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -662,7 +678,7 @@ body {
         <a class="nav-item" onclick="navigate(&#39;projects&#39;)">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="folder-kanban" aria-hidden="true" class="lucide lucide-folder-kanban"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path><path d="M8 10v4"></path><path d="M12 10v2"></path><path d="M16 10v6"></path></svg> 프로젝트
         </a>
-        <a class="nav-item" id="nav-recurring" onclick="navigate(&#39;recurring&#39;)">
+        <a class="nav-item" id="nav-recurring" onclick="openRoutineModal()">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="repeat" aria-hidden="true" class="lucide lucide-repeat"><path d="m17 2 4 4-4 4"></path><path d="M3 11v-1a4 4 0 0 1 4-4h14"></path><path d="m7 22-4-4 4-4"></path><path d="M21 13v1a4 4 0 0 1-4 4H3"></path></svg> 반복 업무
         </a>
       </div>
@@ -932,6 +948,8 @@ body {
     </div><!-- /content-grid -->
     </div><!-- /page-today -->
 
+    <!-- RECURRING PAGE REPLACED BY MODAL -->
+
     <!-- WEEKLY PAGE -->
     <div id="page-weekly" style="display:none;padding:20px 28px;"></div>
     <!-- MONTHLY PAGE -->
@@ -940,6 +958,22 @@ body {
     <div id="page-yearly" style="display:none;padding:20px 28px;"></div>
 
   </main>
+</div>
+
+<!-- ROUTINE SETTINGS MODAL -->
+<div class="modal-backdrop hidden" id="routineModal" style="z-index: 2000;">
+  <div class="modal" style="width: 480px;">
+    <div class="modal-header">
+      <h3>🔄 반복 업무(루틴) 설정</h3>
+      <p>매일 실천할 루틴을 추가하고 관리하세요.</p>
+    </div>
+    <div class="modal-body" id="routineModalBody" style="max-height: 50vh; overflow-y: auto; padding-right: 12px;">
+      <!-- JS 렌더링 -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="closeRoutineModal()">닫기</button>
+    </div>
+  </div>
 </div>
 
 <!-- CARRY-OVER MODAL -->
@@ -1011,12 +1045,26 @@ async function loadData() {
   const date = todayStr();
 
   try {
-    // 1) 루틴 정의 불러오기
-    const { data: routineList } = await sb
-      .from('routines')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order');
+    // 1) 루틴 정의 불러오기 (localStorage)
+    let customRoutinesStr = localStorage.getItem('custom_routines');
+    let routineList = [];
+    if (!customRoutinesStr) {
+      routineList = [
+        { id: 'eb9d2d2b-8c12-436a-abcf-29e7fe8a39c9', label: '기상 후 물 한 잔 마시기', time_of_day: 'morning', sort_order: 1, is_active: true },
+        { id: '0ff02213-91db-46b2-9ec0-8a09c05b76ec', label: '10분 스트레칭', time_of_day: 'morning', sort_order: 2, is_active: true },
+        { id: '018f0c09-357f-4674-b6bc-db8aa456239f', label: '오늘 할일 계획 정리', time_of_day: 'morning', sort_order: 3, is_active: true },
+        { id: '7c35d46f-a653-41c4-bdbf-c81c39034d33', label: '출근길에 영어공부', time_of_day: 'morning', sort_order: 4, is_active: true },
+        { id: 'b0ea37af-9d67-48af-9954-7792a71fd5e9', label: '30분 독서', time_of_day: 'daytime', sort_order: 1, is_active: true },
+        { id: '7b9d3081-2c37-4152-a9b1-0ec3a1fc5c26', label: '점심 산책 20분', time_of_day: 'daytime', sort_order: 2, is_active: true },
+        { id: '0c876ef5-4b83-4f39-a737-1b0d0c69dedb', label: '이메일 정리', time_of_day: 'daytime', sort_order: 3, is_active: true },
+        { id: 'd0cae5f5-7b3b-4ce0-a61f-d26c5fc3efd3', label: '일기 쓰기', time_of_day: 'night', sort_order: 1, is_active: true },
+        { id: 'b75fefd8-8bfc-4f7f-afbd-e9b4db70bd49', label: '내일 입을 옷 준비', time_of_day: 'night', sort_order: 2, is_active: true },
+        { id: '91f0c2e3-b4e6-455f-864a-25c7e1f7ac9c', label: '스마트폰 멀리두기', time_of_day: 'night', sort_order: 3, is_active: true }
+      ];
+      localStorage.setItem('custom_routines', JSON.stringify(routineList));
+    } else {
+      routineList = JSON.parse(customRoutinesStr).filter(r => r.is_active !== false);
+    }
 
     // 2) 오늘 루틴 체크 기록 불러오기
     const { data: logs } = await sb
@@ -1385,9 +1433,12 @@ function navigate(page) {
   document.querySelectorAll('.mob-tab').forEach(el => el.classList.remove('active'));
   const mobEl = document.getElementById('mob-' + page);
   if (mobEl) mobEl.classList.add('active');
+  
   PAGES.forEach(p => { const el = document.getElementById('page-' + p); if (el) el.style.display = 'none'; });
+  
   const dateBar = document.querySelector('.date-bar');
   if (dateBar) dateBar.style.display = page === 'today' ? '' : 'none';
+  
   const target = document.getElementById('page-' + page);
   if (target) {
     target.style.display = '';
@@ -1839,6 +1890,133 @@ async function callAiReview(userMessage, resultId, btnId) {
 // ════════════════════════════════════════════════
 // ── 주간 리뷰 ──
 // ════════════════════════════════════════════════
+// ── 반복 업무 관리 (Local Storage CRUD) ──
+function getLocalRoutines() {
+  const customRoutinesStr = localStorage.getItem('custom_routines');
+  return customRoutinesStr ? JSON.parse(customRoutinesStr) : [];
+}
+
+function saveLocalRoutines(list) {
+  localStorage.setItem('custom_routines', JSON.stringify(list));
+}
+
+function openRoutineModal() {
+  document.getElementById('routineModal').classList.remove('hidden');
+  renderRoutineModal();
+}
+
+function closeRoutineModal() {
+  document.getElementById('routineModal').classList.add('hidden');
+}
+
+function renderRoutineModal() {
+  const list = getLocalRoutines();
+  const map = { morning: [], daytime: [], night: [] };
+  const labelMap = { morning: '모닝 루틴 🌅', daytime: '데이타임 루틴 ☀️', night: '나이트 루틴 🌙' };
+  
+  list.forEach(r => {
+    if (r.is_active !== false && map[r.time_of_day]) map[r.time_of_day].push(r);
+  });
+
+  ['morning', 'daytime', 'night'].forEach(t => {
+    if (map[t]) map[t].sort((a, b) => (a.sort_order || 99) - (b.sort_order || 99));
+  });
+
+  let html = '';
+  ['morning', 'daytime', 'night'].forEach(t => {
+    html += '<div class="recurring-section">';
+    html += '<div class="recurring-header">' + labelMap[t] + '</div>';
+    
+    const arr = map[t];
+    if (arr.length === 0) {
+      html += '<div style="padding:10px;text-align:center;color:var(--text-muted);font-size:14px;">등록된 루틴이 없습니다.</div>';
+    } else {
+      html += '<div class="recurring-list">';
+      arr.forEach(r => {
+        let escLabel = r.label.replace(/'/g, "\\'");
+        html += `
+          <div class="recurring-item" id="rec-${r.id}">
+            <span class="recurring-label">${r.label}</span>
+            <div class="recurring-actions">
+              <button class="recurring-btn" onclick="editLocalRoutine('${r.id}', '${escLabel}')" title="수정">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+              </button>
+              <button class="recurring-btn delete" onclick="deleteLocalRoutine('${r.id}')" title="삭제">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+    }
+    
+    html += `
+      <div class="add-routine-box">
+        <input type="text" class="add-routine-input" id="addInput_${t}" placeholder="${labelMap[t].split(' ')[0]} 추가..." onkeydown="if(event.key === 'Enter'){addLocalRoutine('${t}', this.id)}">
+        <button class="add-routine-btn" onclick="addLocalRoutine('${t}', 'addInput_${t}')">추가</button>
+      </div>
+    `;
+    html += '</div>';
+  });
+  
+  document.getElementById('routineModalBody').innerHTML = html;
+}
+
+async function addLocalRoutine(time_of_day, inputId) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  const label = el.value.trim();
+  if (!label) return;
+  
+  el.disabled = true;
+  const list = getLocalRoutines();
+  list.push({
+    id: crypto.randomUUID(),
+    label: label,
+    time_of_day: time_of_day,
+    is_active: true,
+    sort_order: 99
+  });
+  saveLocalRoutines(list);
+  
+  el.value = '';
+  el.disabled = false;
+  showToast('루틴이 추가되었습니다.');
+  renderRoutineModal();
+  await loadData();
+}
+
+async function editLocalRoutine(id, oldLabel) {
+  const newLabel = prompt('루틴 이름을 수정하세요:', oldLabel);
+  if (newLabel === null || newLabel.trim() === '' || newLabel.trim() === oldLabel) return;
+  
+  const list = getLocalRoutines();
+  const idx = list.findIndex(r => r.id === id);
+  if (idx !== -1) {
+    list[idx].label = newLabel.trim();
+    saveLocalRoutines(list);
+    showToast('수정되었습니다.');
+    renderRoutineModal();
+    await loadData();
+  }
+}
+
+async function deleteLocalRoutine(id) {
+  if (!confirm('정말 삭제하시겠습니까? (과거 완료 기록은 유지됩니다)')) return;
+  
+  const list = getLocalRoutines();
+  const idx = list.findIndex(r => r.id === id);
+  if (idx !== -1) {
+    list[idx].is_active = false;
+    saveLocalRoutines(list);
+    showToast('삭제되었습니다.');
+    renderRoutineModal();
+    await loadData();
+  }
+}
+
+
 async function loadWeeklyPage() {
   document.getElementById('page-weekly').innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
 
