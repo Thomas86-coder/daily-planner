@@ -623,6 +623,67 @@ body {
   .add-routine-btn:hover { opacity: 0.9; }
 
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* M: Goals Page CSS */
+  .goals-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 16px;
+  }
+  @media (max-width: 768px) {
+    .goals-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+  .goals-col-header {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .goals-column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .goal-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 16px;
+    border-left: 5px solid transparent;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .theme-dream { border-left-color: #fbbf24; background: rgba(251, 191, 36, 0.05); }
+  .theme-growth { border-left-color: #34d399; background: rgba(52, 211, 153, 0.05); }
+  .theme-relation { border-left-color: #fb923c; background: rgba(251, 146, 60, 0.05); }
+  .theme-work { border-left-color: #60a5fa; background: rgba(96, 165, 250, 0.05); }
+  
+  .goal-card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .goal-editor {
+    min-height: 80px;
+    outline: none;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-all;
+    cursor: text;
+  }
+  .goal-editor:empty::before {
+    content: attr(data-placeholder);
+    color: var(--text-muted);
+    font-style: italic;
+    pointer-events: none;
+    display: block;
+  }
 </style>
 </head>
 <body>
@@ -672,7 +733,7 @@ body {
     <nav class="sidebar-nav">
       <div class="nav-group">
         <div class="nav-group-label">계획</div>
-        <a class="nav-item" onclick="navigate(&#39;goals&#39;)">
+        <a class="nav-item" id="nav-goals" onclick="navigate(&#39;goals&#39;)">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="target" aria-hidden="true" class="lucide lucide-target"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> 목표
         </a>
         <a class="nav-item" onclick="navigate(&#39;projects&#39;)">
@@ -956,6 +1017,66 @@ body {
     <div id="page-monthly" style="display:none;padding:20px 28px;"></div>
     <!-- YEARLY PAGE -->
     <div id="page-yearly" style="display:none;padding:20px 28px;"></div>
+    
+    <!-- GOALS PAGE -->
+    <div id="page-goals" style="display:none;padding:20px 28px;">
+      <div class="review-header">
+        <h2>목표 관리</h2>
+        <p>연간 목표와 실천 계획을 세우고 관리하세요.</p>
+      </div>
+
+      <div class="goals-layout">
+        <!-- 연간 목표 -->
+        <div class="goals-column">
+          <div class="goals-col-header">[2026년] 연간목표</div>
+          
+          <div class="goal-card theme-dream">
+            <div class="goal-card-title">⭐ 꿈 Dream</div>
+            <div class="goal-editor" contenteditable="true" data-type="year-dream" data-placeholder="이루고 싶은 꿈을 적어보세요"></div>
+          </div>
+          
+          <div class="goal-card theme-growth">
+            <div class="goal-card-title">🌿 자기계발 Growth</div>
+            <div class="goal-editor" contenteditable="true" data-type="year-growth" data-placeholder="어떤 성장을 이루고 싶나요?"></div>
+          </div>
+          
+          <div class="goal-card theme-relation">
+            <div class="goal-card-title">👨‍👩‍👧‍👦 가족/관계 Relation</div>
+            <div class="goal-editor" contenteditable="true" data-type="year-relation" data-placeholder="가족, 타인과의 관계 목표를 적어보세요"></div>
+          </div>
+          
+          <div class="goal-card theme-work">
+            <div class="goal-card-title">💼 업무/재정 Work & Money</div>
+            <div class="goal-editor" contenteditable="true" data-type="year-work" data-placeholder="업무 및 재무적 목표를 적어보세요"></div>
+          </div>
+        </div>
+
+        <!-- 실천 계획 -->
+        <div class="goals-column">
+          <div class="goals-col-header">[2026. 4월] 실천계획</div>
+          
+          <div class="goal-card theme-dream">
+            <div class="goal-card-title">⭐ 꿈 Dream</div>
+            <div class="goal-editor" contenteditable="true" data-type="month-dream" data-placeholder="이번 달 실천할 꿈 관련 계획"></div>
+          </div>
+          
+          <div class="goal-card theme-growth">
+            <div class="goal-card-title">🌿 자기계발 Growth</div>
+            <div class="goal-editor" contenteditable="true" data-type="month-growth" data-placeholder="이번 달 실천할 자기계발 계획"></div>
+          </div>
+          
+          <div class="goal-card theme-relation">
+            <div class="goal-card-title">👨‍👩‍👧‍👦 가족/관계 Relation</div>
+            <div class="goal-editor" contenteditable="true" data-type="month-relation" data-placeholder="이번 달 실천할 관계 관련 계획"></div>
+          </div>
+          
+          <div class="goal-card theme-work">
+            <div class="goal-card-title">💼 업무/재정 Work & Money</div>
+            <div class="goal-editor" contenteditable="true" data-type="month-work" data-placeholder="이번 달 실천할 업무/재정 계획"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </main>
 </div>
@@ -1425,7 +1546,7 @@ async function goToday() {
 }
 
 // ── 네비게이션 ──
-const PAGES = ['today','weekly','monthly','yearly'];
+const PAGES = ['today','weekly','monthly','yearly','goals'];
 function navigate(page) {
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const navEl = document.getElementById('nav-' + page);
@@ -1445,6 +1566,7 @@ function navigate(page) {
     if (page === 'weekly') loadWeeklyPage();
     else if (page === 'monthly') loadMonthlyPage();
     else if (page === 'yearly') loadYearlyPage();
+    else if (page === 'goals') loadGoalsData();
   } else {
     const todayEl = document.getElementById('page-today');
     if (todayEl) todayEl.style.display = '';
@@ -1452,6 +1574,39 @@ function navigate(page) {
     const nt = document.getElementById('nav-today');
     if (nt) nt.classList.add('active');
   }
+}
+
+// ── 목표 관리 (Goals) ──
+function loadGoalsData() {
+  const dataStr = localStorage.getItem('planner_goals');
+  const data = dataStr ? JSON.parse(dataStr) : {};
+  document.querySelectorAll('.goal-editor').forEach(el => {
+    const type = el.getAttribute('data-type');
+    if (data[type]) {
+      el.innerText = data[type]; // innerText 혹은 innerHTML
+    } else {
+      el.innerText = '';
+    }
+    
+    // 이벤트 리스너 중복 방지를 위해 속성 활용
+    if (!el.dataset.listenerBound) {
+      el.addEventListener('blur', saveGoalsData);
+      // 혹은 input 이벤트 디바운스로 저장 (여기선 đơn순 blur 사용)
+      el.dataset.listenerBound = 'true';
+    }
+  });
+}
+
+function saveGoalsData() {
+  const data = {};
+  document.querySelectorAll('.goal-editor').forEach(el => {
+    const type = el.getAttribute('data-type');
+    if (el.innerText.trim()) {
+      data[type] = el.innerText.trim();
+    }
+  });
+  localStorage.setItem('planner_goals', JSON.stringify(data));
+  // 옵션: 저장 완료를 알리고 싶다면 showToast('자동 저장되었습니다.');
 }
 
 // ── 토스트 ──
