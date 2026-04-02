@@ -2135,10 +2135,10 @@ You must respond strictly in the following format. Replace the bracketed text wi
         'Content-Type': 'application/json',
         'x-api-key': p1 + p2,
         'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-allow-browser': 'true'
+        'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'claude-3-5-haiku-20241022',
         max_tokens: 1000,
         system: SYSTEM_PROMPT,
         messages: [
@@ -2147,16 +2147,20 @@ You must respond strictly in the following format. Replace the bracketed text wi
       })
     });
     
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    if(!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      const errorMsg = errorData?.error?.message || `HTTP ${res.status}`;
+      throw new Error(errorMsg);
+    }
     const data = await res.json();
-    const resultText = data.content[0].text;
+    const resultText = data.content?.[0]?.text || '';
     
     document.getElementById('ai-feedback-content').innerText = resultText;
     document.getElementById('ai-feedback-card').classList.remove('hidden');
     
   } catch(e) {
-    console.error(e);
-    showToast('AI 호출 실패: API 키나 네트워크를 확인해주세요.');
+    console.error('Claude API Error:', e);
+    showToast(`AI 호출 실패: ${e.message}`);
   }
 }
 
