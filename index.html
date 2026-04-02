@@ -1244,6 +1244,23 @@ body {
           </div>
         </div>
 
+        <!-- AI 피드백 결과 카드 (기본 숨김) -->
+        <div id="ai-feedback-card" class="gc-card hidden" style="background: linear-gradient(135deg, #f3ebff 0%, #ecdfff 100%); border: 1px solid #d4c2ff; margin-bottom: 24px;">
+          <div class="gc-header">
+            <div class="gc-title-wrap">
+              <div class="gc-icon">🤖</div>
+              <div><h3 class="gc-title" style="color:#6B46C1;">AI 목표 피드백</h3></div>
+            </div>
+          </div>
+          <div class="gc-body">
+            <div id="ai-feedback-content" style="white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: #4A5568; margin-bottom: 16px; background: rgba(255,255,255,0.6); padding: 16px; border-radius: 8px;"></div>
+            <div style="display:flex; gap:8px; justify-content:flex-end;">
+              <button class="btn-gc btn-primary" onclick="applyAIFeedbackGoals()">이 내용으로 목표 업데이트</button>
+              <button class="btn-gc btn-gray-light" onclick="document.getElementById('ai-feedback-card').classList.add('hidden')">닫기</button>
+            </div>
+          </div>
+        </div>
+
         <!-- 카드 3: 월간 실천계획 -->
         <div class="gc-card theme-mint">
           <div class="gc-header" onclick="this.parentElement.classList.toggle('collapsed')">
