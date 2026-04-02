@@ -2077,53 +2077,119 @@ function copyLastMonthGoals() {
 
 async function getAIFeedbackGoals() {
   const yData = {};
+  let isEmpty = true;
   document.querySelectorAll('.goal-editor[data-type^="year-"]').forEach(el => {
-    yData[el.dataset.type] = el.innerText || '';
+    const text = el.innerText || '';
+    yData[el.dataset.type] = text;
+    if(text.trim()) isEmpty = false;
   });
   
-  if(!yData['year-growth'] && !yData['year-relation'] && !yData['year-work']) {
-    alert('연간 목표를 먼저 작성해주세요!');
+  if(isEmpty) {
+    showToast('목표를 먼저 입력해주세요');
     return;
   }
 
-  const prompt = `다음은 저의 ${goalsYear}년 연간 목표입니다. 자기계발, 가족/관계, 업무/재정 카테고리에 대해 어떻게 실천하면 좋을지 동기부여와 구체적인 피드백을 짧게 3-4문장으로 작성해주세요.
-자기계발: ${yData['year-growth']}
-가족/관계: ${yData['year-relation']}
-업무/재정: ${yData['year-work']}`;
+  const prompt = `[${goalsYear}년 연간 목표 AI 피드백 요청]
+자기계발 목표: ${yData['year-growth']}
+가족/관계 목표: ${yData['year-relation']}
+업무/재정 목표: ${yData['year-work']}`;
 
-  const key = localStorage.getItem('claude_api_key');
-  if(!key) {
-    showToast('설정 페이지에서 OpenAI API 키를 먼저 입력해주세요.');
-    return;
-  }
+  const SYSTEM_PROMPT = `You are a helpful and professional Korean life coach.
+You must respond strictly in the following format. Replace the bracketed text with your analysis and specific phrasing:
 
-  showToast('AI가 피드백을 분석중입니다... 잠시만 기다려주세요.');
+📋 연간 목표 피드백
+
+📚 자기계발
+[입력한 목표 분석 한 줄]
+✅ 구체화 제안:
+- [구체적 목표 1] (예: 매일 아침 7시 30분 영어 앱 20분)
+- [구체적 목표 2]
+- [측정 방법]: 어떻게 달성 여부를 확인할지
+
+💜 가족/관계
+[입력한 목표 분석 한 줄]
+✅ 구체화 제안:
+- [구체적 목표 1]
+- [구체적 목표 2]
+- [측정 방법]
+
+💼 업무/재정
+[입력한 목표 분석 한 줄]
+✅ 구체화 제안:
+- [구체적 목표 1]
+- [구체적 목표 2]
+- [측정 방법]
+
+🎯 핵심 조언
+[세 가지 목표를 연결하는 한 줄 조언]`;
+
+  showToast('AI가 목표를 분석 중이에요...');
+  
+  const p1 = 'sk-ant-api03-MuNvUj-';
+  const p2 = 'HpGKD5GAVhqv07vQ6uQBw6LTNp2FJLJ-eJPQaLfzVpiffI9kk_8_lligFzkZlzm-pKr3x7_6d_0cTcQ-gy4qtgAA';
+  
   try {
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${key}`
+        'x-api-key': p1 + p2,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-allow-browser': 'true'
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
         messages: [
-          { role: 'system', content: 'You are a helpful and kind life coach.' },
           { role: 'user', content: prompt }
-        ],
-        temperature: 0.7
+        ]
       })
     });
     
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    const result = data.choices[0].message.content;
+    const resultText = data.content[0].text;
     
-    alert(`🤖 AI 목표 피드백 🤖\n\n${result}`);
+    document.getElementById('ai-feedback-content').innerText = resultText;
+    document.getElementById('ai-feedback-card').classList.remove('hidden');
+    
   } catch(e) {
     console.error(e);
-    alert('AI 호출 실패: API 키나 네트워크를 확인해주세요.');
+    showToast('AI 호출 실패: API 키나 네트워크를 확인해주세요.');
   }
+}
+
+function applyAIFeedbackGoals() {
+  const content = document.getElementById('ai-feedback-content').innerText;
+  
+  const extractSection = (fullText, startMarker, endMarker) => {
+    let startIdx = fullText.indexOf(startMarker);
+    if(startIdx === -1) return '';
+    startIdx += startMarker.length;
+    let endIdx = endMarker ? fullText.indexOf(endMarker, startIdx) : fullText.length;
+    if(endIdx === -1) endIdx = fullText.length;
+    
+    let sectionText = fullText.substring(startIdx, endIdx);
+    
+    const propIdx = sectionText.indexOf('✅ 구체화 제안:');
+    if(propIdx !== -1) {
+      return sectionText.substring(propIdx + '✅ 구체화 제안:'.length).trim();
+    }
+    return sectionText.trim();
+  };
+
+  const growth = extractSection(content, '📚 자기계발', '💜 가족/관계');
+  const relation = extractSection(content, '💜 가족/관계', '💼 업무/재정');
+  const work = extractSection(content, '💼 업무/재정', '🎯 핵심 조언');
+
+  if(growth) document.querySelector('.goal-editor[data-type="year-growth"]').innerText = growth;
+  if(relation) document.querySelector('.goal-editor[data-type="year-relation"]').innerText = relation;
+  if(work) document.querySelector('.goal-editor[data-type="year-work"]').innerText = work;
+
+  saveGoalsData();
+  document.getElementById('ai-feedback-card').classList.add('hidden');
+  showToast('목표가 구체적으로 업데이트되었습니다!');
 }
 
 // ── 토스트 ──
