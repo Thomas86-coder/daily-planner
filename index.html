@@ -1236,7 +1236,7 @@ body {
             <div class="gc-footer">
               <button class="btn-gc btn-gray-light" onclick="copyLastYearGoals()"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> 작년 목표 복사</button>
               <div style="display:flex; gap:8px;">
-                <button class="btn-gc btn-sub" onclick="getAIFeedbackGoals()"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .963L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg> AI로 피드백받기</button>
+                <button class="btn-gc btn-primary" onclick="getAIFeedbackGoals()" style="background: linear-gradient(135deg, #9F7AEA 0%, #D6BCFA 100%); color: #4A154B; text-shadow: 0 1px 1px rgba(255,255,255,0.4);"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .963L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg> AI 피드백 생성</button>
                 <button class="btn-gc btn-primary" onclick="saveGoalsData()">저장하기</button>
                 <button class="btn-gc btn-gray-light" onclick="loadGoalsData()">취소</button>
               </div>
@@ -2138,7 +2138,7 @@ You must respond strictly in the following format. Replace the bracketed text wi
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-haiku-20241022',
+        model: 'claude-3-haiku-20240307',
         max_tokens: 1000,
         system: SYSTEM_PROMPT,
         messages: [
