@@ -1913,7 +1913,7 @@ function renderGoalRoutines() {
   });
 }
 
-function addGoalRoutine(timeOfDay) {
+async function addGoalRoutine(timeOfDay) {
   const label = prompt('새로운 루틴을 입력하세요:');
   if(!label) return;
   const list = getLocalRoutines();
@@ -1926,10 +1926,10 @@ function addGoalRoutine(timeOfDay) {
   });
   saveLocalRoutines(list);
   renderGoalRoutines();
-  renderRoutines();
+  await loadData();
 }
 
-function removeGoalRoutine(id) {
+async function removeGoalRoutine(id) {
   if(!confirm('선택한 루틴을 리스트에서 지우시겠습니까?')) return;
   const list = getLocalRoutines();
   const idx = list.findIndex(x => x.id === id);
@@ -1937,7 +1937,7 @@ function removeGoalRoutine(id) {
     list[idx].is_active = false;
     saveLocalRoutines(list);
     renderGoalRoutines();
-    renderRoutines();
+    await loadData();
   }
 }
 
