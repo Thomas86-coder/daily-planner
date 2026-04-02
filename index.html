@@ -1012,11 +1012,41 @@ body {
     <!-- RECURRING PAGE REPLACED BY MODAL -->
 
     <!-- WEEKLY PAGE -->
-    <div id="page-weekly" style="display:none;padding:20px 28px;"></div>
+    <div id="page-weekly" style="display:none;padding:20px 28px;">
+      <div class="review-header">
+        <button class="review-nav-btn" onclick="weeklyOffset--; loadWeeklyPage()">&#8249;</button>
+        <div style="flex:1;text-align:center">
+          <div class="review-title">주간 리뷰</div>
+          <div class="review-range" id="weekly-range">-</div>
+        </div>
+        <button class="review-nav-btn" onclick="weeklyOffset++; loadWeeklyPage()">&#8250;</button>
+      </div>
+      <div id="weekly-body"><div class="rv-spinner">데이터 불러오는 중...</div></div>
+    </div>
     <!-- MONTHLY PAGE -->
-    <div id="page-monthly" style="display:none;padding:20px 28px;"></div>
+    <div id="page-monthly" style="display:none;padding:20px 28px;">
+      <div class="review-header">
+        <button class="review-nav-btn" onclick="monthlyOffset--; loadMonthlyPage()">&#8249;</button>
+        <div style="flex:1;text-align:center">
+          <div class="review-title">월간 리뷰</div>
+          <div class="review-range" id="monthly-range">-</div>
+        </div>
+        <button class="review-nav-btn" onclick="monthlyOffset++; loadMonthlyPage()">&#8250;</button>
+      </div>
+      <div id="monthly-body"><div class="rv-spinner">데이터 불러오는 중...</div></div>
+    </div>
     <!-- YEARLY PAGE -->
-    <div id="page-yearly" style="display:none;padding:20px 28px;"></div>
+    <div id="page-yearly" style="display:none;padding:20px 28px;">
+      <div class="review-header">
+        <button class="review-nav-btn" onclick="yearlyOffset--; loadYearlyPage()">&#8249;</button>
+        <div style="flex:1;text-align:center">
+          <div class="review-title">연간 리뷰</div>
+          <div class="review-range" id="yearly-range">-</div>
+        </div>
+        <button class="review-nav-btn" onclick="yearlyOffset++; loadYearlyPage()">&#8250;</button>
+      </div>
+      <div id="yearly-body"><div class="rv-spinner">데이터 불러오는 중...</div></div>
+    </div>
     
     <!-- GOALS PAGE -->
     <div id="page-goals" style="display:none;padding:20px 28px;">
@@ -1938,50 +1968,7 @@ init();
 .top3-rate { font-size:13px; font-weight:700; color:var(--primary); }
 </style>
 
-<!-- ════════════════════════════════════════════════ -->
-<!-- 주간 리뷰 페이지 HTML -->
-<!-- ════════════════════════════════════════════════ -->
-<div id="view-weekly-old" style="display:none">
-  <div class="review-header">
-    <button class="review-nav-btn" onclick="weeklyOffset--; loadWeekly()">&#8249;</button>
-    <div style="flex:1;text-align:center">
-      <div class="review-title">주간 리뷰</div>
-      <div class="review-range" id="weekly-range">-</div>
-    </div>
-    <button class="review-nav-btn" onclick="weeklyOffset++; loadWeekly()">&#8250;</button>
-  </div>
-  <div id="weekly-body"><div class="rv-spinner">데이터 불러오는 중...</div></div>
-</div>
 
-<!-- ════════════════════════════════════════════════ -->
-<!-- 월간 리뷰 페이지 HTML -->
-<!-- ════════════════════════════════════════════════ -->
-<div id="view-monthly-old" style="display:none">
-  <div class="review-header">
-    <button class="review-nav-btn" onclick="monthlyOffset--; loadMonthly()">&#8249;</button>
-    <div style="flex:1;text-align:center">
-      <div class="review-title">월간 리뷰</div>
-      <div class="review-range" id="monthly-range">-</div>
-    </div>
-    <button class="review-nav-btn" onclick="monthlyOffset++; loadMonthly()">&#8250;</button>
-  </div>
-  <div id="monthly-body"><div class="rv-spinner">데이터 불러오는 중...</div></div>
-</div>
-
-<!-- ════════════════════════════════════════════════ -->
-<!-- 연간 리뷰 페이지 HTML -->
-<!-- ════════════════════════════════════════════════ -->
-<div id="view-yearly-old" style="display:none">
-  <div class="review-header">
-    <button class="review-nav-btn" onclick="yearlyOffset--; loadYearly()">&#8249;</button>
-    <div style="flex:1;text-align:center">
-      <div class="review-title">연간 리뷰</div>
-      <div class="review-range" id="yearly-range">-</div>
-    </div>
-    <button class="review-nav-btn" onclick="yearlyOffset++; loadYearly()">&#8250;</button>
-  </div>
-  <div id="yearly-body"><div class="rv-spinner">데이터 불러오는 중...</div></div>
-</div>
 
 <!-- ════════════════════════════════════════════════ -->
 <!-- 리뷰 페이지 JavaScript -->
@@ -2013,28 +2000,18 @@ function rateClass(rate) {
 }
 
 async function callAiReview(userMessage, resultId, btnId) {
-  const apiKey = loadClaudeKey();
-  if (!apiKey) { showToast('API Key를 먼저 저장해주세요 🔑'); return; }
   const btn = document.getElementById(btnId);
   const res = document.getElementById(resultId);
   btn.disabled = true;
   btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;animation:spin .8s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> 분석 중...';
   res.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">AI가 분석하고 있어요... ✨</div>';
   try {
-    const r = await fetch('https://api.openai.com/v1/chat/completions', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
-      body:JSON.stringify({
-        model:'gpt-4o-mini', max_tokens:1000,
-        messages:[
-          {role:'system',content:'당신은 개인 생산성 코치입니다. 한국어로 구체적이고 따뜻하게 피드백하세요.'},
-          {role:'user',content:userMessage}
-        ]
-      })
+    const { data, error } = await sb.functions.invoke('ai-analysis', {
+      body: { userMessage }
     });
-    if (!r.ok) throw new Error(`API 오류 ${r.status}`);
-    const data = await r.json();
-    res.innerHTML = `<div class="ai-review-result">${(data.choices?.[0]?.message?.content||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
+    if (error) throw new Error(error.message);
+    const result = data.result || '';
+    res.innerHTML = `<div class="ai-review-result">${result.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
   } catch(e) {
     res.innerHTML = `<div style="color:#dc2626;font-size:12.5px;padding:10px;background:#fee2e2;border-radius:8px;">오류: ${e.message}</div>`;
   }
@@ -2173,7 +2150,7 @@ async function deleteLocalRoutine(id) {
 
 
 async function loadWeeklyPage() {
-  document.getElementById('page-weekly').innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
+  document.getElementById('weekly-body').innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
 
   // 이번 주 월요일~일요일 계산
   const today = new Date();
@@ -2352,14 +2329,14 @@ async function loadWeeklyPage() {
     <div id="weekly-ai-result"></div>
   </div>`;
 
-  document.getElementById('page-weekly').innerHTML = html;
+  document.getElementById('weekly-body').innerHTML = html;
 }
 
 // ════════════════════════════════════════════════
 // ── 월간 리뷰 ──
 // ════════════════════════════════════════════════
 async function loadMonthlyPage() {
-  document.getElementById('page-monthly').innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
+  document.getElementById('monthly-body').innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
 
   const now = new Date();
   const year = now.getFullYear();
@@ -2521,14 +2498,14 @@ async function loadMonthlyPage() {
     <div id="monthly-ai-result"></div>
   </div>`;
 
-  document.getElementById('page-monthly').innerHTML = html;
+  document.getElementById('monthly-body').innerHTML = html;
 }
 
 // ════════════════════════════════════════════════
 // ── 연간 리뷰 ──
 // ════════════════════════════════════════════════
 async function loadYearlyPage() {
-  document.getElementById('page-yearly').innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
+  document.getElementById('yearly-body').innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
 
   const targetYear = new Date().getFullYear() + yearlyOffset;
   const startStr = `${targetYear}-01-01`;
@@ -2658,7 +2635,7 @@ async function loadYearlyPage() {
     <div id="yearly-ai-result"></div>
   </div>`;
 
-  document.getElementById('page-yearly').innerHTML = html;
+  document.getElementById('yearly-body').innerHTML = html;
 }
 </script>
 
