@@ -3967,7 +3967,7 @@ function renderProjects() {
       
       const inputHtml = !isCompletedTag ? `
         <div class="pc-todo-input-wrap">
-          <input type="text" id="ptodo-input-${p.id}" placeholder="할일을 입력하세요... (Enter로 추가)" onkeydown="if(event.key==='Enter') addProjectTodoItem('${p.id}')" />
+          <input type="text" id="ptodo-input-${p.id}" placeholder="할일을 입력하세요... (Enter로 추가)" onkeydown="if(event.key==='Enter' && !event.isComposing) addProjectTodoItem('${p.id}')" />
           <button onclick="addProjectTodoItem('${p.id}')">+</button>
         </div>
         <button class="pc-btn-primary" onclick="pushAllIncompleteToToday('${p.id}')">📅 오늘 할일 등록하기</button>
