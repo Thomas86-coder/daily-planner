@@ -8,8 +8,304 @@
 <meta property="og:description" content="매일 할일과 루틴을 기록하고, 주간/월간/연간 리포트와 AI 성찰로 개선하는 인생 관리 시스템">
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js">
+  // ===== 반복업무 로직 =====
+  let allRecurringTasks = [];
+
+  function openRecurringModal() {
+    document.getElementById('rt-text-input').value = '';
+    document.getElementById('rt-start-input').value = new Date().toISOString().split('T')[0];
+    document.getElementById('rt-end-input').value = '';
+    document.getElementById('recurring-modal').style.display = 'flex';
+  }
+  function closeRecurringModal() {
+    document.getElementById('recurring-modal').style.display = 'none';
+  }
+
+  async function loadRecurringTasks() {
+    try {
+      const { data, error } = await sb.from('recurring_tasks').select('*').order('created_at', { ascending: false });
+      if (error) { console.error('fetch recurring tasks err:', error); return; }
+      allRecurringTasks = data || [];
+      renderRecurringTasks();
+    } catch(e) { console.error(e); }
+  }
+
+  function getRcCategoryIcon(cat) {
+    if (cat === 'Work') return '💼';
+    if (cat === 'Job') return '👔';
+    if (cat === 'Growth') return '🌱';
+    return '🏃';
+  }
+
+  function renderRecurringTasks() {
+    const grid = document.getElementById('recurring-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    
+    if (allRecurringTasks.length === 0) {
+      grid.innerHTML = '<div style="color:#9ca3af;text-align:center;padding:40px;grid-column:1/-1;">등록된 반복업무가 없습니다.</div>';
+      return;
+    }
+
+    allRecurringTasks.forEach(t => {
+      const startStr = t.start_date || '지정안됨';
+      const endStr = t.end_date || '계속';
+      
+      const div = document.createElement('div');
+      div.className = 'rc-card';
+      div.innerHTML = `
+        <button class="rc-delete" onclick="deleteRecurringTask('${t.id}')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+        </button>
+        <div class="rc-header">
+          <div class="rc-icon-box">${getRcCategoryIcon(t.category)}</div>
+          <div class="rc-info">
+            <h3>${t.text}</h3>
+            <span class="rc-badge">${t.category}</span>
+          </div>
+        </div>
+        <div class="rc-divider"></div>
+        <div class="rc-details">
+          <span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+            ${t.cycle}
+          </span>
+          <span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            ${startStr} ~ ${endStr}
+          </span>
+        </div>
+        <button class="rc-action-btn" onclick="addRecurringToToday('${t.id}')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+          오늘 할일 등록하기
+        </button>
+      `;
+      grid.appendChild(div);
+    });
+  }
+
+  async function saveRecurringTask() {
+    const cat = document.getElementById('rt-cat-input').value;
+    const text = document.getElementById('rt-text-input').value.trim();
+    const cycle = document.getElementById('rt-cycle-input').value;
+    const start = document.getElementById('rt-start-input').value;
+    const end = document.getElementById('rt-end-input').value;
+    
+    if(!text || !start) {
+      showToast('할일 내용과 시작일을 모두 입력하세요.', true);
+      return;
+    }
+    
+    try {
+      const insertData = { category: cat, text, cycle, start_date: start, end_date: end ? end : null };
+      const { error } = await sb.from('recurring_tasks').insert([insertData]);
+      if(error) {
+        showToast('저장 권한 오류 (테이블을 생성해주세요) 🚨', true);
+        throw error;
+      }
+      showToast('반복업무가 추가되었습니다!');
+      closeRecurringModal();
+      loadRecurringTasks();
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  async function deleteRecurringTask(id) {
+    if(!confirm('해당 반복업무를 삭제하시겠습니까?')) return;
+    try {
+      await sb.from('recurring_tasks').delete().eq('id', id);
+      showToast('삭제되었습니다.');
+      loadRecurringTasks();
+    } catch(e) { console.error(e); }
+  }
+
+  async function addRecurringToToday(rtId) {
+    const rc = allRecurringTasks.find(x => x.id === rtId);
+    if (!rc) return;
+    
+    try {
+      const dstr = currentDate.toISOString().split('T')[0];
+      const { data: exist } = await sb.from('todos')
+        .select('id')
+        .eq('user_id', 'mock-user')
+        .eq('log_date', dstr)
+        .eq('text', rc.text)
+        .eq('category', rc.category)
+        .eq('icon', '반복업무');
+      
+      if (exist && exist.length > 0) {
+        showToast('오늘 같은 반복업무가 이미 등록되어 있습니다.', true);
+        return;
+      }
+      
+      const insertData = {
+        user_id: 'mock-user',
+        log_date: dstr,
+        text: rc.text,
+        icon: '반복업무',
+        category: rc.category,
+        is_done: false
+      };
+      const { error } = await sb.from('todos').insert([insertData]);
+      if(error) throw error;
+      
+      showToast('오늘 할일에 등록되었습니다! 👏');
+      fetchDataForDate(currentDate); // 투두리스트 갱신
+    } catch(e) { console.error(e); showToast('등록 중 오류 발생', true); }
+  }
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js">
+  // ===== 반복업무 로직 =====
+  let allRecurringTasks = [];
+
+  function openRecurringModal() {
+    document.getElementById('rt-text-input').value = '';
+    document.getElementById('rt-start-input').value = new Date().toISOString().split('T')[0];
+    document.getElementById('rt-end-input').value = '';
+    document.getElementById('recurring-modal').style.display = 'flex';
+  }
+  function closeRecurringModal() {
+    document.getElementById('recurring-modal').style.display = 'none';
+  }
+
+  async function loadRecurringTasks() {
+    try {
+      const { data, error } = await sb.from('recurring_tasks').select('*').order('created_at', { ascending: false });
+      if (error) { console.error('fetch recurring tasks err:', error); return; }
+      allRecurringTasks = data || [];
+      renderRecurringTasks();
+    } catch(e) { console.error(e); }
+  }
+
+  function getRcCategoryIcon(cat) {
+    if (cat === 'Work') return '💼';
+    if (cat === 'Job') return '👔';
+    if (cat === 'Growth') return '🌱';
+    return '🏃';
+  }
+
+  function renderRecurringTasks() {
+    const grid = document.getElementById('recurring-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    
+    if (allRecurringTasks.length === 0) {
+      grid.innerHTML = '<div style="color:#9ca3af;text-align:center;padding:40px;grid-column:1/-1;">등록된 반복업무가 없습니다.</div>';
+      return;
+    }
+
+    allRecurringTasks.forEach(t => {
+      const startStr = t.start_date || '지정안됨';
+      const endStr = t.end_date || '계속';
+      
+      const div = document.createElement('div');
+      div.className = 'rc-card';
+      div.innerHTML = `
+        <button class="rc-delete" onclick="deleteRecurringTask('${t.id}')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+        </button>
+        <div class="rc-header">
+          <div class="rc-icon-box">${getRcCategoryIcon(t.category)}</div>
+          <div class="rc-info">
+            <h3>${t.text}</h3>
+            <span class="rc-badge">${t.category}</span>
+          </div>
+        </div>
+        <div class="rc-divider"></div>
+        <div class="rc-details">
+          <span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+            ${t.cycle}
+          </span>
+          <span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            ${startStr} ~ ${endStr}
+          </span>
+        </div>
+        <button class="rc-action-btn" onclick="addRecurringToToday('${t.id}')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+          오늘 할일 등록하기
+        </button>
+      `;
+      grid.appendChild(div);
+    });
+  }
+
+  async function saveRecurringTask() {
+    const cat = document.getElementById('rt-cat-input').value;
+    const text = document.getElementById('rt-text-input').value.trim();
+    const cycle = document.getElementById('rt-cycle-input').value;
+    const start = document.getElementById('rt-start-input').value;
+    const end = document.getElementById('rt-end-input').value;
+    
+    if(!text || !start) {
+      showToast('할일 내용과 시작일을 모두 입력하세요.', true);
+      return;
+    }
+    
+    try {
+      const insertData = { category: cat, text, cycle, start_date: start, end_date: end ? end : null };
+      const { error } = await sb.from('recurring_tasks').insert([insertData]);
+      if(error) {
+        showToast('저장 권한 오류 (테이블을 생성해주세요) 🚨', true);
+        throw error;
+      }
+      showToast('반복업무가 추가되었습니다!');
+      closeRecurringModal();
+      loadRecurringTasks();
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  async function deleteRecurringTask(id) {
+    if(!confirm('해당 반복업무를 삭제하시겠습니까?')) return;
+    try {
+      await sb.from('recurring_tasks').delete().eq('id', id);
+      showToast('삭제되었습니다.');
+      loadRecurringTasks();
+    } catch(e) { console.error(e); }
+  }
+
+  async function addRecurringToToday(rtId) {
+    const rc = allRecurringTasks.find(x => x.id === rtId);
+    if (!rc) return;
+    
+    try {
+      const dstr = currentDate.toISOString().split('T')[0];
+      const { data: exist } = await sb.from('todos')
+        .select('id')
+        .eq('user_id', 'mock-user')
+        .eq('log_date', dstr)
+        .eq('text', rc.text)
+        .eq('category', rc.category)
+        .eq('icon', '반복업무');
+      
+      if (exist && exist.length > 0) {
+        showToast('오늘 같은 반복업무가 이미 등록되어 있습니다.', true);
+        return;
+      }
+      
+      const insertData = {
+        user_id: 'mock-user',
+        log_date: dstr,
+        text: rc.text,
+        icon: '반복업무',
+        category: rc.category,
+        is_done: false
+      };
+      const { error } = await sb.from('todos').insert([insertData]);
+      if(error) throw error;
+      
+      showToast('오늘 할일에 등록되었습니다! 👏');
+      fetchDataForDate(currentDate); // 투두리스트 갱신
+    } catch(e) { console.error(e); showToast('등록 중 오류 발생', true); }
+  }
+
+</script>
 <style>
 :root {
   --primary: #5B5FC7;
@@ -596,7 +892,171 @@ body {
 }
 
 
+  
   /* 반복업무 관리 페이지용 CSS */
+  .page-recurring-wrapper {
+    background: #faf5ff;
+    border: 2px solid #ddd6fe;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  .pr-header-area {
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #ddd6fe;
+  }
+  .pr-title-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .pr-icon-wrapper {
+    background: #8b5cf6;
+    color: white;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pr-header-text h2 {
+    margin: 0;
+    color: #4c1d95;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .pr-header-text p {
+    margin: 4px 0 0 0;
+    color: #6d28d9;
+    font-size: 13px;
+  }
+  .pr-add-btn {
+    background: #6d28d9;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pr-add-btn:hover { background: #5b21b6; }
+  
+  .pr-content-area {
+    padding: 24px;
+  }
+  .recurring-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
+  .rc-card {
+    background: #fffbeb;
+    border: 2px solid #fde68a;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+  }
+  .rc-header {
+    display: flex;
+    gap: 16px;
+  }
+  .rc-icon-box {
+    background: #f59e0b;
+    border-radius: 12px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    flex-shrink: 0;
+  }
+  .rc-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    justify-content: center;
+  }
+  .rc-info h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #1f2937;
+    font-weight: 700;
+  }
+  .rc-badge {
+    background: #f59e0b;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 12px;
+    align-self: flex-start;
+  }
+  .rc-delete {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+  }
+  .rc-delete:hover { transform: scale(1.1); }
+  .rc-divider {
+    border-bottom: 2px dashed #fde68a;
+  }
+  .rc-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 13px;
+    color: #6b7280;
+  }
+  .rc-details span { display: flex; align-items: center; gap: 6px; }
+  .rc-action-btn {
+    width: 100%;
+    background: #8b5cf6;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 4px;
+    transition: background 0.2s;
+  }
+  .rc-action-btn:hover {
+    background: #7c3aed;
+  }
+  .rt-badge {
+    background: #ede9fe;
+    color: #7c3aed;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 6px;
+    border-radius: 4px;
+    margin-right: 6px;
+    border: 1px solid #ddd6fe;
+  }
+
   .recurring-section { margin-bottom: 24px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
   .recurring-header { font-size: 16px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; color: var(--text); }
   .recurring-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; border-bottom: 1px solid var(--border); }
@@ -1135,7 +1595,7 @@ body {
         <button class="nav-btn" onclick="navigate('projects')">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder-kanban" style="width:16px;height:16px;"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/><path d="M8 10v4"/><path d="M12 10v2"/><path d="M16 10v6"/></svg> 프로젝트
         </button>
-        <button class="nav-btn" id="nav-recurring" onclick="openRoutineModal()">
+        <button class="nav-btn" id="nav-recurring" onclick="navigate('recurring')">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat" style="width:16px;height:16px;"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg> 반복업무
         </button>
       </div>
@@ -1747,6 +2207,74 @@ body {
       </div>
     </div>
 
+  
+    <!-- === 반복업무 뷰 === -->
+    <div id="page-recurring" style="display:none;padding:20px 28px;">
+      <div class="page-recurring-wrapper">
+        <div class="pr-header-area">
+          <div class="pr-title-group">
+            <div class="pr-icon-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+            </div>
+            <div class="pr-header-text">
+              <h2>반복업무</h2>
+              <p>반복되는 할일을 설정하고 관리하세요</p>
+            </div>
+          </div>
+          <button class="pr-add-btn" onclick="openRecurringModal()">+ 추가</button>
+        </div>
+        <div class="pr-content-area">
+          <div id="recurring-grid" class="recurring-grid">
+            <!-- JS Rendered Cards -->
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 반복업무 추가 모달 -->
+    <div id="recurring-modal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>반복업무 추가</h3>
+          <button class="close-btn" onclick="closeRecurringModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <label class="modal-label">카테고리</label>
+          <select id="rt-cat-input" class="modal-input">
+            <option value="Work">Work</option>
+            <option value="Job">Job</option>
+            <option value="Growth">Growth</option>
+            <option value="Personal">Personal</option>
+          </select>
+
+          <label class="modal-label">할일</label>
+          <input type="text" id="rt-text-input" class="modal-input" placeholder="업무 내용을 입력하세요" />
+
+          <label class="modal-label">반복 주기</label>
+          <select id="rt-cycle-input" class="modal-input">
+            <option value="매일 (월~일)">매일 (월~일)</option>
+            <option value="매주 (월~금)">매주 평일 (월~금)</option>
+            <option value="주말 (토~일)">주말 (토~일)</option>
+            <option value="주 1회">주 1회</option>
+            <option value="월 1회">월 1회</option>
+          </select>
+          
+          <label class="modal-label">시작일</label>
+          <input type="date" id="rt-start-input" class="modal-input" />
+          
+          <label class="modal-label">종료일 (선택) <span style="font-size:12px;color:#9ca3af;font-weight:normal;">(비워두면 무기한)</span></label>
+          <input type="date" id="rt-end-input" class="modal-input" />
+
+          <div class="modal-buttons" style="margin-top:20px;">
+            <button class="modal-btn cancel" onclick="closeRecurringModal()">취소</button>
+            <button class="modal-btn save" onclick="saveRecurringTask()" style="background:#8b5cf6;">✓ 저장</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -2234,6 +2762,7 @@ function navigate(page) {
     else if (page === 'yearly') loadYearlyPage();
     else if (page === 'goals') loadGoalsData();
     else if (page === 'projects') loadProjectsData();
+  loadRecurringTasks();
     else if (page === 'projects') loadProjectsData();
   } else {
     const todayEl = document.getElementById('page-today');
@@ -2877,6 +3406,154 @@ async function init() {
 }
 
 init();
+
+  // ===== 반복업무 로직 =====
+  let allRecurringTasks = [];
+
+  function openRecurringModal() {
+    document.getElementById('rt-text-input').value = '';
+    document.getElementById('rt-start-input').value = new Date().toISOString().split('T')[0];
+    document.getElementById('rt-end-input').value = '';
+    document.getElementById('recurring-modal').style.display = 'flex';
+  }
+  function closeRecurringModal() {
+    document.getElementById('recurring-modal').style.display = 'none';
+  }
+
+  async function loadRecurringTasks() {
+    try {
+      const { data, error } = await sb.from('recurring_tasks').select('*').order('created_at', { ascending: false });
+      if (error) { console.error('fetch recurring tasks err:', error); return; }
+      allRecurringTasks = data || [];
+      renderRecurringTasks();
+    } catch(e) { console.error(e); }
+  }
+
+  function getRcCategoryIcon(cat) {
+    if (cat === 'Work') return '💼';
+    if (cat === 'Job') return '👔';
+    if (cat === 'Growth') return '🌱';
+    return '🏃';
+  }
+
+  function renderRecurringTasks() {
+    const grid = document.getElementById('recurring-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    
+    if (allRecurringTasks.length === 0) {
+      grid.innerHTML = '<div style="color:#9ca3af;text-align:center;padding:40px;grid-column:1/-1;">등록된 반복업무가 없습니다.</div>';
+      return;
+    }
+
+    allRecurringTasks.forEach(t => {
+      const startStr = t.start_date || '지정안됨';
+      const endStr = t.end_date || '계속';
+      
+      const div = document.createElement('div');
+      div.className = 'rc-card';
+      div.innerHTML = `
+        <button class="rc-delete" onclick="deleteRecurringTask('${t.id}')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+        </button>
+        <div class="rc-header">
+          <div class="rc-icon-box">${getRcCategoryIcon(t.category)}</div>
+          <div class="rc-info">
+            <h3>${t.text}</h3>
+            <span class="rc-badge">${t.category}</span>
+          </div>
+        </div>
+        <div class="rc-divider"></div>
+        <div class="rc-details">
+          <span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+            ${t.cycle}
+          </span>
+          <span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            ${startStr} ~ ${endStr}
+          </span>
+        </div>
+        <button class="rc-action-btn" onclick="addRecurringToToday('${t.id}')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+          오늘 할일 등록하기
+        </button>
+      `;
+      grid.appendChild(div);
+    });
+  }
+
+  async function saveRecurringTask() {
+    const cat = document.getElementById('rt-cat-input').value;
+    const text = document.getElementById('rt-text-input').value.trim();
+    const cycle = document.getElementById('rt-cycle-input').value;
+    const start = document.getElementById('rt-start-input').value;
+    const end = document.getElementById('rt-end-input').value;
+    
+    if(!text || !start) {
+      showToast('할일 내용과 시작일을 모두 입력하세요.', true);
+      return;
+    }
+    
+    try {
+      const insertData = { category: cat, text, cycle, start_date: start, end_date: end ? end : null };
+      const { error } = await sb.from('recurring_tasks').insert([insertData]);
+      if(error) {
+        showToast('저장 권한 오류 (테이블을 생성해주세요) 🚨', true);
+        throw error;
+      }
+      showToast('반복업무가 추가되었습니다!');
+      closeRecurringModal();
+      loadRecurringTasks();
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  async function deleteRecurringTask(id) {
+    if(!confirm('해당 반복업무를 삭제하시겠습니까?')) return;
+    try {
+      await sb.from('recurring_tasks').delete().eq('id', id);
+      showToast('삭제되었습니다.');
+      loadRecurringTasks();
+    } catch(e) { console.error(e); }
+  }
+
+  async function addRecurringToToday(rtId) {
+    const rc = allRecurringTasks.find(x => x.id === rtId);
+    if (!rc) return;
+    
+    try {
+      const dstr = currentDate.toISOString().split('T')[0];
+      const { data: exist } = await sb.from('todos')
+        .select('id')
+        .eq('user_id', 'mock-user')
+        .eq('log_date', dstr)
+        .eq('text', rc.text)
+        .eq('category', rc.category)
+        .eq('icon', '반복업무');
+      
+      if (exist && exist.length > 0) {
+        showToast('오늘 같은 반복업무가 이미 등록되어 있습니다.', true);
+        return;
+      }
+      
+      const insertData = {
+        user_id: 'mock-user',
+        log_date: dstr,
+        text: rc.text,
+        icon: '반복업무',
+        category: rc.category,
+        is_done: false
+      };
+      const { error } = await sb.from('todos').insert([insertData]);
+      if(error) throw error;
+      
+      showToast('오늘 할일에 등록되었습니다! 👏');
+      fetchDataForDate(currentDate); // 투두리스트 갱신
+    } catch(e) { console.error(e); showToast('등록 중 오류 발생', true); }
+  }
+
 </script>
 
 
@@ -3726,6 +4403,8 @@ function closeProjectModal() {
 }
 
 async function loadProjectsData() {
+  loadRecurringTasks(); // Init recurring on load
+
   if (!sb) return;
   try {
     const { data: pData, error: pErr } = await sb.from('projects').select('*').order('created_at', { ascending: false });
@@ -4018,6 +4697,154 @@ function renderProjects() {
     `;
   }).join('');
 }
+
+
+  // ===== 반복업무 로직 =====
+  let allRecurringTasks = [];
+
+  function openRecurringModal() {
+    document.getElementById('rt-text-input').value = '';
+    document.getElementById('rt-start-input').value = new Date().toISOString().split('T')[0];
+    document.getElementById('rt-end-input').value = '';
+    document.getElementById('recurring-modal').style.display = 'flex';
+  }
+  function closeRecurringModal() {
+    document.getElementById('recurring-modal').style.display = 'none';
+  }
+
+  async function loadRecurringTasks() {
+    try {
+      const { data, error } = await sb.from('recurring_tasks').select('*').order('created_at', { ascending: false });
+      if (error) { console.error('fetch recurring tasks err:', error); return; }
+      allRecurringTasks = data || [];
+      renderRecurringTasks();
+    } catch(e) { console.error(e); }
+  }
+
+  function getRcCategoryIcon(cat) {
+    if (cat === 'Work') return '💼';
+    if (cat === 'Job') return '👔';
+    if (cat === 'Growth') return '🌱';
+    return '🏃';
+  }
+
+  function renderRecurringTasks() {
+    const grid = document.getElementById('recurring-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    
+    if (allRecurringTasks.length === 0) {
+      grid.innerHTML = '<div style="color:#9ca3af;text-align:center;padding:40px;grid-column:1/-1;">등록된 반복업무가 없습니다.</div>';
+      return;
+    }
+
+    allRecurringTasks.forEach(t => {
+      const startStr = t.start_date || '지정안됨';
+      const endStr = t.end_date || '계속';
+      
+      const div = document.createElement('div');
+      div.className = 'rc-card';
+      div.innerHTML = `
+        <button class="rc-delete" onclick="deleteRecurringTask('${t.id}')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+        </button>
+        <div class="rc-header">
+          <div class="rc-icon-box">${getRcCategoryIcon(t.category)}</div>
+          <div class="rc-info">
+            <h3>${t.text}</h3>
+            <span class="rc-badge">${t.category}</span>
+          </div>
+        </div>
+        <div class="rc-divider"></div>
+        <div class="rc-details">
+          <span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+            ${t.cycle}
+          </span>
+          <span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            ${startStr} ~ ${endStr}
+          </span>
+        </div>
+        <button class="rc-action-btn" onclick="addRecurringToToday('${t.id}')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+          오늘 할일 등록하기
+        </button>
+      `;
+      grid.appendChild(div);
+    });
+  }
+
+  async function saveRecurringTask() {
+    const cat = document.getElementById('rt-cat-input').value;
+    const text = document.getElementById('rt-text-input').value.trim();
+    const cycle = document.getElementById('rt-cycle-input').value;
+    const start = document.getElementById('rt-start-input').value;
+    const end = document.getElementById('rt-end-input').value;
+    
+    if(!text || !start) {
+      showToast('할일 내용과 시작일을 모두 입력하세요.', true);
+      return;
+    }
+    
+    try {
+      const insertData = { category: cat, text, cycle, start_date: start, end_date: end ? end : null };
+      const { error } = await sb.from('recurring_tasks').insert([insertData]);
+      if(error) {
+        showToast('저장 권한 오류 (테이블을 생성해주세요) 🚨', true);
+        throw error;
+      }
+      showToast('반복업무가 추가되었습니다!');
+      closeRecurringModal();
+      loadRecurringTasks();
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  async function deleteRecurringTask(id) {
+    if(!confirm('해당 반복업무를 삭제하시겠습니까?')) return;
+    try {
+      await sb.from('recurring_tasks').delete().eq('id', id);
+      showToast('삭제되었습니다.');
+      loadRecurringTasks();
+    } catch(e) { console.error(e); }
+  }
+
+  async function addRecurringToToday(rtId) {
+    const rc = allRecurringTasks.find(x => x.id === rtId);
+    if (!rc) return;
+    
+    try {
+      const dstr = currentDate.toISOString().split('T')[0];
+      const { data: exist } = await sb.from('todos')
+        .select('id')
+        .eq('user_id', 'mock-user')
+        .eq('log_date', dstr)
+        .eq('text', rc.text)
+        .eq('category', rc.category)
+        .eq('icon', '반복업무');
+      
+      if (exist && exist.length > 0) {
+        showToast('오늘 같은 반복업무가 이미 등록되어 있습니다.', true);
+        return;
+      }
+      
+      const insertData = {
+        user_id: 'mock-user',
+        log_date: dstr,
+        text: rc.text,
+        icon: '반복업무',
+        category: rc.category,
+        is_done: false
+      };
+      const { error } = await sb.from('todos').insert([insertData]);
+      if(error) throw error;
+      
+      showToast('오늘 할일에 등록되었습니다! 👏');
+      fetchDataForDate(currentDate); // 투두리스트 갱신
+    } catch(e) { console.error(e); showToast('등록 중 오류 발생', true); }
+  }
 
 </script>
 
