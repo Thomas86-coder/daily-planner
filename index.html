@@ -1592,7 +1592,7 @@ body {
         <button class="nav-btn" id="nav-goals" onclick="navigate('goals')">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-target" style="width:16px;height:16px;"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> 목표관리
         </button>
-        <button class="nav-btn" onclick="navigate('projects')">
+        <button class="nav-btn" id="nav-projects" onclick="navigate('projects')">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder-kanban" style="width:16px;height:16px;"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/><path d="M8 10v4"/><path d="M12 10v2"/><path d="M16 10v6"/></svg> 프로젝트
         </button>
         <button class="nav-btn" id="nav-recurring" onclick="navigate('recurring')">
@@ -2743,7 +2743,7 @@ async function goToday() {
 }
 
 // ── 네비게이션 ──
-const PAGES = ['today','weekly','monthly','yearly','goals','projects'];
+const PAGES = ['today','weekly','monthly','yearly','goals','projects','recurring'];
 function navigate(page) {
   document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
   const navEl = document.getElementById('nav-' + page);
@@ -2762,8 +2762,7 @@ function navigate(page) {
     else if (page === 'yearly') loadYearlyPage();
     else if (page === 'goals') loadGoalsData();
     else if (page === 'projects') loadProjectsData();
-  loadRecurringTasks();
-    else if (page === 'projects') loadProjectsData();
+    else if (page === 'recurring') loadRecurringTasks();
   } else {
     const todayEl = document.getElementById('page-today');
     if (todayEl) todayEl.style.display = '';
