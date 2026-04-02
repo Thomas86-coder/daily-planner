@@ -783,47 +783,54 @@ body {
   .btn-apply-ai:active { transform: translateY(0); }
   .btn-apply-ai:disabled { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; transform: none; }
 
+
 /* --- 프로젝트 관리를 위한 추가 CSS --- */
-.page-projects-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.page-projects-wrapper {
+  background: #e8f4fd;
+  border: 2px solid #93c5fd;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+.pp-header-area {
+  background: white;
 }
 .projects-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 24px 30px;
 }
-.projects-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1f2937;
+.pp-add-btn {
+  background: #6d4b9a; /* 보라색 톤보단 Vercel 사이트에 맞춤 #8b5cf6 */
+  background: #8b5cf6;
+  color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;
+}
+.pp-add-btn:hover { opacity: 0.9; }
+.pp-divider {
+  height: 1px; background: #e5e7eb; width: calc(100% - 60px); margin: 0 auto;
+}
+.tabs-container.pp-tabs {
   display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.projects-subtitle {
-  font-size: 14px;
-  color: #6b7280;
-  margin-top: 5px;
-}
-.tabs-container {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  padding: 20px 30px;
+  margin: 0;
+  gap: 15px;
 }
 .tab-btn {
-  padding: 8px 16px;
+  flex: 1;
+  padding: 12px;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  border: none;
+  border: 1px solid transparent;
   transition: all 0.2s;
+  display: flex; justify-content: center; align-items: center; gap: 8px;
 }
 .tab-btn:not(.active) {
-  background: #f3f4f6;
+  background: #f9fafb;
   color: #6b7280;
+  border: 1px solid #e5e7eb;
 }
 .tab-btn.active.tab-active {
   background: #3b82f6;
@@ -832,6 +839,10 @@ body {
 .tab-btn.active.tab-completed {
   background: #10b981;
   color: white;
+}
+.pp-content-area {
+  padding: 30px;
+  min-height: 400px;
 }
 .projects-grid {
   display: grid;
@@ -844,56 +855,29 @@ body {
 @media (min-width: 1024px) {
   .projects-grid { grid-template-columns: repeat(3, 1fr); }
 }
-
 .project-card {
-  background: #e8f4fd;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  position: relative;
+  background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 15px; position: relative;
 }
-.project-card.completed {
-  background: #f3f4f6;
-}
-
+.project-card.completed { background: #f9fafb; border: 1px solid #f3f4f6;}
 .pc-top { display: flex; align-items: flex-start; justify-content: space-between; }
 .pc-top-left { display: flex; align-items: center; gap: 10px; }
-.pc-icon { font-size: 24px; }
+.pc-icon { font-size: 32px; background: #f3f4f6; width: 44px; height: 44px; display: flex; align-items:center; justify-content:center; border-radius: 50%;}
 .pc-name-container { display: flex; flex-direction: column; gap: 4px; }
 .pc-name { font-weight: 700; font-size: 16px; color: #1f2937; margin: 0; }
-.pc-badge {
-  font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; width: fit-content;
-}
+.pc-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; width: fit-content; }
 .pc-badge.self { background: #fef3c7; color: #d97706; }
 .pc-badge.family { background: #fce7f3; color: #db2777; }
 .pc-badge.work { background: #dbeafe; color: #2563eb; }
-
 .completed .pc-icon { filter: grayscale(100%); }
 .completed .pc-name { color: #6b7280; text-decoration: line-through; }
 .completed .pc-badge { opacity: 0.6; }
-
-.pc-arrow {
-  background: none; border: none; cursor: pointer; color: #9ca3af; padding: 5px; font-size: 14px;
-}
-
+.pc-arrow { background: none; border: none; cursor: pointer; color: #9ca3af; padding: 5px; font-size: 16px; }
 .pc-progress-container { display: flex; flex-direction: column; gap: 5px; }
 .pc-progress-header { display: flex; justify-content: space-between; font-size: 12px; color: #4b5563; font-weight: 500; }
-.pc-progress-bar-bg { width: 100%; height: 8px; background: #d1d5db; border-radius: 4px; overflow: hidden; }
+.pc-progress-bar-bg { width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
 .pc-progress-bar-fill { height: 100%; transition: width 0.3s ease; border-radius: 4px; background: #3b82f6; }
 .completed .pc-progress-bar-fill { background: #10b981; }
-
-.pc-todos-section {
-  background: #fef9ec;
-  border-radius: 8px;
-  padding: 15px;
-  margin-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+.pc-todos-section { background: #fef9ec; border-radius: 8px; padding: 15px; margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
 .pc-todos-title { font-weight: 600; font-size: 14px; color: #374151; display:flex; justify-content:space-between; align-items:center; }
 .pc-todos-actions button { background:none; border:none; cursor:pointer; color:#9ca3af; margin-left:8px; padding:0; }
 .pc-todo-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #4b5563; }
@@ -904,22 +888,13 @@ body {
 .pc-todo-tools { display:flex; gap:6px; opacity: 0; transition: opacity 0.2s; }
 .pc-todo-item:hover .pc-todo-tools { opacity: 1; }
 .pc-todo-tools button { background:none; border:none; cursor:pointer; padding:0; font-size:12px; color:#6b7280;}
-
 .pc-todo-input-wrap { display: flex; gap: 5px; margin-top: 5px; }
 .pc-todo-input-wrap input { flex: 1; padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 12px; }
 .pc-todo-input-wrap button { background: #3b82f6; color: white; border: none; padding: 0 10px; border-radius: 4px; cursor: pointer; font-size:16px;}
-
-.pc-btn-primary {
-  background: linear-gradient(to right, #8b5cf6, #3b82f6);
-  color: white; border: none; padding: 8px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 10px;
-}
+.pc-btn-primary { background: linear-gradient(to right, #8b5cf6, #3b82f6); color: white; border: none; padding: 8px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 10px; }
 .completed .pc-btn-primary { background: #10b981; margin-top: 0; }
-
-.empty-projects {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 60px 20px; color: #6b7280; gap: 10px; text-align: center; background: white; border-radius: 12px;
-}
-.empty-projects svg { width: 48px; height: 48px; color: #d1d5db; }
+.empty-projects { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: #6b7280; gap: 10px; text-align: center; }
+.empty-projects svg { width: 48px; height: 48px; color: #9ca3af; }
 .empty-projects h3 { font-size: 16px; font-weight: 600; color: #374151; margin:0; }
 .empty-projects p { font-size: 14px; margin:0; }
 
@@ -1482,22 +1457,35 @@ body {
 
     <!-- 프로젝트 페이지 -->
     <div id="page-projects" style="display:none;padding:20px 28px;">
-      <div class="page-projects-container">
-        <div class="projects-header">
-          <div>
-            <h1 class="projects-title">📋 프로젝트</h1>
-            <p class="projects-subtitle">프로젝트를 관리하고 할일을 등록하세요</p>
+      <div class="page-projects-wrapper">
+        <div class="pp-header-area">
+          <div class="projects-header">
+            <div style="display:flex; align-items:center; gap: 12px">
+              <div style="background: #3b82f6; width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 7V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3M4 7h16M4 7v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7M9 13h6M9 17h6"/></svg>
+              </div>
+              <div>
+                <h1 class="projects-title" style="color: #1e3a8a; margin:0; font-size:22px; gap:6px;">프로젝트</h1>
+                <p class="projects-subtitle" style="margin:2px 0 0 0;">프로젝트를 관리하고 할일을 등록하세요</p>
+              </div>
+            </div>
+            <button onclick="openProjectModal()" class="pp-add-btn">+ 추가</button>
           </div>
-          <button onclick="openProjectModal()" style="background: #8b5cf6; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;">+ 추가</button>
-        </div>
-        
-        <div class="tabs-container">
-          <button id="ptab-active" class="tab-btn tab-active active" onclick="setProjectTab('active')">진행중 (0)</button>
-          <button id="ptab-completed" class="tab-btn tab-completed" onclick="setProjectTab('completed')">완료 (0)</button>
+          <div class="pp-divider"></div>
+          <div class="tabs-container pp-tabs">
+            <button id="ptab-active" class="tab-btn tab-active active" onclick="setProjectTab('active')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> 진행중 (0)
+            </button>
+            <button id="ptab-completed" class="tab-btn tab-completed" onclick="setProjectTab('completed')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> 완료 (0)
+            </button>
+          </div>
         </div>
 
-        <div id="projects-grid" class="projects-grid">
-          <!-- JS Rendered -->
+        <div class="pp-content-area">
+          <div id="projects-grid" class="projects-grid">
+            <!-- JS Rendered -->
+          </div>
         </div>
       </div>
     </div>
@@ -3738,10 +3726,10 @@ function closeProjectModal() {
 }
 
 async function loadProjectsData() {
-  if (!supabase) return;
+  if (!sb) return;
   try {
-    const { data: pData, error: pErr } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
-    const { data: tData, error: tErr } = await supabase.from('project_todos').select('*').order('created_at', { ascending: true });
+    const { data: pData, error: pErr } = await sb.from('projects').select('*').order('created_at', { ascending: false });
+    const { data: tData, error: tErr } = await sb.from('project_todos').select('*').order('created_at', { ascending: true });
     
     if(pErr) throw pErr;
     if(tErr) throw tErr;
@@ -3783,7 +3771,7 @@ async function saveNewProject() {
   if (!name) { showToast('프로젝트 이름을 입력하세요'); return; }
   
   try {
-    const { data, error } = await supabase.from('projects').insert([{ name, category: cat, status: 'active' }]).select();
+    const { data, error } = await sb.from('projects').insert([{ name, category: cat, status: 'active' }]).select();
     if (error) throw error;
     showToast('프로젝트가 추가되었습니다');
     closeProjectModal();
@@ -3797,7 +3785,7 @@ async function saveNewProject() {
 async function deleteProject(id) {
   if (!confirm('정말 이 프로젝트를 삭제할까요? (할일 목록도 모두 삭제됩니다)')) return;
   try {
-    await supabase.from('projects').delete().eq('id', id);
+    await sb.from('projects').delete().eq('id', id);
     showToast('프로젝트가 삭제되었습니다');
     loadProjectsData();
   } catch(e) { console.error(e); }
@@ -3807,7 +3795,7 @@ async function editProjectName(id, oldName) {
   const newName = prompt('프로젝트 이름 수정:', oldName);
   if (newName && newName.trim() !== oldName) {
     try {
-      await supabase.from('projects').update({ name: newName.trim() }).eq('id', id);
+      await sb.from('projects').update({ name: newName.trim() }).eq('id', id);
       showToast('수정되었습니다');
       loadProjectsData();
     } catch(e) {}
@@ -3816,7 +3804,7 @@ async function editProjectName(id, oldName) {
 
 async function restoreProject(id) {
   try {
-    await supabase.from('projects').update({ status: 'active' }).eq('id', id);
+    await sb.from('projects').update({ status: 'active' }).eq('id', id);
     showToast('진행중으로 복귀했습니다');
     loadProjectsData();
   } catch(e) {}
@@ -3828,7 +3816,7 @@ async function addProjectTodoItem(pId) {
   if (!text) return;
   
   try {
-    await supabase.from('project_todos').insert([{ project_id: pId, text, done: false }]);
+    await sb.from('project_todos').insert([{ project_id: pId, text, done: false }]);
     inputEl.value = '';
     await loadProjectsData();
     checkProjectCompletion(pId);
@@ -3837,7 +3825,7 @@ async function addProjectTodoItem(pId) {
 
 async function toggleProjectTodo(tId, currentDone, pId) {
   try {
-    await supabase.from('project_todos').update({ done: !currentDone }).eq('id', tId);
+    await sb.from('project_todos').update({ done: !currentDone }).eq('id', tId);
     await loadProjectsData();
     checkProjectCompletion(pId);
   } catch(e) {}
@@ -3847,7 +3835,7 @@ async function editProjectTodo(tId, oldText) {
   const newText = prompt('할일 수정:', oldText);
   if (newText && newText.trim() !== oldText) {
     try {
-      await supabase.from('project_todos').update({ text: newText.trim() }).eq('id', tId);
+      await sb.from('project_todos').update({ text: newText.trim() }).eq('id', tId);
       loadProjectsData();
     } catch(e) {}
   }
@@ -3856,7 +3844,7 @@ async function editProjectTodo(tId, oldText) {
 async function deleteProjectTodo(tId, pId) {
   if(!confirm('할일을 삭제할까요?')) return;
   try {
-    await supabase.from('project_todos').delete().eq('id', tId);
+    await sb.from('project_todos').delete().eq('id', tId);
     await loadProjectsData();
     checkProjectCompletion(pId);
   } catch(e) {}
@@ -3869,11 +3857,11 @@ async function checkProjectCompletion(pId) {
   const pstats = calcProjectProgress(pId);
   
   if (p.status === 'active' && pstats.total > 0 && pstats.percent === 100) {
-    await supabase.from('projects').update({ status: 'completed' }).eq('id', pId);
+    await sb.from('projects').update({ status: 'completed' }).eq('id', pId);
     showToast('프로젝트 완료! 이동되었습니다 🎉');
     loadProjectsData();
   } else if (p.status === 'completed' && pstats.percent < 100) {
-    await supabase.from('projects').update({ status: 'active' }).eq('id', pId);
+    await sb.from('projects').update({ status: 'active' }).eq('id', pId);
     loadProjectsData();
   }
 }
@@ -3897,7 +3885,7 @@ async function pushTodoToToday(tText, projCat) {
   const dstr = getLocalDateString(new Date());
   
   // 중복체크
-  const { data: exist } = await supabase.from('todos').select('id')
+  const { data: exist } = await sb.from('todos').select('id')
     .eq('user_id', 'mock-user')
     .eq('log_date', dstr)
     .eq('text', tText)
@@ -3909,7 +3897,7 @@ async function pushTodoToToday(tText, projCat) {
   }
   
   const insertData = { user_id: 'mock-user', log_date: dstr, text: tText, icon: '', is_done: false, category: mappedCat };
-  await supabase.from('todos').insert([insertData]);
+  await sb.from('todos').insert([insertData]);
   showToast('오늘 할일에 추가되었습니다!');
 }
 
@@ -3925,10 +3913,10 @@ async function pushAllIncompleteToToday(pId) {
   
   let added = 0;
   for (const t of incomplete) {
-    const { data: exist } = await supabase.from('todos').select('id')
+    const { data: exist } = await sb.from('todos').select('id')
       .eq('user_id', 'mock-user').eq('log_date', dstr).eq('text', t.text).single();
     if (!exist) {
-      await supabase.from('todos').insert([{ user_id: 'mock-user', log_date: dstr, text: t.text, icon: '', is_done: false, category: mappedCat }]);
+      await sb.from('todos').insert([{ user_id: 'mock-user', log_date: dstr, text: t.text, icon: '', is_done: false, category: mappedCat }]);
       added++;
     }
   }
@@ -3949,7 +3937,7 @@ function renderProjects() {
   if (targetList.length === 0) {
     grid.innerHTML = `
       <div style="grid-column: 1 / -1;" class="empty-projects">
-        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2zm2.4 10.4l-1.4 1.4-2.6-2.6-2.6 2.6-1.4-1.4 2.6-2.6-2.6-2.6 1.4-1.4 2.6 2.6 2.6-2.6 1.4 1.4-2.6 2.6 2.6 2.6z"/></svg>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><path d="M4 7V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3M4 7h16M4 7v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7M9 13l2 2 4-4"/></svg>
         <h3>진행중인 프로젝트가 없습니다</h3>
         <p>새 프로젝트를 추가하여 시작하세요</p>
       </div>`;
