@@ -2168,7 +2168,9 @@ No text outside JSON. Write in Korean. Include numbers/frequency.`;
     
     const result = await response.json();
     const content = result.content[0].text;
-    const feedback = JSON.parse(content);
+    const cleanContent = content.replace(/```json/gi, '').replace(/```/g, '').trim();
+    console.log('API Raw Response:', content);
+    const feedback = JSON.parse(cleanContent);
 
     renderAIFeedback(yData, feedback);
     
@@ -2303,7 +2305,9 @@ No text outside JSON. Write in Korean.`;
     
     const result = await response.json();
     const content = result.content[0].text;
-    const suggestion = JSON.parse(content);
+    const cleanContent = content.replace(/```json/gi, '').replace(/```/g, '').trim();
+    console.log('API Raw Response:', content);
+    const suggestion = JSON.parse(cleanContent);
 
     renderAIMonthlySuggestions(suggestion);
     
