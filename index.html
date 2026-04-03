@@ -1998,7 +1998,7 @@ body {
             <div class="gc-footer">
               <button class="btn-gc btn-gray-light" onclick="typeof copyLastMonthGoals === 'function' ? copyLastMonthGoals() : null"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> 지난달 계획 복사</button>
               <div style="display:flex; gap:8px;">
-                <button id="monthlyAiBtn" class="btn-gc btn-primary" onclick="getMonthlyPlanSuggestion()" style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 16 2 2 4-4"/><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg> AI로 제안받기</button>
+                <button id="monthlyAiBtn" class="btn-gc btn-primary" onclick="getMonthlyAISuggestion()" style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 16 2 2 4-4"/><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg> AI로 제안받기</button>
                 <button class="btn-gc btn-primary" onclick="typeof saveMonthGoalsData === 'function' ? saveMonthGoalsData() : null">저장하기</button>
                 <button class="btn-gc btn-gray-light" onclick="typeof loadMonthGoalsData === 'function' ? loadMonthGoalsData() : null">취소</button>
               </div>
@@ -2802,24 +2802,34 @@ function copyLastMonthGoals() {
 }
 
 async function getAnnualGoalFeedback() {
-  const btn = event.target.closest('button');
-  const originalText = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '분석 중...';
+  const btn = document.querySelector('[onclick*="AnnualGoal"], [onclick*="annualGoal"], [onclick*="Feedback"], [onclick*="feedback"]');
+  const targetBtn = btn || event?.target?.closest('button');
+  if (!targetBtn) return;
+  
+  const originalHtml = targetBtn.innerHTML;
+  targetBtn.disabled = true;
+  targetBtn.innerHTML = '⏳ 분석 중...';
 
   try {
     const selfDevEl = document.querySelector('[data-type="year-growth"]');
     const familyEl = document.querySelector('[data-type="year-relation"]');
     const workEl = document.querySelector('[data-type="year-work"]');
     
-    let selfDev = selfDevEl ? selfDevEl.innerText.trim() : '';
-    let family = familyEl ? familyEl.innerText.trim() : '';
-    let work = workEl ? workEl.innerText.trim() : '';
+    let selfDevValue = selfDevEl ? selfDevEl.innerText.trim() : '';
+    let familyValue = familyEl ? familyEl.innerText.trim() : '';
+    let workValue = workEl ? workEl.innerText.trim() : '';
+
+    if (!selfDevValue && !familyValue && !workValue) {
+      showToast('연간 목표를 먼저 입력해주세요');
+      targetBtn.disabled = false;
+      targetBtn.innerHTML = originalHtml;
+      return;
+    }
 
     const p1 = 'sk-ant-api03-MuNvUj-';
     const p2 = 'HpGKD5GAVhqv07vQ6uQBw6LTNp2FJLJ-eJPQaLfzVpiffI9kk_8_lligFzkZlzm-pKr3x7_6d_0cTcQ-gy4qtgAA';
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -2828,85 +2838,89 @@ async function getAnnualGoalFeedback() {
         'anthropic-dangerous-allow-browser': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-haiku-20241022',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1200,
-        system: 'You are a Korean life coach. Analyze vague annual goals and provide specific measurable suggestions. Respond ONLY in this JSON format with no other text: {"selfDev":["제안1","제안2"],"family":["제안1","제안2"],"work":["제안1","제안2"]}',
-        messages: [{ role: 'user', content: `자기계발: ${selfDev}\n가족/관계: ${family}\n업무/재정: ${work}` }]
+        system: 'You are a Korean life coach. Analyze vague annual goals and suggest specific measurable improvements. Respond ONLY in valid JSON format: {"selfDev":["구체적 제안1","구체적 제안2"],"family":["구체적 제안1","구체적 제안2"],"work":["구체적 제안1","구체적 제안2"]}. No markdown, no extra text.',
+        messages: [{
+          role: 'user',
+          content: `자기계발: ${selfDevValue}\n가족/관계: ${familyValue}\n업무/재정: ${workValue}`
+        }]
       })
     });
 
-    const data = await response.json();
+    const data = await resp.json();
     if (data.error) throw new Error(data.error.message);
 
-    const text = data.content?.[0]?.text || '';
-    const clean = text.replace(/```json|```/g, '').trim();
-    const result = JSON.parse(clean);
+    const rawText = data.content?.[0]?.text || '';
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('JSON 파싱 실패');
+    const result = JSON.parse(jsonMatch[0]);
 
-    let feedbackHtml = '<div style="margin-top:16px; padding:16px; background:#f0fdf4; border-radius:12px; border:1px solid #bbf7d0;">';
-    feedbackHtml += '<div style="font-weight:700; color:#15803d; margin-bottom:12px;">✨ AI 피드백</div>';
-    
-    if (result.selfDev) {
-      feedbackHtml += '<div style="margin-bottom:8px;"><span style="color:#0891b2; font-weight:600;">📚 자기계발</span><br>';
-      result.selfDev.forEach((s,i) => { feedbackHtml += `<div style="padding:4px 0; color:#374151;">${i+1}. ${s}</div>`; });
-      feedbackHtml += '</div>';
+    // 결과 표시 영역 생성
+    const btnContainer = targetBtn.closest('div, section, form') || targetBtn.parentElement;
+    let resultArea = document.getElementById('annualAiFeedbackResult');
+    if (!resultArea) {
+      resultArea = document.createElement('div');
+      resultArea.id = 'annualAiFeedbackResult';
+      btnContainer.appendChild(resultArea);
     }
-    if (result.family) {
-      feedbackHtml += '<div style="margin-bottom:8px;"><span style="color:#db2777; font-weight:600;">💜 가족/관계</span><br>';
-      result.family.forEach((s,i) => { feedbackHtml += `<div style="padding:4px 0; color:#374151;">${i+1}. ${s}</div>`; });
-      feedbackHtml += '</div>';
-    }
-    if (result.work) {
-      feedbackHtml += '<div style="margin-bottom:8px;"><span style="color:#059669; font-weight:600;">💼 업무/재정</span><br>';
-      result.work.forEach((s,i) => { feedbackHtml += `<div style="padding:4px 0; color:#374151;">${i+1}. ${s}</div>`; });
-      feedbackHtml += '</div>';
-    }
-    feedbackHtml += '</div>';
 
-    const container = btn.closest('.card, section, div[class*="goal"], div[class*="annual"]') || btn.parentElement;
-    let resultDiv = container.querySelector('.ai-annual-result');
-    if (!resultDiv) {
-      resultDiv = document.createElement('div');
-      resultDiv.className = 'ai-annual-result';
-      btn.parentElement.after(resultDiv);
-    }
-    resultDiv.innerHTML = feedbackHtml;
+    resultArea.innerHTML = `
+      <div style="margin-top:16px; padding:16px; background:#f0fdf4; border-radius:12px; border:1px solid #bbf7d0;">
+        <div style="font-weight:700; color:#15803d; margin-bottom:12px; font-size:15px;">✨ AI 피드백 결과</div>
+        <div style="margin-bottom:12px;">
+          <div style="color:#0891b2; font-weight:600; margin-bottom:6px;">📚 자기계발</div>
+          ${(result.selfDev||[]).map((s,i)=>`<div style="padding:5px 0; color:#374151; border-bottom:1px solid #e5e7eb;">${i+1}. ${s}</div>`).join('')}
+        </div>
+        <div style="margin-bottom:12px;">
+          <div style="color:#db2777; font-weight:600; margin-bottom:6px;">💜 가족/관계</div>
+          ${(result.family||[]).map((s,i)=>`<div style="padding:5px 0; color:#374151; border-bottom:1px solid #e5e7eb;">${i+1}. ${s}</div>`).join('')}
+        </div>
+        <div style="margin-bottom:4px;">
+          <div style="color:#059669; font-weight:600; margin-bottom:6px;">💼 업무/재정</div>
+          ${(result.work||[]).map((s,i)=>`<div style="padding:5px 0; color:#374151; border-bottom:1px solid #e5e7eb;">${i+1}. ${s}</div>`).join('')}
+        </div>
+      </div>`;
+
     showToast('AI 피드백이 완료됐어요! ✅');
 
   } catch(e) {
-    console.error('연간목표 AI 오류:', e);
-    showToast('오류: ' + e.message);
+    console.error('연간목표 AI 오류 상세:', e);
+    showToast('오류: ' + (e.message || 'API 호출 실패'));
   }
 
-  btn.disabled = false;
-  btn.innerHTML = originalText;
+  targetBtn.disabled = false;
+  targetBtn.innerHTML = originalHtml;
 }
 
-async function getMonthlyPlanSuggestion() {
-  const btn = event.target.closest('button');
-  const originalText = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '분석 중...';
+async function getMonthlyAISuggestion() {
+  const targetBtn = event?.target?.closest('button');
+  if (!targetBtn) return;
+
+  const originalHtml = targetBtn.innerHTML;
+  targetBtn.disabled = true;
+  targetBtn.innerHTML = '⏳ 분석 중...';
 
   try {
     const selfDevEl = document.querySelector('[data-type="year-growth"]');
     const familyEl = document.querySelector('[data-type="year-relation"]');
     const workEl = document.querySelector('[data-type="year-work"]');
     
-    let selfDev = selfDevEl ? selfDevEl.innerText.trim() : '';
-    let family = familyEl ? familyEl.innerText.trim() : '';
-    let work = workEl ? workEl.innerText.trim() : '';
-    
-    const monthSelfDev = document.querySelector('[data-type="month-growth"]');
-    const monthFamily = document.querySelector('[data-type="month-relation"]');
-    const monthWork = document.querySelector('[data-type="month-work"]');
+    let selfDevGoal = selfDevEl ? selfDevEl.innerText.trim() : '';
+    let familyGoal = familyEl ? familyEl.innerText.trim() : '';
+    let workGoal = workEl ? workEl.innerText.trim() : '';
+
+    const planSelfDev = document.querySelector('[data-type="month-growth"]');
+    const planFamily = document.querySelector('[data-type="month-relation"]');
+    const planWork = document.querySelector('[data-type="month-work"]');
 
     const now = new Date();
-    const userMessage = `현재: ${now.getFullYear()}년 ${now.getMonth()+1}월\n연간목표:\n자기계발: ${selfDev}\n가족/관계: ${family}\n업무/재정: ${work}\n\n이번 달 월간 실천계획을 구체적으로 제안해줘.`;
+    const userMsg = `현재: ${now.getFullYear()}년 ${now.getMonth()+1}월\n\n[연간 목표]\n자기계발: ${selfDevGoal || '미입력'}\n가족/관계: ${familyGoal || '미입력'}\n업무/재정: ${workGoal || '미입력'}\n\n이번 달 월간 실천계획을 구체적으로 제안해줘.`;
 
     const p1 = 'sk-ant-api03-MuNvUj-';
     const p2 = 'HpGKD5GAVhqv07vQ6uQBw6LTNp2FJLJ-eJPQaLfzVpiffI9kk_8_lligFzkZlzm-pKr3x7_6d_0cTcQ-gy4qtgAA';
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -2915,35 +2929,52 @@ async function getMonthlyPlanSuggestion() {
         'anthropic-dangerous-allow-browser': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-haiku-20241022',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
-        system: 'You are a Korean life coach. Suggest specific monthly action plans based on annual goals. Respond ONLY in this JSON format: {"selfDev":"자기계발 월간 실천계획","family":"가족관계 월간 실천계획","work":"업무재정 월간 실천계획"}',
-        messages: [{ role: 'user', content: userMessage }]
+        system: 'You are a Korean life coach. Suggest specific monthly action plans. Respond ONLY in valid JSON: {"selfDev":"자기계발 실천계획 내용","family":"가족관계 실천계획 내용","work":"업무재정 실천계획 내용"}. No markdown, no extra text.',
+        messages: [{ role: 'user', content: userMsg }]
       })
     });
 
-    const data = await response.json();
+    const data = await resp.json();
     if (data.error) throw new Error(data.error.message);
 
-    const text = data.content?.[0]?.text || '';
-    const clean = text.replace(/```json|```/g, '').trim();
-    const result = JSON.parse(clean);
+    const rawText = data.content?.[0]?.text || '';
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('JSON 파싱 실패');
+    const result = JSON.parse(jsonMatch[0]);
 
-    if (monthSelfDev && result.selfDev) monthSelfDev.innerText = result.selfDev;
-    if (monthFamily && result.family) monthFamily.innerText = result.family;
-    if (monthWork && result.work) monthWork.innerText = result.work;
+    if (planSelfDev && result.selfDev) planSelfDev.innerText = result.selfDev;
+    if (planFamily && result.family) planFamily.innerText = result.family;
+    if (planWork && result.work) planWork.innerText = result.work;
 
     if (typeof saveMonthGoalsData === 'function') saveMonthGoalsData();
 
-    showToast('AI 월간 제안이 완료됐어요! ✅');
+    // 결과를 별도 영역에 표시
+    const btnContainer = targetBtn.closest('div, section') || targetBtn.parentElement;
+    let resultArea = document.getElementById('monthlyAiResult');
+    if (!resultArea) {
+      resultArea = document.createElement('div');
+      resultArea.id = 'monthlyAiResult';
+      btnContainer.appendChild(resultArea);
+    }
+    resultArea.innerHTML = `
+      <div style="margin-top:16px; padding:16px; background:#f0fdf4; border-radius:12px; border:1px solid #bbf7d0;">
+        <div style="font-weight:700; color:#15803d; margin-bottom:8px;">✨ AI 월간 제안</div>
+        <div style="margin-bottom:8px;"><b style="color:#0891b2;">📚 자기계발</b><br>${result.selfDev||''}</div>
+        <div style="margin-bottom:8px;"><b style="color:#db2777;">💜 가족/관계</b><br>${result.family||''}</div>
+        <div><b style="color:#059669;">💼 업무/재정</b><br>${result.work||''}</div>
+      </div>`;
+
+    showToast('AI 월간 제안 완료! ✅');
 
   } catch(e) {
-    console.error('월간 AI 오류:', e);
-    showToast('오류: ' + e.message);
+    console.error('월간 AI 오류 상세:', e);
+    showToast('오류: ' + (e.message || 'API 호출 실패'));
   }
 
-  btn.disabled = false;
-  btn.innerHTML = originalText;
+  targetBtn.disabled = false;
+  targetBtn.innerHTML = originalHtml;
 }
 
 // ── 토스트 ──
