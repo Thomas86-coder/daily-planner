@@ -2826,34 +2826,30 @@ async function getAnnualGoalFeedback() {
       return;
     }
 
-    const p1 = 'sk-ant-api03-MuNvUj-';
-    const p2 = 'HpGKD5GAVhqv07vQ6uQBw6LTNp2FJLJ-eJPQaLfzVpiffI9kk_8_lligFzkZlzm-pKr3x7_6d_0cTcQ-gy4qtgAA';
+    const userMessage = `연간 목표 피드백을 요청합니다.
+자기계발: ${selfDevValue}
+가족/관계: ${familyValue}
+업무/재정: ${workValue}
 
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': p1 + p2,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-allow-browser': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1200,
-        system: 'You are a Korean life coach. Analyze vague annual goals and suggest specific measurable improvements. Respond ONLY in valid JSON format: {"selfDev":["구체적 제안1","구체적 제안2"],"family":["구체적 제안1","구체적 제안2"],"work":["구체적 제안1","구체적 제안2"]}. No markdown, no extra text.',
-        messages: [{
-          role: 'user',
-          content: `자기계발: ${selfDevValue}\n가족/관계: ${familyValue}\n업무/재정: ${workValue}`
-        }]
-      })
-    });
+각 카테고리별로 구체적인 개선 제안 2가지씩 알려주세요.
+반드시 아래 JSON 형식으로만 응답하세요:
+{"selfDev":["제안1","제안2"],"family":["제안1","제안2"],"work":["제안1","제안2"]}`;
 
+    const resp = await fetch(
+      'https://qxqkpgkiuzdvkdieqynf.supabase.co/functions/v1/ai-analysis',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4cWtwZ2tpdXpkdmtkaWVxeW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjI3OTAsImV4cCI6MjA5MDI5ODc5MH0.T6FT8YQKAPwIgPfKU1guaRx-izWvta7fM1nLMuzggZI'
+        },
+        body: JSON.stringify({ userMessage })
+      }
+    );
     const data = await resp.json();
-    if (data.error) throw new Error(data.error.message);
-
-    const rawText = data.content?.[0]?.text || '';
+    const rawText = data.result || '';
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('JSON 파싱 실패');
+    if (!jsonMatch) throw new Error('응답 파싱 실패');
     const result = JSON.parse(jsonMatch[0]);
 
     // 결과 표시 영역 생성
@@ -2915,33 +2911,33 @@ async function getMonthlyAISuggestion() {
     const planWork = document.querySelector('[data-type="month-work"]');
 
     const now = new Date();
-    const userMsg = `현재: ${now.getFullYear()}년 ${now.getMonth()+1}월\n\n[연간 목표]\n자기계발: ${selfDevGoal || '미입력'}\n가족/관계: ${familyGoal || '미입력'}\n업무/재정: ${workGoal || '미입력'}\n\n이번 달 월간 실천계획을 구체적으로 제안해줘.`;
+    const userMessage = `월간 실천계획 제안을 요청합니다.
+현재: ${now.getFullYear()}년 ${now.getMonth()+1}월
 
-    const p1 = 'sk-ant-api03-MuNvUj-';
-    const p2 = 'HpGKD5GAVhqv07vQ6uQBw6LTNp2FJLJ-eJPQaLfzVpiffI9kk_8_lligFzkZlzm-pKr3x7_6d_0cTcQ-gy4qtgAA';
+연간 목표:
+자기계발: ${selfDevGoal || '미입력'}
+가족/관계: ${familyGoal || '미입력'}
+업무/재정: ${workGoal || '미입력'}
 
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': p1 + p2,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-allow-browser': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1000,
-        system: 'You are a Korean life coach. Suggest specific monthly action plans. Respond ONLY in valid JSON: {"selfDev":"자기계발 실천계획 내용","family":"가족관계 실천계획 내용","work":"업무재정 실천계획 내용"}. No markdown, no extra text.',
-        messages: [{ role: 'user', content: userMsg }]
-      })
-    });
+이번 달 구체적인 월간 실천계획을 제안해주세요.
+반드시 아래 JSON 형식으로만 응답하세요:
+{"selfDev":"자기계발 실천계획","family":"가족관계 실천계획","work":"업무재정 실천계획"}`;
 
+    const resp = await fetch(
+      'https://qxqkpgkiuzdvkdieqynf.supabase.co/functions/v1/ai-analysis',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4cWtwZ2tpdXpkdmtkaWVxeW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjI3OTAsImV4cCI6MjA5MDI5ODc5MH0.T6FT8YQKAPwIgPfKU1guaRx-izWvta7fM1nLMuzggZI'
+        },
+        body: JSON.stringify({ userMessage })
+      }
+    );
     const data = await resp.json();
-    if (data.error) throw new Error(data.error.message);
-
-    const rawText = data.content?.[0]?.text || '';
+    const rawText = data.result || '';
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('JSON 파싱 실패');
+    if (!jsonMatch) throw new Error('응답 파싱 실패');
     const result = JSON.parse(jsonMatch[0]);
 
     if (planSelfDev && result.selfDev) planSelfDev.innerText = result.selfDev;
