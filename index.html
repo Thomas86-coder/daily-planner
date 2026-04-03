@@ -1998,7 +1998,7 @@ body {
             <div class="gc-footer">
               <button class="btn-gc btn-gray-light" onclick="typeof copyLastMonthGoals === 'function' ? copyLastMonthGoals() : null"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> 지난달 계획 복사</button>
               <div style="display:flex; gap:8px;">
-                <button class="btn-gc btn-primary" onclick="getAIMonthlySuggestions()" style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 16 2 2 4-4"/><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg> AI로 제안받기</button>
+                <button id="monthlyAiBtn" class="btn-gc btn-primary" onclick="getMonthlyAISuggestion()" style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 16 2 2 4-4"/><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg> AI로 제안받기</button>
                 <button class="btn-gc btn-primary" onclick="typeof saveMonthGoalsData === 'function' ? saveMonthGoalsData() : null">저장하기</button>
                 <button class="btn-gc btn-gray-light" onclick="typeof loadMonthGoalsData === 'function' ? loadMonthGoalsData() : null">취소</button>
               </div>
@@ -2936,50 +2936,29 @@ function applyCatFeedback(targetId, suggestions, btn) {
   showToast('적용되었어요! ✅');
 }
 
-async function getAIMonthlySuggestions() {
-  const btn = event ? event.currentTarget : document.querySelector('button[onclick="getAIMonthlySuggestions()"]');
-  const originalBtnText = btn.innerHTML;
-
-  const yData = [
-    { id: 'year-growth', label: '자기계발' },
-    { id: 'year-relation', label: '가족/관계' },
-    { id: 'year-work', label: '업무/재정' }
-  ].reduce((acc, cat) => {
-    const el = document.querySelector(`.yg-item .goal-editor[data-type="${cat.id}"]`);
-    acc[cat.label] = el ? el.innerText.trim() : '';
-    return acc;
-  }, {});
-
-  if (!yData['자기계발'] && !yData['가족/관계'] && !yData['업무/재정']) {
-    showToast('연간 목표를 먼저 입력해주세요');
-    return;
+async function getMonthlyAISuggestion() {
+  const btn = document.getElementById('monthlyAiBtn');
+  if(btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" style="display:inline-block; animation:spin 1s linear infinite; width:16px; height:16px; vertical-align:middle; margin-right:4px;"></i> 분석 중...';
+    if(window.lucide) lucide.createIcons();
   }
 
-  btn.disabled = true;
-  btn.innerHTML = '<i data-lucide="loader-2" style="display:inline-block; animation:spin 1s linear infinite; width:16px; height:16px; vertical-align:middle; margin-right:4px;"></i> 분석 중...';
-  if (window.lucide) lucide.createIcons();
+  // 연간 목표 텍스트에리어(contenteditable)에서 값 가져오기
+  const selfDevEl = document.querySelector('[data-type="year-growth"]');
+  const familyEl = document.querySelector('[data-type="year-relation"]');
+  const workEl = document.querySelector('[data-type="year-work"]');
+  
+  const selfDevGoal = selfDevEl ? selfDevEl.innerText.trim() : '';
+  const familyGoal = familyEl ? familyEl.innerText.trim() : '';
+  const workGoal = workEl ? workEl.innerText.trim() : '';
 
-  const yearText = document.getElementById('gc-month-txt') ? document.getElementById('gc-month-txt').innerText : '이번 달';
+  // 현재 연월
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
 
-  const userMessage = `현재 연월: ${yearText}
-
-[연간 목표]
-자기계발: ${yData['자기계발']}
-가족/관계: ${yData['가족/관계']}
-업무/재정: ${yData['업무/재정']}
-
-위 연간 목표를 바탕으로 이번 달 구체적인 월간 실천계획을 제안해줘.`;
-
-  const SYSTEM_PROMPT = `You are a Korean life coach helping create monthly action plans.
-Based on the annual goals provided, create specific monthly action plans
-for this month. Each plan should be actionable within this month.
-Respond ONLY in JSON:
-{
-  "selfDev": "이번 달 자기계발 실천계획 (구체적 행동 + 빈도 + 측정방법)",
-  "family": "이번 달 가족관계 실천계획 (구체적 행동 + 빈도 + 측정방법)",
-  "work": "이번 달 업무재정 실천계획 (구체적 행동 + 빈도 + 측정방법)"
-}
-No text outside JSON. Write in Korean.`;
+  const userMessage = `현재 연월: ${year}년 ${month}월\n\n[연간 목표]\n자기계발: ${selfDevGoal}\n가족/관계: ${familyGoal}\n업무/재정: ${workGoal}\n\n위 연간 목표를 바탕으로 이번 달 구체적인 월간 실천계획을 제안해줘.`;
 
   try {
     const p1 = 'sk-ant-api03-MuNvUj-';
@@ -2994,33 +2973,46 @@ No text outside JSON. Write in Korean.`;
         'anthropic-dangerous-allow-browser': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1500,
-        system: SYSTEM_PROMPT,
+        model: 'claude-3-5-haiku-20241022',
+        max_tokens: 1000,
+        system: 'You are a Korean life coach. Based on annual goals, suggest specific monthly action plans. Respond ONLY in this exact JSON format with no other text: {"selfDev":"자기계발 월간 실천계획 내용","family":"가족관계 월간 실천계획 내용","work":"업무재정 월간 실천계획 내용"}',
         messages: [{ role: 'user', content: userMessage }]
       })
     });
 
-    if (!response.ok) throw new Error('API 호출 실패');
+    const data = await response.json();
+    console.log('API 응답:', data);
     
-    const result = await response.json();
-    const content = result.content[0].text;
-    const cleanContent = content.replace(/```json/gi, '').replace(/```/g, '').trim();
-    console.log('API Raw Response:', content);
-    const suggestion = JSON.parse(cleanContent);
+    if (data.error) {
+       console.error('API 에러 응답:', data.error);
+       throw new Error(data.error.message || 'API 에러');
+    }
 
-    renderAIMonthlySuggestions(suggestion);
-    
-    document.getElementById('ai-monthly-suggestion-section').classList.remove('hidden');
-    showToast('AI 제안이 완료되었습니다! ✨');
+    const text = data.content?.[0]?.text;
+    if (!text) throw new Error('응답 없음');
 
-  } catch (error) {
-    console.error('AI Suggestion Error:', error);
+    const clean = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const result = JSON.parse(clean);
+
+    // 결과를 월간 실천계획 텍스트에리어(contenteditable)에 표시
+    const pSelfDevEl = document.querySelector('[data-type="month-growth"]');
+    const pFamilyEl = document.querySelector('[data-type="month-relation"]');
+    const pWorkEl = document.querySelector('[data-type="month-work"]');
+
+    if (pSelfDevEl) pSelfDevEl.innerText = result.selfDev;
+    if (pFamilyEl) pFamilyEl.innerText = result.family;
+    if (pWorkEl) pWorkEl.innerText = result.work;
+
+    showToast('AI 제안이 완료됐어요! ✅');
+
+  } catch(e) {
+    console.error('월간 AI 오류:', e);
     showToast('AI 분석 중 오류가 발생했어요');
-  } finally {
+  }
+
+  if(btn) {
     btn.disabled = false;
-    btn.innerHTML = originalBtnText;
-    if (window.lucide) lucide.createIcons();
+    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 16 2 2 4-4"/><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg> <span>AI로 제안받기</span>';
   }
 }
 
