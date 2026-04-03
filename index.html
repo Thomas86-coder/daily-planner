@@ -9,36 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js">= await sb.from('todos')
-        .select('id')
-        .eq('user_id', 'mock-user')
-        .eq('log_date', dstr)
-        .eq('text', rc.text)
-        .eq('category', rc.category)
-        .eq('icon', '반복업무');
-      
-      if (exist && exist.length > 0) {
-        showToast('오늘 같은 반복업무가 이미 등록되어 있습니다.', true);
-        return;
-      }
-      
-      const insertData = {
-        user_id: 'mock-user',
-        log_date: dstr,
-        text: rc.text,
-        icon: '반복업무',
-        category: rc.category,
-        is_done: false
-      };
-      const { error } = await sb.from('todos').insert([insertData]);
-      if(error) throw error;
-      
-      showToast('오늘 할일에 등록되었습니다! 👏');
-      fetchDataForDate(currentDate); // 투두리스트 갱신
-    } catch(e) { console.error(e); showToast('등록 중 오류 발생', true); }
-  }
-
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root {
   --primary: #5B5FC7;
@@ -3258,34 +3229,7 @@ async function init() {
   lucide.createIcons();
 }
 
-init();= await sb.from('todos')
-        .select('id')
-        .eq('user_id', 'mock-user')
-        .eq('log_date', dstr)
-        .eq('text', rc.text)
-        .eq('category', rc.category)
-        .eq('icon', '반복업무');
-      
-      if (exist && exist.length > 0) {
-        showToast('오늘 같은 반복업무가 이미 등록되어 있습니다.', true);
-        return;
-      }
-      
-      const insertData = {
-        user_id: 'mock-user',
-        log_date: dstr,
-        text: rc.text,
-        icon: '반복업무',
-        category: rc.category,
-        is_done: false
-      };
-      const { error } = await sb.from('todos').insert([insertData]);
-      if(error) throw error;
-      
-      showToast('오늘 할일에 등록되었습니다! 👏');
-      fetchDataForDate(currentDate); // 투두리스트 갱신
-    } catch(e) { console.error(e); showToast('등록 중 오류 발생', true); }
-  }
+init();
 
 </script>
 
@@ -4429,34 +4373,7 @@ function renderProjects() {
       </div>
     `;
   }).join('');
-}= await sb.from('todos')
-        .select('id')
-        .eq('user_id', 'mock-user')
-        .eq('log_date', dstr)
-        .eq('text', rc.text)
-        .eq('category', rc.category)
-        .eq('icon', '반복업무');
-      
-      if (exist && exist.length > 0) {
-        showToast('오늘 같은 반복업무가 이미 등록되어 있습니다.', true);
-        return;
-      }
-      
-      const insertData = {
-        user_id: 'mock-user',
-        log_date: dstr,
-        text: rc.text,
-        icon: '반복업무',
-        category: rc.category,
-        is_done: false
-      };
-      const { error } = await sb.from('todos').insert([insertData]);
-      if(error) throw error;
-      
-      showToast('오늘 할일에 등록되었습니다! 👏');
-      fetchDataForDate(currentDate); // 투두리스트 갱신
-    } catch(e) { console.error(e); showToast('등록 중 오류 발생', true); }
-  }
+}
 
 
   // ===== 반복업무 로직 =====
