@@ -2843,7 +2843,7 @@ async function getAnnualGoalFeedback() {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4cWtwZ2tpdXpkdmtkaWVxeW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjI3OTAsImV4cCI6MjA5MDI5ODc5MH0.T6FT8YQKAPwIgPfKU1guaRx-izWvta7fM1nLMuzggZI'
         },
-        body: JSON.stringify({ userMessage })
+        body: JSON.stringify({ userMessage, responseType: "annualGoalFeedback" })
       }
     );
     const data = await resp.json();
@@ -2931,7 +2931,7 @@ async function getMonthlyAISuggestion() {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4cWtwZ2tpdXpkdmtkaWVxeW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjI3OTAsImV4cCI6MjA5MDI5ODc5MH0.T6FT8YQKAPwIgPfKU1guaRx-izWvta7fM1nLMuzggZI'
         },
-        body: JSON.stringify({ userMessage })
+        body: JSON.stringify({ userMessage, responseType: "monthlyPlan" })
       }
     );
     const data = await resp.json();

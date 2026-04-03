@@ -3,47 +3,9 @@
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
-
-const SYSTEM_PROMPT = `
-You are a helpful and professional Korean life coach.
-
-If the user message starts with "[2026년 연간 목표 AI 피드백 요청]", you must respond strictly in the following format. Replace the bracketed text with your analysis and specific phrasing:
-
-📋 연간 목표 피드백
-
-📚 자기계발
-[입력한 목표 분석 한 줄]
-✅ 구체화 제안:
-- [구체적 목표 1] (예: 매일 아침 7시 30분 영어 앱 20분)
-- [구체적 목표 2]
-- [측정 방법]: 어떻게 달성 여부를 확인할지
-
-💜 가족/관계
-[입력한 목표 분석 한 줄]
-✅ 구체화 제안:
-- [구체적 목표 1]
-- [구체적 목표 2]
-- [측정 방법]
-
-💼 업무/재정
-[입력한 목표 분석 한 줄]
-✅ 구체화 제안:
-- [구체적 목표 1]
-- [구체적 목표 2]
-- [측정 방법]
-
-🎯 핵심 조언
-[세 가지 목표를 연결하는 한 줄 조언]
-
-
-If the user message does NOT start with "[2026년 연간 목표 AI 피드백 요청]", assume it is a daily reflection. Analyze the user's daily data and respond in Korean with sections for: performance summary, two good points, two areas to improve, two suggestions for tomorrow, and one encouraging message. Use this exact structure in your response: Start with the performance summary section labeled with a chart symbol and the text for today's performance, then a section for two things done well, then a section for two areas that could be improved, then a section for two suggestions for tomorrow, and finally one short encouraging sentence. Each section should be clearly separated. 
-
-Respond entirely in Korean. DO NOT include extra pleasantries outside of these formats.
-`;
 
 Deno.serve(async (req: Request): Promise<Response> => {
   // CORS preflight
@@ -51,26 +13,16 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return new Response("ok", { headers: CORS_HEADERS });
   }
 
-  // Only allow POST
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-    });
-  }
-
   try {
     // Parse request body
     const body = await req.json();
     const userMessage: string = body.userMessage ?? "";
+    const responseType: string = body.responseType ?? "";
 
     if (!userMessage) {
       return new Response(
         JSON.stringify({ error: "userMessage is required" }),
-        {
-          status: 400,
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-        }
+        { status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
       );
     }
 
@@ -79,11 +31,20 @@ Deno.serve(async (req: Request): Promise<Response> => {
     if (!apiKey) {
       return new Response(
         JSON.stringify({ error: "CLAUDE_API_KEY is not configured" }),
-        {
-          status: 500,
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-        }
+        { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
       );
+    }
+
+    // responseType에 따라 시스템 프롬프트 분기
+    let systemPrompt = "";
+
+    if (responseType === "annualGoalFeedback") {
+      systemPrompt = "You are a Korean life coach. Analyze the annual goals and provide specific suggestions. You MUST respond ONLY with valid JSON in this exact format, no other text: {\"selfDev\":[\"suggestion1\",\"suggestion2\"],\"family\":[\"suggestion1\",\"suggestion2\"],\"work\":[\"suggestion1\",\"suggestion2\"]}";
+    } else if (responseType === "monthlyPlan") {
+      systemPrompt = "You are a Korean life coach. Suggest monthly action plans based on annual goals. You MUST respond ONLY with valid JSON in this exact format, no other text: {\"selfDev\":\"monthly plan content\",\"family\":\"monthly plan content\",\"work\":\"monthly plan content\"}";
+    } else {
+      // 기존 일일 분석 프롬프트 유지
+      systemPrompt = "You are a Korean productivity coach. Always respond in Korean with this exact format: [오늘의 성과] completion rate summary [잘한 점] 1. 2. [아쉬운 점] 1. 2. [내일 개선 제안] 1. 2. [응원 한마디] one encouraging sentence";
     }
 
     // Call Claude API
@@ -96,14 +57,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 800,
-        system: SYSTEM_PROMPT,
-        messages: [
-          {
-            role: "user",
-            content: userMessage,
-          },
-        ],
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userMessage }],
       }),
     });
 
@@ -111,19 +67,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
       const errText = await claudeRes.text();
       console.error("Claude API error:", claudeRes.status, errText);
       return new Response(
-        JSON.stringify({
-          error: "Claude API request failed",
-          status: claudeRes.status,
-        }),
-        {
-          status: 502,
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ error: "Claude API request failed", status: claudeRes.status }),
+        { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
       );
     }
 
     const claudeData = await claudeRes.json();
-    const result: string = claudeData.content?.[0]?.text ?? "";
+    const result: string = claudeData.content?.[0]?.text ?? "오류가 발생했어요";
 
     return new Response(JSON.stringify({ result }), {
       status: 200,
