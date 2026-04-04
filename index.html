@@ -2648,7 +2648,10 @@ function navigate(page) {
     else if (page === 'recurring') loadRecurringTasks();
   } else {
     const todayEl = document.getElementById('page-today');
-    if (todayEl) todayEl.style.display = '';
+    if (todayEl) {
+      todayEl.style.display = '';
+      loadData(); // Sync Today data when navigating back
+    }
     const nt = document.getElementById('nav-today');
     if (nt) nt.classList.add('active');
   }
@@ -4591,7 +4594,10 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   
   // init run
-  setTimeout(()=> { if(window.updateDateBar) window.updateDateBar(); }, 500);
+  setTimeout(()=> { 
+    if(window.updateDateBar) window.updateDateBar(); 
+    loadData(); // Initial data load
+  }, 500);
 });
 </script>
 </body></html>
