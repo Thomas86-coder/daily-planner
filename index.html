@@ -648,41 +648,161 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
 /* ── MOBILE ── */
-@media (max-width: 768px) {
-  /* 사이드바 숨기고 하단 탭바 표시 */
-  .sidebar { display: none; }
-  .mob-tabbar { display: flex !important; }
-  .main-content { margin-left: 0; margin-top: 0; margin-bottom: 60px; padding: 14px; max-width: 100%; }
+@media (max-width: 673px) {
+  /* 글로벌 터치 개선 */
+  * { -webkit-overflow-scrolling: touch; }
+  input, textarea, select { font-size: 16px !important; } /* iOS 자동 확대 방지 */
+
+  /* 사이드바 등 숨김 */
+  .sidebar, .mob-tabbar { display: none !important; }
+  
+  /* 네비게이션: 상단 탭바를 하단 고정 탭바로 변경 */
+  .main-nav-container {
+    position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important;
+    height: 60px !important; background: white !important;
+    border-top: 1px solid #e5e7eb !important;
+    z-index: 100 !important;
+    margin: 0 !important; padding: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+    display: flex !important; justify-content: space-around !important; align-items: center !important;
+    grid-template-columns: none !important;
+  }
+  
+  /* 탭 그룹 3개(계획/실행/리뷰)를 아이콘+텍스트로 표시 */
+  .nav-card {
+    flex: 1; height: 100%; padding: 0 !important; margin: 0 !important;
+    background: transparent !important; border: none !important;
+    display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important;
+    position: relative; overflow: hidden;
+  }
+  .nav-card-title {
+    font-size: 10px !important; color: #6b7280; font-weight: 600;
+    margin: 0 !important; line-height: 1.2; text-align: center;
+  }
+  .nav-card.plan .nav-card-title::before { content: "📋"; font-size: 18px; display: block; margin-bottom: 2px; }
+  .nav-card.execute .nav-card-title::before { content: "🔥"; font-size: 18px; display: block; margin-bottom: 2px; }
+  .nav-card.review .nav-card-title::before { content: "📊"; font-size: 18px; display: block; margin-bottom: 2px; }
+  
+  /* 기존 네비 버튼들을 투명하게 덮어 터치 가능하게 구성 */
+  .nav-card-buttons {
+    position: absolute !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+    display: flex !important; opacity: 0 !important; padding: 0 !important; gap: 0 !important;
+  }
+  .nav-btn { flex: 1; height: 100%; margin: 0; padding: 0; border: none; }
+
+  /* 전체 레이아웃 (카드) */
   .app-wrapper { flex-direction: column; }
+  .main-content { 
+    margin: 0 !important; 
+    padding: 12px !important; 
+    padding-bottom: 70px !important; /* 탭바 가리지 않도록 */
+    max-width: 100%;
+  }
 
-  /* 오늘 페이지 그리드 */
-  .content-grid { grid-template-columns: 1fr; gap: 12px; }
-  .routine-card, .todo-card, .reflection-card { grid-column: 1; }
-  .routine-sections { grid-template-columns: 1fr; gap: 8px; }
+  .card { border-radius: 12px !important; padding: 0 !important; margin-bottom: 10px; }
+  .card-header, .card-body { padding: 12px !important; }
+  .content-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+  .routine-card, .todo-card, .reflection-card { grid-column: 1 !important; }
 
-  /* 카드 패딩 줄이기 */
-  .card { padding: 0; }
-  .card-header, .card-body { padding: 14px 16px; }
+  /* 상단 헤더 */
+  .top-header { padding: 8px 12px !important; flex-wrap: wrap; }
+  .full-brand { font-size: 14px !important; }
+  .top-user { gap: 8px; font-size: 14px !important; }
+  .user-badge { padding: 4px 8px !important; font-size: 13px !important; }
+  .logout-btn { padding: 4px 8px !important; font-size: 12px !important; }
 
-  /* date-bar */
-  .date-bar { padding: 10px 14px; gap: 8px; }
-  .date-display { font-size: 16px; }
+  /* 날짜 영역 */
+  .center-date-nav { margin-bottom: 12px; }
+  .date-bar { padding: 10px 12px !important; gap: 8px !important; display: flex; }
+  .date-display, .center-date-text { font-size: 16px !important; }
+  .date-nav-btn { width: 32px !important; height: 32px !important; min-height: 32px !important; }
+  .today-btn { padding: 4px 8px !important; font-size: 11px !important; min-height: 28px !important; } /* 예외 */
 
-  /* 리뷰 페이지 */
-  #page-weekly, #page-monthly, #page-yearly { padding: 14px !important; }
-  .review-header { padding: 12px 14px; }
-  .rv-stat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .rv-stat-value { font-size: 20px; }
-  .day-bars { gap: 4px; }
-  .day-bar-track { height: 60px; }
-  .yearly-heatmap { overflow-x: scroll; -webkit-overflow-scrolling: touch; }
-  .bar-chart { height: 80px; }
+  /* 오늘 루틴 카드 */
+  .routine-sections { grid-template-columns: 1fr !important; gap: 8px !important; }
+  .check-item { height: 44px !important; padding: 0 10px !important; } /* 터치 영역 44px */
+  .custom-cb { width: 20px !important; height: 20px !important; }
+  .item-label { font-size: 13px !important; }
 
-  /* 버튼 전체 너비 */
-  .ai-review-btn { width: 100%; justify-content: center; }
+  /* 오늘 할일 카드 */
+  .category-tabs { flex-wrap: nowrap !important; overflow-x: auto; white-space: nowrap; padding-bottom: 4px; }
+  .category-tabs::-webkit-scrollbar { display: none; }
+  .cat-tab { padding: 6px 12px !important; font-size: 12px !important; min-height: 28px !important; } /* 예외 */
+  .add-todo-row { flex-direction: row; width: 100%; gap: 8px; }
+  .add-todo-input { width: 100%; height: 44px !important; }
+  .add-btn { width: 44px !important; height: 44px !important; min-height: 44px !important; }
+  .todo-item { height: 48px !important; padding: 0 10px !important; gap: 12px !important; } /* 터치 영역 48px */
+  .todo-text { font-size: 13px !important; }
+  .todo-tools { display: flex; gap: 12px !important; margin-left: auto; justify-content: flex-end; }
+  .todo-tools button, .todo-delete { width: 44px !important; height: 44px !important; min-height: 44px !important; justify-content: center; }
 
-  /* 히트맵 가로 스크롤 */
-  .yearly-months { min-width: 700px; }
+  /* 하루 성찰 카드 */
+  .reflection-textarea { min-height: 60px !important; }
+  .save-btn { width: 100% !important; min-height: 48px !important; margin-top: 10px !important; }
+
+  /* AI 분석 및 각종 버튼 (터치영역 높이 48px 확보) */
+  .ai-review-btn, .btn-primary, .btn-secondary, .modal-btn, .btn-save, .btn-cancel, .pc-btn-primary, .project-btn { 
+    width: 100%; 
+    min-height: 48px !important; 
+    display: flex; align-items: center; justify-content: center; 
+  }
+  button { min-height: 44px; } /* 전역 버그 방지용 터치영역 */
+
+  /* 목표 관리 페이지 (Goals) */
+  #page-plan .content-grid, #page-goals .goals-grid, .page-goals-grid { grid-template-columns: 1fr !important; }
+  .goal-category-section, .yearly-section, .monthly-section { border-bottom: 1px solid #e5e7eb; padding-bottom: 20px; margin-bottom: 20px; }
+  .goal-textarea, .action-plan-textarea { min-height: 80px !important; }
+
+  /* 프로젝트 페이지 */
+  .projects-grid, .pc-projects-list, .pc-projects-grid { grid-template-columns: 1fr !important; }
+  .project-card, .pc-project-item { width: 100%; }
+
+  /* 모달 (반복업무, 프로젝트 공통) */
+  .recurring-modal-custom, .modal, #projectModal .modal-content { width: 90vw !important; max-width: 90vw !important; margin: 0 auto; padding: 16px !important; }
+  .modal-input, .rc-field .modal-input, #projectModal input, #projectModal select { height: 44px !important; }
+
+  /* 리뷰 페이지 하위 요소 */
+  #page-weekly, #page-monthly, #page-yearly { padding: 12px !important; }
+  .review-header { padding: 12px !important; }
+  .rv-stat-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px; }
+  .rv-stat-value { font-size: 20px !important; }
+  .day-bars { gap: 4px !important; }
+  .day-bar-track { height: 60px !important; }
+  .yearly-heatmap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .bar-chart { height: 80px !important; }
+  .yearly-months { min-width: 700px !important; }
+}
+
+/* 접었을 때 - 360px 이하 */
+@media (max-width: 360px) {
+  /* 폰트 전체 1px 축소 */
+  body { font-size: 13px !important; }
+  .item-label { font-size: 12px !important; }
+  .todo-text { font-size: 12px !important; }
+  .full-brand { font-size: 13px !important; }
+  .date-display, .center-date-text { font-size: 14px !important; }
+  
+  /* 카드 여백 축소 */
+  .card-header, .card-body, .pr-content-area, .rc-card, .main-content { padding: 10px !important; }
+  .main-content { padding-bottom: 70px !important; }
+  
+  /* 탭 버튼 텍스트: 숨기고 아이콘만 표시 */
+  .nav-card-title { font-size: 0 !important; color: transparent !important; }
+  .nav-card.plan .nav-card-title::before,
+  .nav-card.execute .nav-card-title::before,
+  .nav-card.review .nav-card-title::before {
+    font-size: 20px !important; color: initial; margin: auto !important;
+  }
+}
+
+/* 폈을 때 - 361px ~ 673px */
+@media (min-width: 361px) and (max-width: 673px) {
+  /* 카드 여백 정상 유지 */
+  .card-header, .card-body, .pr-content-area, .rc-card { padding: 14px !important; }
+  
+  /* 루틴 섹션 3열 가능하면 유지 */
+  .routine-sections { grid-template-columns: repeat(3, 1fr) !important; }
+  
+  /* 탭 버튼 텍스트 + 아이콘 같이 표시됨 (상단 673px 조건에서 처리) */
 }
 
 
