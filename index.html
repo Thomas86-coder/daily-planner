@@ -2285,8 +2285,18 @@ function updateDateBar() {
   const today = new Date(); today.setHours(0,0,0,0);
   const cd = new Date(d); cd.setHours(0,0,0,0);
   const isToday = cd.getTime() === today.getTime();
-  document.getElementById('dateDisplay').textContent = `${d.getFullYear()}년 ${m}월 ${day}일`;
-  document.getElementById('dayDisplay').textContent = isToday ? `${dow}요일 · 오늘` : `${dow}요일`;
+  
+  const dateEl = document.getElementById('dateDisplay');
+  const dayEl = document.getElementById('dayDisplay');
+  
+  if (dateEl) {
+    dateEl.textContent = `${d.getFullYear()}년 ${m}월 ${day}일`;
+  }
+  if (dayEl) {
+    dayEl.textContent = isToday ? `${dow}요일 · 오늘` : `${dow}요일`;
+  } else {
+    console.warn('dayDisplay 요소를 찾을 수 없습니다.');
+  }
 }
 
 // ── 로딩 ──
