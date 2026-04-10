@@ -2261,6 +2261,12 @@ body {
 // alter table routines add column if not exists year int;
 const SUPABASE_URL = 'https://qxqkpgkiuzdvkdieqynf.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4cWtwZ2tpdXpkdmtkaWVxeW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjI3OTAsImV4cCI6MjA5MDI5ODc5MH0.T6FT8YQKAPwIgPfKU1guaRx-izWvta7fM1nLMuzggZI';
+/* 
+Supabase SQL Editor에서 실행할 SQL (필요시 수동 실행):
+-- 기존 루틴 전체 삭제 
+delete from routine_logs;
+delete from routines;
+*/
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── 상수 ──
@@ -2324,14 +2330,12 @@ async function loadData() {
         .from('routines')
         .select('*')
         .eq('is_active', true)
-        .or(`and(month.eq.${currentMonth},year.eq.${currentYear}),month.is.null`)
+        .eq('month', currentMonth)
+        .eq('year', currentYear)
         .order('sort_order');
       
       if (routineErr) {
         console.warn('Routine fetch by month failed:', routineErr);
-        // 컬럼이 아직 없으면 기존 방식대로 에러를 무시하고 전체 로드 시도
-        const { data: fallbackData } = await sb.from('routines').select('*').eq('is_active', true).order('sort_order');
-        routineList = fallbackData || [];
       } else {
         routineList = routineData || [];
       }
@@ -2413,8 +2417,39 @@ async function loadData() {
 
 // ── 루틴 렌더링 ──
 function renderRoutines() {
+  const all = [...routines.morning, ...routines.daytime, ...routines.night];
+  
+  const sectionsWrap = document.querySelector('.routine-sections');
+  let emptyMsg = document.getElementById('emptyRoutineMsg');
+  
+  if (all.length === 0) {
+    if (sectionsWrap) sectionsWrap.style.display = 'none';
+    if (!emptyMsg) {
+      emptyMsg = document.createElement('div');
+      emptyMsg.id = 'emptyRoutineMsg';
+      emptyMsg.style = "text-align:center; padding:30px; color:#6b7280; font-size:14px; background:#f9fafb; border-radius:12px; border:1px dashed #d1d5db; margin-top:16px;";
+      emptyMsg.innerHTML = `
+        <div style="margin-bottom:12px">목표관리에서 이번 달 루틴을 등록해주세요</div>
+        <button onclick="navigate('goals')" style="padding:8px 16px; background:var(--gradient); color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
+          목표관리로 이동
+        </button>
+      `;
+      if (sectionsWrap && sectionsWrap.parentNode) {
+        sectionsWrap.parentNode.insertBefore(emptyMsg, sectionsWrap);
+      }
+    }
+    if (emptyMsg) emptyMsg.style.display = 'block';
+    
+    document.getElementById('routineProgress').textContent = '0 / 0';
+    return;
+  }
+  
+  if (sectionsWrap) sectionsWrap.style.display = 'block';
+  if (emptyMsg) emptyMsg.style.display = 'none';
+
   ['morning','daytime','night'].forEach(t => {
     const el = document.getElementById(t + 'List');
+    if (!el) return;
     const list = routines[t];
     el.innerHTML = list.map(r => `
       <div class="check-item ${r.done ? 'done' : ''}" onclick="toggleRoutine('${t}','${r.id}')">
@@ -2425,12 +2460,12 @@ function renderRoutines() {
       </div>
     `).join('');
     const done = list.filter(r => r.done).length;
-    document.getElementById(t + 'Progress').style.width = list.length ? (done / list.length * 100) + '%' : '0%';
+    const prog = document.getElementById(t + 'Progress');
+    if(prog) prog.style.width = list.length ? (done / list.length * 100) + '%' : '0%';
   });
 
-  const all = [...routines.morning, ...routines.daytime, ...routines.night];
-  const done = all.filter(r => r.done).length;
-  document.getElementById('routineProgress').textContent = `${done} / ${all.length}`;
+  const doneCount = all.filter(r => r.done).length;
+  document.getElementById('routineProgress').textContent = `${doneCount} / ${all.length}`;
 }
 
 // ── 루틴 토글 ──
@@ -2915,7 +2950,7 @@ async function saveMonthlyGoalRoutines() {
   }
   
   hideLoading();
-  showToast('루틴이 오늘 일정에 반영됐어요! ✅');
+  showToast('루틴이 저장됐어요! 오늘 탭에서 확인하세요 ✅');
   
   if (goalsMonth === currentDate.getMonth() + 1 && goalsYear === currentDate.getFullYear()) {
     await loadData();
