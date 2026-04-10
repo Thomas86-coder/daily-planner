@@ -1769,25 +1769,31 @@ body {
       <div class="card" style="grid-column: 1 / 3;">
         <div class="card-header">
           <div class="card-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="sparkles" aria-hidden="true" style="color:var(--primary)" class="lucide lucide-sparkles"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path d="M20 2v4"></path><path d="M22 4h-4"></path><circle cx="4" cy="20" r="2"></circle></svg>
-            🤖 AI 하루 분석
+            ✨ AI 하루 분석
           </div>
         </div>
         <div class="card-body">
-          <div style="display:flex; gap:12px; align-items:center; margin-bottom:14px;">
-            <input id="claudeKeyInput" type="password" placeholder="sk-...  OpenAI API Key 입력" style="flex:1; border:1.5px solid var(--border); border-radius:8px; padding:7px 12px;
-                     font-size:13px; font-family:inherit; outline:none; color:var(--text-primary);">
-            <button onclick="saveClaudeKey()" style="padding:7px 16px; background:var(--gradient); color:white; border:none;
-                     border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;">
-              저장
-            </button>
-          </div>
-          <button class="save-btn" onclick="runAIAnalysis()" id="aiBtn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="sparkles" aria-hidden="true" class="lucide lucide-sparkles"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path d="M20 2v4"></path><path d="M22 4h-4"></path><circle cx="4" cy="20" r="2"></circle></svg> 오늘 하루 분석받기
+          <button
+            id="aiBtn"
+            onclick="runAIAnalysis()"
+            style="
+              width:100%; padding:14px;
+              background: linear-gradient(135deg, #5B5FC7, #8B7AB8);
+              color:white; border:none; border-radius:10px;
+              font-size:15px; font-weight:700; cursor:pointer;
+              font-family:inherit;
+            ">
+            ✨ 오늘 하루 분석받기
           </button>
-          <div id="aiResult" style="margin-top:16px; display:none;">
-            <div style="border-top:1px solid var(--border-light); padding-top:14px;">
-              <div id="aiContent" style="font-size:13.5px; line-height:1.9; color:var(--text-primary); white-space:pre-wrap;"></div>
+          <div id="aiResult" style="display:none; margin-top:16px;">
+            <div
+              id="aiContent"
+              style="
+                font-size:14px; line-height:1.9;
+                color:#1f2937; white-space:pre-wrap;
+                background:#f8f8ff; border-radius:10px;
+                padding:16px; border:1px solid #e5e7eb;
+              ">
             </div>
           </div>
         </div>
@@ -3267,149 +3273,122 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2800);
 }
 
-// ── Claude API Key 저장/불러오기 ──
-function saveClaudeKey() {
-  const key = document.getElementById('claudeKeyInput').value.trim();
-  if (!key) { showToast('API Key를 입력해주세요'); return; }
-  if (!key.startsWith('sk-')) {
-    showToast('올바른 OpenAI API Key 형식이 아닙니다 (sk-... 형식)');
-    return;
-  }
-  localStorage.setItem('claude_api_key', key);
-  document.getElementById('claudeKeyInput').value = '';
-  document.getElementById('claudeKeyInput').placeholder = '✅ OpenAI API Key 저장됨';
-  showToast('OpenAI API Key가 저장됐어요! 🔑');
-}
-
-function loadClaudeKey() {
-  const key = localStorage.getItem('claude_api_key');
-  if (key) {
-    document.getElementById('claudeKeyInput').placeholder = '✅ API Key 저장됨';
-  }
-  return key;
-}
-
 // ── AI 하루 분석 ──
 async function runAIAnalysis() {
-  const apiKey = loadClaudeKey();
-  if (!apiKey) {
-    showToast('먼저 OpenAI API Key를 입력·저장해주세요 🔑');
-    return;
-  }
-
   const btn = document.getElementById('aiBtn');
-  const resultDiv = document.getElementById('aiResult');
+  if (!btn) return;
   btn.disabled = true;
-  btn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite"></i> 분석 중...';
-  lucide.createIcons();
-  if (resultDiv) resultDiv.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:12px 0;">AI가 오늘 하루를 분석하고 있어요... ✨</div>';
+  btn.innerHTML = '⏳ 분석 중...';
 
   try {
     const date = todayStr();
 
     // 오늘 할일 조회
-    const { data: todoList, error: todoErr } = await sb
-      .from('todos').select('text,category,done').eq('log_date', date);
-    if (todoErr) throw new Error('할일 조회 실패: ' + todoErr.message);
+    const { data: todoList } = await sb
+      .from('todos').select('*').eq('log_date', date);
 
     // 오늘 성찰 조회
-    const { data: ref, error: refErr } = await sb
-      .from('reflections').select('*').eq('log_date', date).maybeSingle();
+    const { data: ref } = await sb
+      .from('reflections').select('*')
+      .eq('log_date', date).maybeSingle();
 
-    const todos = todoList || [];
-    const doneTodos   = todos.filter(t => t.done);
-    const undoneTodos = todos.filter(t => !t.done);
-    const doneRate = todos.length > 0 ? Math.round(doneTodos.length / todos.length * 100) : 0;
-    const catLabel = { work:'업무', job:'직무', growth:'성장', personal:'개인' };
-    const fmtList = arr => arr.length === 0
-      ? '  (없음)'
-      : arr.map(t => `  - [${catLabel[t.category]||t.category}] ${t.text}`).join('\n');
+    // 루틴 달성률 계산
+    const allRoutines = [
+      ...routines.morning,
+      ...routines.daytime,
+      ...routines.night
+    ];
+    const doneRoutines = allRoutines.filter(r => r.done).length;
+    const totalRoutines = allRoutines.length;
+    const routineRate = totalRoutines > 0
+      ? Math.round(doneRoutines / totalRoutines * 100) : 0;
 
-    const refSection = ref
-      ? `\n감사한 일: ${ref.mood||'(미작성)'}\n잘한 일: ${ref.good_things||'(미작성)'}\n아쉬운 점: ${ref.regrets||'(미작성)'}\n다짐: ${ref.tomorrow_goal||'(미작성)'}`
-      : '\n(성찰 미작성)';
+    // 할일 완료율 계산
+    const allTodos = todoList || [];
+    const doneTodos = allTodos.filter(t => t.done).length;
+    const totalTodos = allTodos.length;
+    const todoRate = totalTodos > 0
+      ? Math.round(doneTodos / totalTodos * 100) : 0;
 
-    const userMsg = `날짜: ${date}
-할일 완료율: ${doneTodos.length}/${todos.length} (${doneRate}%)
-완료한 할일:
-${fmtList(doneTodos)}
-미완료 할일:
-${fmtList(undoneTodos)}
-오늘의 성찰:${refSection}`.trim();
-
-    // OpenAI API 호출
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        max_tokens: 1000,
-        messages: [
-          {
-            role: 'system',
-            content: `당신은 개인 생산성 코치입니다. 한국어로 아래 형식으로 피드백하세요.
-
-📊 오늘의 완료율
-✅ 잘한 점 2가지
-💡 아쉬운 점 2가지
-🎯 내일을 위한 개선 제안 2가지
-💬 응원 한마디
-
-형식을 지키되 내용은 데이터를 바탕으로 구체적이고 따뜻하게 작성하세요. 각 항목 사이에 빈 줄을 넣어 가독성 있게 작성하세요.`
-          },
-          { role: 'user', content: userMsg }
-        ]
-      })
+    // 카테고리별 요약
+    const cats = { work: [], job: [], growth: [], personal: [] };
+    allTodos.forEach(t => {
+      const cat = (t.category || '').toLowerCase();
+      if (cats[cat]) cats[cat].push(t);
     });
+    const catSummary = Object.entries(cats)
+      .map(([cat, items]) => {
+        const done = items.filter(i => i.done).length;
+        return `${cat}: ${done}/${items.length}개 완료`;
+      }).join(', ');
 
-    if (!res.ok) {
-      const errBody = await res.text();
-      if (res.status === 401) throw new Error('API Key가 올바르지 않습니다. 다시 확인해주세요.');
-      if (res.status === 429) throw new Error('API 호출 한도를 초과했습니다. 잠시 후 다시 시도해주세요.');
-      throw new Error(`API 오류 (${res.status}): ${errBody.slice(0,100)}`);
-    }
+    const userMessage = `
+오늘 하루를 분석해주세요.
 
-    const data = await res.json();
-    const result = data.choices?.[0]?.message?.content || '(응답 없음)';
+[할일 완료율] ${todoRate}% (${doneTodos}/${totalTodos}개)
+[루틴 달성률] ${routineRate}% (${doneRoutines}/${totalRoutines}개)
+[카테고리별] ${catSummary}
+
+[오늘 성찰]
+- 감사했던 일: ${ref?.mood || '미작성'}
+- 잘한 일: ${ref?.good_things || '미작성'}
+- 아쉬웠던 점: ${ref?.regrets || '미작성'}
+- 내일 다짐: ${ref?.tomorrow_goal || '미작성'}
+
+위 데이터를 바탕으로 따뜻하고 구체적인 피드백을 해주세요.
+반드시 아래 형식으로 한국어로 작성:
+
+📊 오늘의 성과
+(완료율 한 줄 요약)
+
+✅ 잘한 점
+1. (구체적 칭찬)
+2. (구체적 칭찬)
+
+💡 아쉬운 점
+1. (개선 제안)
+2. (개선 제안)
+
+🎯 내일을 위한 제안
+1. (실행 가능한 제안)
+2. (실행 가능한 제안)
+
+💬 오늘의 응원 한마디
+(따뜻하고 힘이 되는 문장 한 줄)
+    `.trim();
+
+    const resp = await fetch(
+      'https://qxqkpgkiuzdvkdieqynf.supabase.co/functions/v1/ai-analysis',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4cWtwZ2tpdXpkdmtkaWVxeW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjI3OTAsImV4cCI6MjA5MDI5ODc5MH0.T6FT8YQKAPwIgPfKU1guaRx-izWvta7fM1nLMuzggZI'
+        },
+        body: JSON.stringify({ userMessage })
+      }
+    );
+
+    const data = await resp.json();
+    const result = data.result || '분석 결과를 가져올 수 없어요';
 
     // 결과 표시
-    if (resultDiv) {
-      resultDiv.innerHTML = `
-        <div style="
-          background:linear-gradient(135deg,rgba(91,95,199,0.05),rgba(139,122,184,0.05));
-          border:1.5px solid rgba(91,95,199,0.15);
-          border-radius:12px;
-          padding:18px 20px;
-          font-size:14px;
-          line-height:1.8;
-          color:var(--text-primary);
-          white-space:pre-wrap;
-          position:relative;
-        ">
-          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--gradient);border-radius:12px 12px 0 0;"></div>
-          ${result.replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:11.5px;color:var(--text-muted);">
-          <span>${new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})} 분석 완료</span>
-          <button onclick="navigator.clipboard.writeText(document.getElementById('aiResult').querySelector('div>div').textContent).then(()=>showToast('복사되었습니다 📋'))"
-            style="border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11.5px;cursor:pointer;background:transparent;color:var(--text-secondary);font-family:inherit;">
-            📋 복사
-          </button>
-        </div>`;
-      showToast('AI 분석이 완료되었습니다! 🤖');
+    const resultDiv = document.getElementById('aiResult');
+    const contentDiv = document.getElementById('aiContent');
+    if (resultDiv && contentDiv) {
+      contentDiv.textContent = result;
+      resultDiv.style.display = 'block';
     }
+
+    showToast('AI 분석 완료! 🤖');
+
   } catch(e) {
-    console.error('[AI 분석 오류]', e);
-    if (resultDiv) resultDiv.innerHTML = `<div style="color:#dc2626;font-size:13px;padding:10px;background:#fee2e2;border-radius:8px;">오류: ${e.message}</div>`;
-    showToast('분석 실패: ' + e.message);
+    console.error('AI 분석 오류:', e);
+    showToast('분석 중 오류가 발생했어요 😢');
   }
 
   btn.disabled = false;
-  btn.innerHTML = '<i data-lucide="sparkles"></i> 다시 분석하기';
-  lucide.createIcons();
+  btn.innerHTML = '✨ 오늘 하루 분석받기';
 }
 
 
