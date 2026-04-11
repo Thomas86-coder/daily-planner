@@ -2564,7 +2564,7 @@ async function loadData() {
     (todoList || []).forEach(t => {
       const cat = t.category ? t.category.toLowerCase() : null;
       if (cat && todos[cat]) {
-        todos[cat].push({ id: t.id, text: t.text, done: t.done });
+        todos[cat].push({ id: t.id, text: t.text, done: t.done, completed_at: t.completed_at });
       }
     });
 
@@ -2760,7 +2760,10 @@ function renderTodos() {
               ${t.done ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
             </div>
             ${t.is_recurring ? '<span style="font-size:10px; background:#ede9fe; color:#7c3aed; padding:2px 6px; border-radius:10px; font-weight:600;">🔄 반복업무</span>' : ''}
-            <del style="flex:1; font-size:13.5px; display:${t.done ? 'block' : 'none'}; color:#9ca3af; text-decoration:line-through;">${t.text}</del>
+            <div style="flex:1; display:${t.done ? 'flex' : 'none'}; align-items:center; flex-wrap:wrap;">
+              <span style="font-size:13.5px; color:#9ca3af; text-decoration:line-through;">${t.text}</span>
+              ${(t.done && t.completed_at) ? `<span style="font-size:12px; background:#e8f5e9; color:#2e7d32; border-radius:4px; padding:2px 8px; margin-left:8px; font-weight:500;">✓ ${new Date(t.completed_at).getMonth()+1}/${new Date(t.completed_at).getDate()} 완료</span>` : ''}
+            </div>
             <span style="flex:1; font-size:13.5px; display:${t.done ? 'none' : 'block'}; color:#1f2937;">${t.text}</span>
             <div style="display:flex; gap:6px; margin-left:auto;">
               <span onclick="openTaskDate('${t.id}', '${t.log_date}')" style="cursor:pointer; font-size:14px; opacity:0.6; padding:2px;">📅</span>
@@ -2830,16 +2833,23 @@ async function toggleTodo(id) {
 
   // 낙관적 업데이트: 먼저 화면 반영
   found.done = !found.done;
+  const completedAt = found.done ? new Date().toISOString() : null;
+  found.completed_at = completedAt;
   renderTodos();
 
   // Supabase 업데이트
-  const { error } = await sb.from('todos').update({ done: found.done }).eq('id', id);
+  const { error } = await sb.from('todos').update({ done: found.done, completed_at: completedAt }).eq('id', id);
   if (error) {
-    console.error('[toggleTodo 오류]', error);
-    // 롤백
-    found.done = !found.done;
-    renderTodos();
-    showToast('저장 중 오류가 발생했어요 😢');
+    console.warn("ALTER TABLE todos ADD COLUMN completed_at TIMESTAMPTZ;");
+    const { error: fallbackError } = await sb.from('todos').update({ done: found.done }).eq('id', id);
+    if (fallbackError) {
+      console.error('[toggleTodo 오류]', fallbackError);
+      // 롤백
+      found.done = !found.done;
+      found.completed_at = null;
+      renderTodos();
+      showToast('저장 중 오류가 발생했어요 😢');
+    }
   }
 }
 
