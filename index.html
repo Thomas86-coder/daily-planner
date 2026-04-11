@@ -1274,8 +1274,8 @@ body {
 .pc-todos-section { background: #fef9ec; border-radius: 8px; padding: 15px; margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
 .pc-todos-title { font-weight: 600; font-size: 14px; color: #374151; display:flex; justify-content:space-between; align-items:center; }
 .pc-todos-actions button { background:none; border:none; cursor:pointer; color:#9ca3af; margin-left:8px; padding:0; }
-.pc-todo-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #4b5563; }
-.pc-todo-text { flex: 1; word-break: break-all; margin-top:2px; }
+.pc-todo-item { display: flex; align-items: flex-start; gap: 10px; font-size: 15.5px; color: #4b5563; padding: 7px 0; }
+.pc-todo-text { flex: 1; word-break: break-all; margin-top:0px; line-height: 1.6; }
 .pc-todo-item.done .pc-todo-text { text-decoration: line-through; color: #9ca3af; }
 .pc-todo-item input[type="checkbox"] { flex-shrink: 0; width: 16px; height: 16px; cursor: pointer; accent-color: #3b82f6; margin-top:2px; }
 .completed .pc-todo-item input[type="checkbox"] { accent-color: #10b981; }
@@ -1462,8 +1462,8 @@ body {
 }
 .pc-todos-title { font-weight: 600; font-size: 14px; color: #374151; display:flex; justify-content:space-between; align-items:center; }
 .pc-todos-actions button { background:none; border:none; cursor:pointer; color:#9ca3af; margin-left:8px; padding:0; }
-.pc-todo-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #4b5563; }
-.pc-todo-text { flex: 1; word-break: break-all; margin-top:2px; }
+.pc-todo-item { display: flex; align-items: flex-start; gap: 10px; font-size: 15.5px; color: #4b5563; padding: 7px 0; }
+.pc-todo-text { flex: 1; word-break: break-all; margin-top:0px; line-height: 1.6; }
 .pc-todo-item.done .pc-todo-text { text-decoration: line-through; color: #9ca3af; }
 .pc-todo-item input[type="checkbox"] { flex-shrink: 0; width: 16px; height: 16px; cursor: pointer; accent-color: #3b82f6; margin-top:2px; }
 .completed .pc-todo-item input[type="checkbox"] { accent-color: #10b981; }
@@ -4690,6 +4690,12 @@ async function addProjectTodoItem(pId) {
     inputEl.value = '';
     await loadProjectsData();
     checkProjectCompletion(pId);
+    
+    // 렌더링 이후 새로 생성된 인풋 엘리먼트를 찾아 포커스 복구
+    setTimeout(() => {
+      const newEl = document.getElementById('ptodo-input-' + pId);
+      if (newEl) newEl.focus();
+    }, 50);
   } catch(e) { console.error(e); }
 }
 
