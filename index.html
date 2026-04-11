@@ -2253,7 +2253,6 @@ body {
               <button class="btn-gc btn-gray-light" onclick="typeof copyLastMonthGoals === 'function' ? copyLastMonthGoals() : null"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> 지난달 계획 복사</button>
               <div style="display:flex; gap:8px;">
                 <button id="monthlyAiBtn" class="btn-gc btn-primary" onclick="getMonthlyAISuggestion()" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);">✨ AI로 제안받기</button>
-                <button class="btn-gc btn-primary" onclick="typeof saveMonthGoalsData === 'function' ? saveMonthGoalsData() : null">저장하기</button>
                 <button class="btn-gc btn-gray-light" onclick="typeof loadMonthGoalsData === 'function' ? loadMonthGoalsData() : null">취소</button>
               </div>
             </div>
@@ -2261,16 +2260,7 @@ body {
           </div>
         </div>
 
-        <!-- AI 월간 제안 섹션 (기본 숨김) -->
-        <div id="ai-monthly-suggestion-section" class="ai-feedback-section hidden">
-          <div class="ai-feedback-title" style="color: #1eb589;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1eb589" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 16 2 2 4-4"/><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg>
-            AI 월간 제안
-          </div>
-          <div id="ai-monthly-suggestion-container">
-            <!-- JS에서 동적으로 생성됨 -->
-          </div>
-        </div>
+
 
       </div>
     </div>
