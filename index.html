@@ -4788,7 +4788,7 @@ function getMappedCategory(projCat) {
   return 'life';
 }
 
-async function pushTodoToToday(tText, projCat) {
+async function pushTodoToToday(tText, projCat, btnId) {
   const mappedCat = getMappedCategory(projCat);
   const dstr = getLocalDateString(new Date());
   
@@ -4807,6 +4807,20 @@ async function pushTodoToToday(tText, projCat) {
   const insertData = { user_id: 'mock-user', log_date: dstr, text: tText, icon: '', is_done: false, category: mappedCat };
   await sb.from('todos').insert([insertData]);
   showToast('오늘 할일에 추가되었습니다!');
+  
+  if (btnId) {
+    const btn = document.getElementById(btnId);
+    if (btn) {
+      btn.style.color = '#10b981';
+      btn.style.transform = 'scale(1.15)';
+      setTimeout(() => {
+        if (btn) {
+          btn.style.color = '';
+          btn.style.transform = '';
+        }
+      }, 800);
+    }
+  }
 }
 
 async function pushAllIncompleteToToday(pId) {
@@ -4887,7 +4901,7 @@ function renderProjects() {
               ${badgeHtml}
             </div>
             <div class="pc-todo-tools">
-              ${!isCompletedTag ? `<button title="오늘 할일 등록" onclick="event.stopPropagation(); pushTodoToToday('${t.text.replace(/'/g,"\\'")}', '${p.category}')">📅</button>` : ''}
+              ${!isCompletedTag ? `<button id="btn-push-${t.id}" style="transition:all 0.2s;" title="오늘 할일 등록" onclick="event.stopPropagation(); pushTodoToToday('${t.text.replace(/'/g,"\\'")}', '${p.category}', 'btn-push-${t.id}')">📅</button>` : ''}
               <button onclick="event.stopPropagation(); editProjectTodo('${t.id}', '${t.text.replace(/'/g,"\\'")}')">✏️</button>
               <button onclick="event.stopPropagation(); deleteProjectTodo('${t.id}', '${p.id}')">🗑️</button>
             </div>
