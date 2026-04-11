@@ -2553,16 +2553,18 @@ async function loadData() {
         if (btn) btn.innerHTML = '✨ 오늘 하루 분석받기';
       }
     } else {
+      // 해당 날짜 성찰 데이터 자체가 없으면
+      // 입력창 비우기
       ['ref1','ref2','ref3','ref4'].forEach(id => {
-        document.getElementById(id).value = '';
+        const el = document.getElementById(id);
+        if (el) el.value = '';
       });
+
+      // AI 분석 결과 숨기기
       const resultDiv = document.getElementById('aiResult');
       const contentDiv = document.getElementById('aiContent');
       const btn = document.getElementById('aiBtn');
-      if (resultDiv && contentDiv) {
-        contentDiv.textContent = '';
-        resultDiv.style.display = 'none';
-      }
+      if (resultDiv) resultDiv.style.display = 'none';
       if (btn) btn.innerHTML = '✨ 오늘 하루 분석받기';
     }
 
@@ -2969,12 +2971,26 @@ function closeCarryModal() {
 async function changeDate(delta) {
   currentDate.setDate(currentDate.getDate() + delta);
   updateDateBar();
-  await loadData();
+
+  // AI 결과 초기화
+  const resultDiv = document.getElementById('aiResult');
+  const btn = document.getElementById('aiBtn');
+  if (resultDiv) resultDiv.style.display = 'none';
+  if (btn) btn.innerHTML = '✨ 오늘 하루 분석받기';
+
+  await loadData(); // loadData에서 해당 날짜 결과 불러옴
 }
 
 async function goToday() {
   currentDate = new Date();
   updateDateBar();
+
+  // AI 결과 초기화
+  const resultDiv = document.getElementById('aiResult');
+  const btn = document.getElementById('aiBtn');
+  if (resultDiv) resultDiv.style.display = 'none';
+  if (btn) btn.innerHTML = '✨ 오늘 하루 분석받기';
+
   await loadData();
 }
 
@@ -4979,6 +4995,13 @@ window.copyTask = async function(id) {
 window.goToToday = async function() {
   currentDate = new Date();
   updateDateBar();
+
+  // AI 결과 초기화
+  const resultDiv = document.getElementById('aiResult');
+  const btn = document.getElementById('aiBtn');
+  if (resultDiv) resultDiv.style.display = 'none';
+  if (btn) btn.innerHTML = '✨ 오늘 하루 분석받기';
+
   loadData();
 };
 
