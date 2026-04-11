@@ -2252,7 +2252,7 @@ body {
             <div class="gc-footer">
               <button class="btn-gc btn-gray-light" onclick="typeof copyLastMonthGoals === 'function' ? copyLastMonthGoals() : null"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> 지난달 계획 복사</button>
               <div style="display:flex; gap:8px;">
-                <button id="monthlyAiBtn" class="btn-gc btn-primary" onclick="getMonthlyAISuggestion()" style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 16 2 2 4-4"/><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg> AI로 제안받기</button>
+                <button id="monthlyAiBtn" class="btn-gc btn-primary" onclick="getMonthlyAISuggestion()" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);">✨ AI로 제안받기</button>
                 <button class="btn-gc btn-primary" onclick="typeof saveMonthGoalsData === 'function' ? saveMonthGoalsData() : null">저장하기</button>
                 <button class="btn-gc btn-gray-light" onclick="typeof loadMonthGoalsData === 'function' ? loadMonthGoalsData() : null">취소</button>
               </div>
@@ -2409,6 +2409,17 @@ delete from routines;
 
 -- alter table reflections
 --   add column if not exists ai_feedback text;
+
+-- monthly_plans 테이블 생성용 스크립트:
+-- create table if not exists monthly_plans (
+--   plan_year int,
+--   plan_month int,
+--   self_dev text,
+--   family text,
+--   work text,
+--   updated_at timestamp with time zone default now(),
+--   primary key (plan_year, plan_month)
+-- );
 */
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -3411,9 +3422,55 @@ async function getMonthlyAISuggestion() {
   const targetBtn = event?.target?.closest('button');
   if (!targetBtn) return;
 
-  const originalHtml = targetBtn.innerHTML;
+  // 4단계: 모드가 'save'일 때 저장 로직
+  if (targetBtn.dataset.mode === 'save') {
+    targetBtn.disabled = true;
+    const oldHtml = targetBtn.innerHTML;
+    targetBtn.innerHTML = '⏳ 저장 중...';
+    try {
+      const planSelfDev = document.querySelector('[data-type="month-growth"]')?.innerText || '';
+      const planFamily = document.querySelector('[data-type="month-relation"]')?.innerText || '';
+      const planWork = document.querySelector('[data-type="month-work"]')?.innerText || '';
+
+      await sb.from('monthly_plans').upsert({
+        plan_month: goalsMonth,
+        plan_year: goalsYear,
+        self_dev: planSelfDev,
+        family: planFamily,
+        work: planWork,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'plan_year, plan_month' });
+
+      // 로컬 스토리지 데이터도 함께 저장 유지
+      if (typeof saveMonthGoalsData === 'function') saveMonthGoalsData();
+
+      alert('저장되었습니다! ✅');
+
+      const notice = document.getElementById('ai-monthly-notice');
+      if (notice) notice.remove();
+
+      targetBtn.dataset.mode = 'ai';
+      targetBtn.style.cssText = targetBtn.dataset.originalStyle || 'background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);';
+      targetBtn.innerHTML = targetBtn.dataset.originalHtml || '✨ AI로 제안받기';
+    } catch(e) {
+      console.error('Save error:', e);
+      alert('저장 중 오류가 발생했습니다.');
+      targetBtn.innerHTML = oldHtml;
+    } finally {
+      targetBtn.disabled = false;
+    }
+    return;
+  }
+
+  // 1단계: 진행 여부 확인
+  if (!confirm("AI가 연간 목표를 분석해서 이번 달 실천계획을 제안해드릴까요?")) return;
+
+  targetBtn.dataset.originalHtml = targetBtn.innerHTML;
+  targetBtn.dataset.originalStyle = targetBtn.getAttribute('style') || 'background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);';
+
+  // 2단계: 분석 중 표시
   targetBtn.disabled = true;
-  targetBtn.innerHTML = '⏳ 분석 중...';
+  targetBtn.innerHTML = '⏳ AI가 분석 중이에요...';
 
   try {
     const selfDevEl = document.querySelector('[data-type="year-growth"]');
@@ -3429,15 +3486,24 @@ async function getMonthlyAISuggestion() {
     const planWork = document.querySelector('[data-type="month-work"]');
 
     const now = new Date();
-    const userMessage = `월간 실천계획 제안을 요청합니다.
-현재: ${now.getFullYear()}년 ${now.getMonth()+1}월
+    // 2단계: AI 호출
+    const userMessage = `연간 목표를 바탕으로 이번 달(${now.getMonth()+1}월) 실천계획을 제안해주세요.
 
 연간 목표:
-자기계발: ${selfDevGoal || '미입력'}
-가족/관계: ${familyGoal || '미입력'}
-업무/재정: ${workGoal || '미입력'}
+- 자기계발: ${selfDevGoal || '미입력'}
+- 가족/관계: ${familyGoal || '미입력'}
+- 업무/재정: ${workGoal || '미입력'}
 
 이번 달 구체적인 월간 실천계획을 제안해주세요.
+각 카테고리별로 다음과 같은 형식으로 구체적인 주차별 계획을 작성해주세요.
+(최대한 간결하고 실천 가능하게 작성)
+예시:
+"이번 달(${now.getMonth()+1}월) 실천계획:
+1주차: ...
+2주차: ...
+3주차: ...
+4주차: ..."
+
 반드시 아래 JSON 형식으로만 응답하세요:
 {"selfDev":"자기계발 실천계획","family":"가족관계 실천계획","work":"업무재정 실천계획"}`;
 
@@ -3458,37 +3524,41 @@ async function getMonthlyAISuggestion() {
     if (!jsonMatch) throw new Error('응답 파싱 실패');
     const result = JSON.parse(jsonMatch[0]);
 
+    // 3단계: 결과 표시
     if (planSelfDev && result.selfDev) planSelfDev.innerText = result.selfDev;
     if (planFamily && result.family) planFamily.innerText = result.family;
     if (planWork && result.work) planWork.innerText = result.work;
 
-    if (typeof saveMonthGoalsData === 'function') saveMonthGoalsData();
+    // 이전 방식의 resultArea 제거
+    const oldResultArea = document.getElementById('monthlyAiResult');
+    if (oldResultArea) oldResultArea.remove();
 
-    // 결과를 별도 영역에 표시
-    const btnContainer = targetBtn.closest('div, section') || targetBtn.parentElement;
-    let resultArea = document.getElementById('monthlyAiResult');
-    if (!resultArea) {
-      resultArea = document.createElement('div');
-      resultArea.id = 'monthlyAiResult';
-      btnContainer.appendChild(resultArea);
+    // 안내 문구 표시
+    const monthlyContainer = planSelfDev?.closest('.gc-body') || document.querySelector('.gc-col:nth-child(2) .gc-body') || document.querySelector('.gc-col:last-child .gc-body');
+    if (monthlyContainer) {
+      let noticeBox = document.getElementById('ai-monthly-notice');
+      if (!noticeBox) {
+        noticeBox = document.createElement('div');
+        noticeBox.id = 'ai-monthly-notice';
+        monthlyContainer.insertBefore(noticeBox, monthlyContainer.firstChild);
+      }
+      noticeBox.style.cssText = 'background: #fef9c3; color: #92400e; padding: 10px; border-radius: 8px; font-weight: 600; margin-bottom: 12px; font-size: 13.5px; text-align: center;';
+      noticeBox.innerHTML = '💡 AI가 제안한 내용이에요. 확인 후 저장해주세요!';
     }
-    resultArea.innerHTML = `
-      <div style="margin-top:16px; padding:16px; background:#f0fdf4; border-radius:12px; border:1px solid #bbf7d0;">
-        <div style="font-weight:700; color:#15803d; margin-bottom:8px;">✨ AI 월간 제안</div>
-        <div style="margin-bottom:8px;"><b style="color:#0891b2;">📚 자기계발</b><br>${result.selfDev||''}</div>
-        <div style="margin-bottom:8px;"><b style="color:#db2777;">💜 가족/관계</b><br>${result.family||''}</div>
-        <div><b style="color:#059669;">💼 업무/재정</b><br>${result.work||''}</div>
-      </div>`;
-
-    showToast('AI 월간 제안 완료! ✅');
+    
+    // 버튼 상태 변경
+    targetBtn.dataset.mode = 'save';
+    targetBtn.style.cssText = 'background: #10b981; color: white; border: none; outline: none; box-shadow: 0 4px 12px rgba(16,185,129,0.3); font-weight: 600;';
+    targetBtn.innerHTML = '💾 저장하기';
 
   } catch(e) {
     console.error('월간 AI 오류 상세:', e);
     showToast('오류: ' + (e.message || 'API 호출 실패'));
+    targetBtn.style.cssText = targetBtn.dataset.originalStyle || 'background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);';
+    targetBtn.innerHTML = targetBtn.dataset.originalHtml || '✨ AI로 제안받기';
   }
 
   targetBtn.disabled = false;
-  targetBtn.innerHTML = originalHtml;
 }
 
 // ── 토스트 ──
