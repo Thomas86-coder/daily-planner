@@ -2406,6 +2406,9 @@ Supabase SQL Editor에서 실행할 SQL (필요시 수동 실행):
 -- 기존 루틴 전체 삭제 
 delete from routine_logs;
 delete from routines;
+
+-- alter table reflections
+--   add column if not exists ai_feedback text;
 */
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -2531,10 +2534,36 @@ async function loadData() {
       document.getElementById('ref2').value = ref.good_things || '';
       document.getElementById('ref3').value = ref.regrets || '';
       document.getElementById('ref4').value = ref.tomorrow_goal || '';
+
+      // AI 분석 결과 복원
+      const resultDiv = document.getElementById('aiResult');
+      const contentDiv = document.getElementById('aiContent');
+      const btn = document.getElementById('aiBtn');
+      if (ref.ai_feedback) {
+        if (resultDiv && contentDiv) {
+          contentDiv.textContent = ref.ai_feedback;
+          resultDiv.style.display = 'block';
+        }
+        if (btn) btn.innerHTML = '✨ 오늘 하루 분석받기 (재분석)';
+      } else {
+        if (resultDiv && contentDiv) {
+          contentDiv.textContent = '';
+          resultDiv.style.display = 'none';
+        }
+        if (btn) btn.innerHTML = '✨ 오늘 하루 분석받기';
+      }
     } else {
       ['ref1','ref2','ref3','ref4'].forEach(id => {
         document.getElementById(id).value = '';
       });
+      const resultDiv = document.getElementById('aiResult');
+      const contentDiv = document.getElementById('aiContent');
+      const btn = document.getElementById('aiBtn');
+      if (resultDiv && contentDiv) {
+        contentDiv.textContent = '';
+        resultDiv.style.display = 'none';
+      }
+      if (btn) btn.innerHTML = '✨ 오늘 하루 분석받기';
     }
 
     renderRoutines();
@@ -3553,6 +3582,15 @@ async function runAIAnalysis() {
     const data = await resp.json();
     const result = data.result || '분석 결과를 가져올 수 없어요';
 
+    // 데이터베이스에 저장
+    if (result && data.result) {
+      await sb.from('reflections').upsert({
+        log_date: date,
+        ai_feedback: result,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'log_date' });
+    }
+
     // 결과 표시
     const resultDiv = document.getElementById('aiResult');
     const contentDiv = document.getElementById('aiContent');
@@ -3562,7 +3600,10 @@ async function runAIAnalysis() {
     }
 
     showToast('AI 분석 완료! 🤖');
-
+    
+    btn.disabled = false;
+    btn.innerHTML = '✨ 오늘 하루 분석받기 (재분석)';
+    return;
   } catch(e) {
     console.error('AI 분석 오류:', e);
     showToast('분석 중 오류가 발생했어요 😢');
