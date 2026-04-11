@@ -4593,6 +4593,8 @@ function closeProjectModal() {
   document.getElementById('projectModal').style.display = 'none';
 }
 
+const localCompletedAtMap = {};
+
 async function loadProjectsData() {
   loadRecurringTasks(); // Init recurring on load
 
@@ -4701,10 +4703,28 @@ async function addProjectTodoItem(pId) {
 
 async function toggleProjectTodo(tId, currentDone, pId) {
   try {
-    await sb.from('project_todos').update({ done: !currentDone }).eq('id', tId);
+    const isDone = !currentDone;
+    // 완료 시 현재 시간을 한국 시간에 맞는 ISO string으로 또는 그냥 ISO
+    const completedAt = isDone ? new Date().toISOString() : null;
+    
+    // completed_at 포함 업데이트 시도
+    const { error } = await sb.from('project_todos').update({ done: isDone, completed_at: completedAt }).eq('id', tId);
+    
+    if (error && error.message && error.message.includes('completed_at')) {
+      console.warn("Supabase 업데이트 실패. (project_todos 테이블에 completed_at 컬럼을 추가해주세요.)\nALTER TABLE project_todos ADD COLUMN completed_at TIMESTAMPTZ;");
+      // Fallback: completed_at 없이 업데이트
+      await sb.from('project_todos').update({ done: isDone }).eq('id', tId);
+      // 로컬 fallback 상태 저장
+      localCompletedAtMap[tId] = completedAt;
+    } else if (error) {
+      throw error;
+    }
+    
     await loadProjectsData();
     checkProjectCompletion(pId);
-  } catch(e) {}
+  } catch(e) {
+    console.error('toggleProjectTodo error:', e);
+  }
 }
 
 async function editProjectTodo(tId, oldText) {
@@ -4850,17 +4870,29 @@ function renderProjects() {
           </div>
         `;
       } else {
-        contentHtml = stats.todos.map(t => `
+        contentHtml = stats.todos.map(t => {
+          let badgeHtml = '';
+          const finalCompletedAt = t.completed_at || localCompletedAtMap[t.id];
+          if (t.done && finalCompletedAt) {
+            const cd = new Date(finalCompletedAt);
+            const m = cd.getMonth() + 1;
+            const d = cd.getDate();
+            badgeHtml = `<span style="font-size:12px; background:#e8f5e9; color:#2e7d32; border-radius:4px; padding:2px 6px; margin-left:6px; white-space:nowrap; vertical-align:middle; text-decoration:none !important;">✓ ${m}/${d} 완료</span>`;
+          }
+          return `
           <div class="pc-todo-item ${t.done ? 'done' : ''}" onclick="event.stopPropagation()">
             <input type="checkbox" ${t.done ? 'checked' : ''} onclick="event.stopPropagation(); toggleProjectTodo('${t.id}', ${t.done}, '${p.id}')">
-            <span class="pc-todo-text">${t.text}</span>
+            <div style="flex: 1; min-width: 0; display: flex; align-items: center; flex-wrap: wrap;">
+              <span class="pc-todo-text" style="flex: 0 1 auto; margin-top:0;">${t.text}</span>
+              ${badgeHtml}
+            </div>
             <div class="pc-todo-tools">
               ${!isCompletedTag ? `<button title="오늘 할일 등록" onclick="event.stopPropagation(); pushTodoToToday('${t.text.replace(/'/g,"\\'")}', '${p.category}')">📅</button>` : ''}
               <button onclick="event.stopPropagation(); editProjectTodo('${t.id}', '${t.text.replace(/'/g,"\\'")}')">✏️</button>
               <button onclick="event.stopPropagation(); deleteProjectTodo('${t.id}', '${p.id}')">🗑️</button>
             </div>
           </div>
-        `).join('');
+        `}).join('');
       }
 
       const inputHtml = !isCompletedTag ? `
