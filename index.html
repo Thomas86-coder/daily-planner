@@ -1494,6 +1494,148 @@ body {
 .mob-tab.active { color: var(--primary) !important; }
 .mob-tab.active svg { stroke: var(--primary); }
 .mob-tab:hover { color: var(--primary) !important; }
+
+/* 오늘의 루틴 3열 레이아웃 */
+.routine-card {
+  background: linear-gradient(135deg, #e8fdf5, #d1fae5) !important;
+  border: 1px solid #a7f3d0 !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+}
+.routine-header-bold {
+  font-weight: 700;
+}
+.routine-sections {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  gap: 16px !important;
+  margin-top: 16px !important;
+}
+@media (max-width: 768px) {
+  .routine-sections {
+    grid-template-columns: 1fr !important;
+  }
+}
+.routine-section-title {
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  margin-bottom: 10px !important;
+}
+.routine-section-title.morning {
+  color: #f59e0b !important;
+  background: rgba(245,158,11,0.08) !important;
+}
+.routine-section-title.daytime {
+  color: #5B5FC7 !important;
+  background: rgba(91,95,199,0.08) !important;
+}
+.routine-section-title.night {
+  color: #6B7EE0 !important;
+  background: rgba(107,126,224,0.08) !important;
+}
+.routine-card .check-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 7px 8px !important;
+  border-radius: 8px !important;
+  background: white !important;
+  margin-bottom: 4px !important;
+  cursor: pointer !important;
+  border: none !important;
+}
+.routine-card .custom-cb {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  border-radius: 4px !important;
+}
+.routine-card .check-item.done .custom-cb {
+  background: linear-gradient(135deg, #5B5FC7, #8B7AB8) !important;
+  border-color: transparent !important;
+}
+.routine-card .check-item.done .item-label {
+  text-decoration: line-through !important;
+  color: #9ca3af !important;
+}
+.routine-empty-items {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 13px;
+  padding: 10px 0;
+}
+
+/* 오늘 할일 / 하루 성찰 서브 토글 */
+.sub-toggles-custom {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+.sub-toggle-custom-btn {
+  background: white;
+  border: 1px solid #c4b5fd;
+  color: #8b5cf6;
+  height: 36px;
+  border-radius: 20px;
+  padding: 6px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.sub-toggle-custom-btn:active, .sub-toggle-custom-btn:focus, .sub-toggle-custom-btn.active {
+  background: #8b5cf6 !important;
+  color: white !important;
+}
+.sub-toggle-custom-btn:hover {
+  background: #ede9fe;
+}
+
+/* 날짜 표시 영역 디자인 */
+.dbar-today-custom {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.date-nav-custom-btn {
+  background: white;
+  border: 1px solid #c4b5fd;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #8b5cf6;
+  transition: all 0.2s;
+}
+.date-nav-custom-btn:hover {
+  background: #ede9fe;
+}
+.center-date-custom {
+  background: linear-gradient(135deg, #5B5FC7, #8B7AB8);
+  color: white;
+  font-weight: 700;
+  border-radius: 20px;
+  padding: 8px 20px;
+  box-shadow: 0 4px 12px rgba(91,95,199,0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 15px;
+}
 </style>
 
 <!-- 로딩 오버레이 -->
@@ -1566,30 +1708,29 @@ body {
     <div id="page-today">
       
       <!-- SUB TOGGLES -->
-      <div class="center-date-nav dbar-today" style="position:relative;">
-        <button class="date-nav-btn" onclick="changeDate(-1)">
+      <div class="dbar-today-custom" style="position:relative;">
+        <button class="date-nav-custom-btn" onclick="changeDate(-1)">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="m15 18-6-6 6-6"/></svg>
         </button>
-        <div class="center-date-text" id="centerDateTextContainer" style="cursor:pointer;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <div class="center-date-custom" id="centerDateTextContainer">
+          <span style="font-size:16px;">📅</span>
           <span id="dateDisplay"></span>
           <input type="text" id="dateInputH" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;">
         </div>
-        <button class="date-nav-btn" onclick="changeDate(1)">
+        <button class="date-nav-custom-btn" onclick="changeDate(1)">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="m9 18 6-6-6-6"/></svg>
         </button>
-        <button id="btnToday" style="display:none; margin-left:12px; padding:6px 12px; font-size:13px; font-weight:600; background-color:#e0e7ff; color:#4338ca; border:none; border-radius:8px; cursor:pointer;" onclick="goToToday()">오늘로 이동</button>
+        <button id="btnToday" style="display:none; position:absolute; right:0; padding:6px 12px; font-size:13px; font-weight:600; background-color:#e0e7ff; color:#4338ca; border:none; border-radius:8px; cursor:pointer;" onclick="goToToday()">오늘로 이동</button>
       </div>
       <!-- Hidden input for task date change -->
       <input type="text" id="taskDateInputH" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;">
 
-
-      <div class="sub-toggles">
-        <a href="#todo-section" class="sub-toggle-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M21 10.656V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12.344"/><path d="m9 11 3 3L22 4"/></svg> 오늘 할일
+      <div class="sub-toggles-custom">
+        <a onclick="document.getElementById('todo-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); document.querySelectorAll('.sub-toggle-custom-btn').forEach(b => b.classList.remove('active')); this.classList.add('active');" class="sub-toggle-custom-btn active">
+          오늘 할일
         </a>
-        <a href="#reflection-section" class="sub-toggle-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg> 하루 성찰
+        <a onclick="document.getElementById('reflection-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); document.querySelectorAll('.sub-toggle-custom-btn').forEach(b => b.classList.remove('active')); this.classList.add('active');" class="sub-toggle-custom-btn">
+          하루 성찰
         </a>
       </div>
 
@@ -1598,12 +1739,11 @@ body {
       <!-- ROUTINE CARD -->
       <div class="card routine-card">
         <div class="card-header">
-          <div class="card-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="zap" aria-hidden="true" style="color:var(--primary)" class="lucide lucide-zap"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path></svg>
-            오늘의 루틴
+          <div class="card-title routine-header-bold">
+            ⚡ 오늘의 루틴
           </div>
           <div class="stats-row">
-            <span class="stat-badge" id="routineProgress">0 / 10</span>
+            <span class="stat-badge" style="font-weight:700;">✓ <span id="routineProgress">0 / 10 ━━━ 0%</span></span>
           </div>
         </div>
         <div class="card-body">
@@ -1704,7 +1844,7 @@ body {
       </div>
 
       <!-- TODO CARD -->
-      <div class="card todo-card">
+      <div class="card todo-card" id="todo-section">
         <div class="card-header">
           <div class="card-title">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check-square" aria-hidden="true" style="color:var(--primary)" class="lucide lucide-check-square"><path d="M21 10.656V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12.344"></path><path d="m9 11 3 3L22 4"></path></svg>
@@ -1735,7 +1875,7 @@ body {
       </div>
 
       <!-- REFLECTION CARD -->
-      <div class="card reflection-card">
+      <div class="card reflection-card" id="reflection-section">
         <div class="card-header">
           <div class="card-title">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="pen-line" aria-hidden="true" style="color:var(--purple)" class="lucide lucide-pen-line"><path d="M13 21h8"></path><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path></svg>
@@ -2447,25 +2587,31 @@ function renderRoutines() {
   if (sectionsWrap) sectionsWrap.style.display = 'block';
   if (emptyMsg) emptyMsg.style.display = 'none';
 
+  const typeNameMap = { morning: '모닝', daytime: '데이타임', night: '나이트' };
   ['morning','daytime','night'].forEach(t => {
     const el = document.getElementById(t + 'List');
     if (!el) return;
     const list = routines[t];
-    el.innerHTML = list.map(r => `
-      <div class="check-item ${r.done ? 'done' : ''}" onclick="toggleRoutine('${t}','${r.id}')">
-        <div class="custom-cb ${r.done ? 'checked' : ''}">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    if (list.length === 0) {
+      el.innerHTML = `<div class="routine-empty-items">오늘 수행할 ${typeNameMap[t]}루틴이 없습니다</div>`;
+    } else {
+      el.innerHTML = list.map(r => `
+        <div class="check-item ${r.done ? 'done' : ''}" onclick="toggleRoutine('${t}','${r.id}')">
+          <div class="custom-cb ${r.done ? 'checked' : ''}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span class="item-label">${r.label}</span>
         </div>
-        <span class="item-label">${r.label}</span>
-      </div>
-    `).join('');
+      `).join('');
+    }
     const done = list.filter(r => r.done).length;
     const prog = document.getElementById(t + 'Progress');
     if(prog) prog.style.width = list.length ? (done / list.length * 100) + '%' : '0%';
   });
 
   const doneCount = all.filter(r => r.done).length;
-  document.getElementById('routineProgress').textContent = `${doneCount} / ${all.length}`;
+  const pct = all.length > 0 ? Math.round((doneCount / all.length) * 100) : 0;
+  document.getElementById('routineProgress').textContent = `${doneCount}/${all.length} ━━━ ${pct}%`;
 }
 
 // ── 루틴 토글 ──
