@@ -2491,7 +2491,7 @@ function updateDateBar() {
   const dayEl = document.getElementById('dayDisplay');
   
   if (dateEl) {
-    dateEl.textContent = `${d.getFullYear()}년 ${m}월 ${day}일`;
+    dateEl.textContent = `${d.getFullYear()}년 ${m}월 ${day}일 (${DAYS[d.getDay()]})`;
   }
   if (dayEl) {
     dayEl.textContent = isToday ? `${dow}요일 · 오늘` : `${dow}요일`;
@@ -2762,7 +2762,7 @@ function renderTodos() {
             ${t.is_recurring ? '<span style="font-size:10px; background:#ede9fe; color:#7c3aed; padding:2px 6px; border-radius:10px; font-weight:600;">🔄 반복업무</span>' : ''}
             <div style="flex:1; display:${t.done ? 'flex' : 'none'}; align-items:center; flex-wrap:wrap;">
               <span style="font-size:13.5px; color:#9ca3af; text-decoration:line-through;">${t.text}</span>
-              ${(t.done && t.completed_at) ? `<span style="font-size:12px; background:#e8f5e9; color:#2e7d32; border-radius:4px; padding:2px 8px; margin-left:8px; font-weight:500;">✓ ${new Date(t.completed_at).getMonth()+1}/${new Date(t.completed_at).getDate()} 완료</span>` : ''}
+              ${(t.done && t.completed_at) ? `<span style="font-size:12px; background:#e8f5e9; color:#2e7d32; border-radius:4px; padding:2px 8px; margin-left:8px; font-weight:500;">✓ ${new Date(t.completed_at).getMonth()+1}/${new Date(t.completed_at).getDate()}(${DAYS[new Date(t.completed_at).getDay()]}) 완료</span>` : ''}
             </div>
             <span style="flex:1; font-size:13.5px; display:${t.done ? 'none' : 'block'}; color:#1f2937;">${t.text}</span>
             <div style="display:flex; gap:6px; margin-left:auto;">
@@ -2838,7 +2838,14 @@ async function toggleTodo(id) {
   renderTodos();
 
   // Supabase 업데이트
-  const { error } = await sb.from('todos').update({ done: found.done, completed_at: completedAt }).eq('id', id);
+  let error;
+  if (found.done) {
+    const res = await sb.from('todos').update({ done: true, completed_at: new Date().toISOString() }).eq('id', id);
+    error = res.error;
+  } else {
+    const res = await sb.from('todos').update({ done: false, completed_at: null }).eq('id', id);
+    error = res.error;
+  }
   if (error) {
     console.warn("ALTER TABLE todos ADD COLUMN completed_at TIMESTAMPTZ;");
     const { error: fallbackError } = await sb.from('todos').update({ done: found.done }).eq('id', id);
@@ -4915,7 +4922,7 @@ function renderProjects() {
                 padding:2px 8px;
                 margin-left:8px;
                 font-weight:500;
-              ">✓ ${new Date(finalCompletedAt).getMonth()+1}/${new Date(finalCompletedAt).getDate()} 완료</span>`
+              ">✓ ${new Date(finalCompletedAt).getMonth()+1}/${new Date(finalCompletedAt).getDate()}(${DAYS[new Date(finalCompletedAt).getDay()]}) 완료</span>`
             : '';
             
           return `
