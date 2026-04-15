@@ -2564,7 +2564,7 @@ async function loadData() {
     (todoList || []).forEach(t => {
       const cat = t.category ? t.category.toLowerCase() : null;
       if (cat && todos[cat]) {
-        todos[cat].push({ id: t.id, text: t.text, done: t.done, completed_at: t.completed_at });
+        todos[cat].push(t);
       }
     });
 
@@ -2762,7 +2762,7 @@ function renderTodos() {
             ${t.is_recurring ? '<span style="font-size:10px; background:#ede9fe; color:#7c3aed; padding:2px 6px; border-radius:10px; font-weight:600;">🔄 반복업무</span>' : ''}
             <div style="flex:1; display:${t.done ? 'flex' : 'none'}; align-items:center; flex-wrap:wrap;">
               <span style="font-size:13.5px; color:#9ca3af; text-decoration:line-through;">${t.text}</span>
-              ${(t.done && t.completed_at) ? `<span style="font-size:12px; background:#e8f5e9; color:#2e7d32; border-radius:4px; padding:2px 8px; margin-left:8px; font-weight:500;">✓ ${new Date(t.completed_at).getMonth()+1}/${new Date(t.completed_at).getDate()}(${DAYS[new Date(t.completed_at).getDay()]}) 완료</span>` : ''}
+              ${t.completed_at ? `<span style="font-size:12px; background:#e8f5e9; color:#2e7d32; border-radius:4px; padding:2px 8px; margin-left:8px; font-weight:500;">✓ ${new Date(t.completed_at).getMonth()+1}/${new Date(t.completed_at).getDate()}(${DAYS[new Date(t.completed_at).getDay()]}) 완료</span>` : ''}
             </div>
             <span style="flex:1; font-size:13.5px; display:${t.done ? 'none' : 'block'}; color:#1f2937;">${t.text}</span>
             <div style="display:flex; gap:6px; margin-left:auto;">
