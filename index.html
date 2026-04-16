@@ -2004,14 +2004,16 @@ body {
       <div id="weekly-body"><div class="rv-spinner">데이터 불러오는 중...</div></div>
     </div>
     <!-- MONTHLY PAGE -->
-    <div id="page-monthly" style="display:none;padding:20px 28px;">
-      <div class="review-header">
-        <button class="review-nav-btn" onclick="monthlyOffset--; loadMonthlyPage()">&#8249;</button>
-        <div style="flex:1;text-align:center">
-          <div class="review-title">월간 리뷰</div>
-          <div class="review-range" id="monthly-range">-</div>
+    <div id="page-monthly" style="display:none;padding:16px;">
+      <div style="background:white; border-radius:12px; padding:16px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <button onclick="monthlyOffset--; loadMonthlyPage()" style="background:none; border:none; font-size:20px; color:#6B7280; cursor:pointer; padding:8px;">&#8249;</button>
+        <div style="text-align:center;">
+          <div id="monthly-title" style="font-size:16px; font-weight:bold; color:#111827; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <!-- JS 렌더링 영역 -->
+          </div>
+          <div id="monthly-range" style="font-size:13px; color:#6B7280; margin-top:2px;">-</div>
         </div>
-        <button class="review-nav-btn" onclick="monthlyOffset++; loadMonthlyPage()">&#8250;</button>
+        <button onclick="monthlyOffset++; loadMonthlyPage()" style="background:none; border:none; font-size:20px; color:#6B7280; cursor:pointer; padding:8px;">&#8250;</button>
       </div>
       <div id="monthly-body"><div class="rv-spinner">데이터 불러오는 중...</div></div>
     </div>
@@ -4559,153 +4561,240 @@ async function loadMonthlyPage() {
   const endDate = new Date(targetYear, targetMonth + 1, 0);
   const startStr = fmtDateStr(startDate);
   const endStr = fmtDateStr(endDate);
+  const daysInMonth = endDate.getDate();
 
+  document.getElementById('monthly-title').innerHTML = `
+    📅 ${targetYear}년 ${targetMonth + 1}월
+    ${monthlyOffset === 0 ? '<span style="font-size:11px; background:#D1FAE5; color:#059669; padding:2px 8px; border-radius:12px; font-weight:600;">이번 달</span>' : ''}
+  `;
   document.getElementById('monthly-range').textContent =
-    `${targetYear}년 ${targetMonth + 1}월`;
+    `${startDate.getMonth()+1}/1 ~ ${endDate.getMonth()+1}/${endDate.getDate()}`;
 
-  const [{ data: todoData }, { data: routineData }, { data: reflectData }] = await Promise.all([
+  // 전월 데이터 조회를 위해 날짜 계산
+  const lastMonthStartDate = new Date(targetYear, targetMonth - 1, 1);
+  const lastMonthEndDate = new Date(targetYear, targetMonth, 0);
+  const lastMonthStartStr = fmtDateStr(lastMonthStartDate);
+  const lastMonthEndStr = fmtDateStr(lastMonthEndDate);
+
+  const [{ data: todoData }, { data: routineData }, { data: reflectData }, { data: lastTodoData }, { data: lastRoutineData }] = await Promise.all([
     sb.from('todos').select('log_date,category,done').gte('log_date', startStr).lte('log_date', endStr),
     sb.from('routine_logs').select('log_date,routine_id,done').gte('log_date', startStr).lte('log_date', endStr),
-    sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr)
+    sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr),
+    sb.from('todos').select('done').gte('log_date', lastMonthStartStr).lte('log_date', lastMonthEndStr),
+    sb.from('routine_logs').select('done').gte('log_date', lastMonthStartStr).lte('log_date', lastMonthEndStr)
   ]);
 
   const todos = todoData || [];
   const logs = routineData || [];
   const reflects = reflectData || [];
 
-  // 날짜별 완료율 맵
-  const dayMap = {};
-  todos.forEach(t => {
-    if (!dayMap[t.log_date]) dayMap[t.log_date] = { done: 0, total: 0 };
-    dayMap[t.log_date].total++;
-    if (t.done) dayMap[t.log_date].done++;
-  });
-
   // 통계
-  const totalDone = todos.filter(t=>t.done).length;
   const totalTasks = todos.length;
-  const routineDone = logs.filter(l=>l.done).length;
+  const totalDone = todos.filter(t=>t.done).length;
+  const overallRate = totalTasks > 0 ? Math.round(totalDone / totalTasks * 100) : 0;
+  
   const routineTotal = logs.length;
+  const routineDone = logs.filter(l=>l.done).length;
   const routineRate = routineTotal > 0 ? Math.round(routineDone/routineTotal*100) : 0;
+  
   const reflectDays = reflects.length;
-
-  // 요일별 생산성
-  const dowScore = Array(7).fill(0).map(()=>({done:0,total:0}));
-  todos.forEach(t => {
-    const d = new Date(t.log_date);
-    dowScore[d.getDay()].total++;
-    if (t.done) dowScore[d.getDay()].done++;
-  });
-  const bestDow = dowScore.reduce((best, cur, i) => {
-    const r = cur.total > 0 ? cur.done/cur.total : 0;
-    const bestR = best.total > 0 ? best.done/best.total : 0;
-    return r > bestR ? {...cur, i} : best;
-  }, {...dowScore[0], i:0});
-
-  // 루틴 TOP 3
-  const routineItems = [...(routines.morning||[]), ...(routines.daytime||[]), ...(routines.night||[])];
-  const routineRates = routineItems.map(r => {
-    const relevant = logs.filter(l => l.routine_id === r.id);
-    const rate = relevant.length > 0 ? Math.round(relevant.filter(l=>l.done).length / endDate.getDate() * 100) : 0;
-    return { text: r.text || r.name || r.id, rate };
-  }).sort((a,b) => b.rate - a.rate).slice(0,3);
-
-  // 캘린더 그리드
-  const firstDow = startDate.getDay();
-  const daysInMonth = endDate.getDate();
-  const todayStr2 = fmtDateStr(new Date());
 
   const catData = { work:[], job:[], growth:[], personal:[] };
   todos.forEach(t => { if (catData[t.category]) catData[t.category].push(t); });
 
-  const aiMsg = `[월간 리포트: ${targetYear}년 ${targetMonth+1}월]
-할일 총 완료: ${totalDone}/${totalTasks}
-루틴 달성률: ${routineRate}%
-성찰 작성일: ${reflectDays}일
-이번 달 총평을 아래 형식으로 주세요:
-📊 이번 달 성과 요약 / ✅ 잘한 점 2가지 / 💡 아쉬운 점 2가지 / 🎯 다음 달 개선 제안 2가지 / 💬 응원 한마디`;
+  let bestCat = '-';
+  let bestCatRate = -1;
+  const catStats = [];
+  Object.entries(catData).forEach(([cat, items]) => {
+    const cDone = items.filter(t=>t.done).length;
+    const cTotal = items.length;
+    const r = cTotal > 0 ? (cDone/cTotal)*100 : 0;
+    if (r > bestCatRate) { bestCatRate = r; bestCat = CAT_LABEL[cat] || cat; }
+    catStats.push(`${CAT_LABEL[cat] || cat}: ${cTotal > 0 ? Math.round(r) : 0}% (${cDone}/${cTotal}개)`);
+  });
 
-  const calCells = [];
-  for (let i = 0; i < firstDow; i++) calCells.push('<div class="cal-cell cal-empty"></div>');
-  for (let d = 1; d <= daysInMonth; d++) {
-    const str = `${targetYear}-${String(targetMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dp = dayMap[str];
-    const rate = dp && dp.total > 0 ? Math.round(dp.done / dp.total * 100) : (dp ? 0 : -1);
-    const cls = rate < 0 ? 'cal-c0' : rateClass(rate);
-    const todayCls = str === todayStr2 ? 'cal-today' : '';
-    calCells.push(`<div class="cal-cell ${cls} ${todayCls}" title="${d}일 ${rate>=0?rate+'%':'데이터없음'}">${d}</div>`);
-  }
+  const lastTodosList = lastTodoData || [];
+  const lastLogsList = lastRoutineData || [];
+  const lastTotalTasks = lastTodosList.length;
+  const lastTotalDone = lastTodosList.filter(t=>t.done).length;
+  const lastOverallRate = lastTotalTasks > 0 ? Math.round(lastTotalDone/lastTotalTasks*100) : 0;
+  const lastRoutineTotal = lastLogsList.length;
+  const lastRoutineDone = lastLogsList.filter(l=>l.done).length;
+  const lastRoutineRate = lastRoutineTotal > 0 ? Math.round(lastRoutineDone/lastRoutineTotal*100) : 0;
 
+  const hasPrevData = lastTotalTasks > 0 || lastRoutineTotal > 0;
+  const todoDiff = overallRate - lastOverallRate;
+  const routineDiff = routineRate - lastRoutineRate;
+
+  const monthlyDowScore = Array(7).fill(0).map(()=>({tDone:0, rDone:0}));
+  todos.forEach(t => { if(t.done) monthlyDowScore[new Date(t.log_date).getDay()].tDone++; });
+  logs.forEach(l => { if(l.done) monthlyDowScore[new Date(l.log_date).getDay()].rDone++; });
+  let maxActive = -1;
+  let bDowIdx = 0;
+  monthlyDowScore.forEach((sc, i) => {
+    if((sc.tDone + sc.rDone) > maxActive) {
+      maxActive = sc.tDone + sc.rDone;
+      bDowIdx = i;
+    }
+  });
+  const bestDayLabel = DOW_LABEL[bDowIdx] + '요일';
+  const bestDayTodo = monthlyDowScore[bDowIdx].tDone;
+  const bestDayRoutine = monthlyDowScore[bDowIdx].rDone;
+
+  const aiMsg = `이번 달(${targetYear}년 ${targetMonth+1}월) 한 달 동안의 활동을 분석해서 
+따뜻하고 통찰력 있는 인생 코치처럼 한국어 월간 총평을 작성해주세요.
+
+[이번 달 활동 데이터]
+- 할일 완료율: ${overallRate}% (${totalDone}/${totalTasks}개)
+- 루틴 달성률: ${routineRate}% (${routineDone}회 달성)
+- 성찰 작성일: ${reflectDays}일 (${daysInMonth}일 기준)
+- 카테고리별 완료율: ${catStats.join(', ')}
+
+아래 구조로 피드백을 제공해주세요:
+📊 이번 달 성과 요약 (핵심을 짚어주는 한 문단)
+✅ 잘한 점 2가지 (데이터 기반 구체적 칭찬)
+💡 아쉬운 점 2가지 (비판보다 따뜻한 조언)
+🎯 다음 달 개선 제안 2가지 (실천 가능한 작은 행동)
+💬 응원 한마디 (진심 어린 격려)`;
+
+  // HTML 렌더링
   const html = `
-  <div class="rv-stat-grid">
-    <div class="rv-stat-card">
-      <div class="rv-stat-label">총 완료 할일</div>
-      <div class="rv-stat-value">${totalDone}</div>
-      <div class="rv-stat-sub">전체 ${totalTasks}개 중</div>
-    </div>
-    <div class="rv-stat-card">
-      <div class="rv-stat-label">루틴 달성률</div>
-      <div class="rv-stat-value">${routineRate}<span style="font-size:14px;font-weight:500;color:var(--text-muted)">%</span></div>
-      <div class="rv-stat-sub">${routineDone}/${routineTotal} 달성</div>
-    </div>
-    <div class="rv-stat-card">
-      <div class="rv-stat-label">성찰 작성일</div>
-      <div class="rv-stat-value">${reflectDays}<span style="font-size:14px;color:var(--text-muted)">일</span></div>
-      <div class="rv-stat-sub">${daysInMonth}일 중</div>
-    </div>
-    <div class="rv-stat-card">
-      <div class="rv-stat-label">가장 생산적인 요일</div>
-      <div class="rv-stat-value" style="font-size:20px">${DOW_LABEL[bestDow.i]}요일</div>
-      <div class="rv-stat-sub">${bestDow.total > 0 ? Math.round(bestDow.done/bestDow.total*100) : 0}% 완료율</div>
-    </div>
-  </div>
+  <style>
+    #monthly-ai-result > div { text-align: left; }
+  </style>
 
-  <div class="rv-card">
-    <div class="rv-card-title">📆 월간 캘린더 히트맵</div>
-    <div class="cal-grid">
-      ${DOW_LABEL.map(d=>`<div class="cal-dow">${d}</div>`).join('')}
-      ${calCells.join('')}
+  <!-- 1. 월간 지표 섹션 -->
+  <div style="background:#F8F9FF; border:1.5px solid #C7D2FE; border-radius:16px; padding:24px; margin-bottom:20px;">
+    <!-- 헤더 -->
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
+      <div style="width:32px; height:32px; border-radius:50%; background:#818CF8; display:flex; align-items:center; justify-content:center; color:white; font-size:16px;">📊</div>
+      <div style="font-size:18px; font-weight:bold; color:#111827;">월간 지표</div>
     </div>
-    <div style="display:flex;gap:12px;margin-top:10px;font-size:11px;color:var(--text-muted);flex-wrap:wrap;">
-      <span><span style="display:inline-block;width:12px;height:12px;background:var(--hover);border-radius:3px;vertical-align:middle;"></span> 데이터없음</span>
-      <span><span style="display:inline-block;width:12px;height:12px;background:rgba(91,95,199,.2);border-radius:3px;vertical-align:middle;"></span> 1~49%</span>
-      <span><span style="display:inline-block;width:12px;height:12px;background:rgba(91,95,199,.55);border-radius:3px;vertical-align:middle;"></span> 50~79%</span>
-      <span><span style="display:inline-block;width:12px;height:12px;background:var(--primary);border-radius:3px;vertical-align:middle;"></span> 80~100%</span>
-    </div>
-  </div>
 
-  <div class="rv-card">
-    <div class="rv-card-title">📂 카테고리별 완료 현황</div>
-    ${Object.entries(catData).map(([cat, items]) => {
-      const done = items.filter(t=>t.done).length;
-      const rate = items.length > 0 ? Math.round(done/items.length*100) : 0;
-      return `<div class="prog-item">
-        <div class="prog-header">
-          <span class="prog-label">${CAT_LABEL[cat]}</span>
-          <span class="prog-val">${done}개 / ${rate}%</span>
+    <!-- 상단 카드 3개 -->
+    <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:24px;">
+      <!-- 루틴 실천율 -->
+      <div style="flex:1; min-width:180px; background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+        <div style="font-size:13px; color:#6B7280; margin-bottom:12px; font-weight:500;">🔄 루틴 실천율</div>
+        <div style="font-size:28px; font-weight:bold; color:${routineRate === 0 ? '#EF4444' : (routineRate >= 50 ? '#10B981' : '#111827')}; margin-bottom:4px;">${routineRate}%</div>
+        <div style="font-size:12px; color:#6B7280; margin-bottom:4px;">${routineDone} / ${routineTotal} 체크</div>
+        <div style="font-size:11px; color:#9CA3AF;">★ 모닝: -% &nbsp; 🌙 나이트: -%</div>
+      </div>
+      <!-- 할일 완료율 -->
+      <div style="flex:1; min-width:180px; background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+        <div style="font-size:13px; color:#6B7280; margin-bottom:12px; font-weight:500;">✅ 할일 완료율</div>
+        <div style="font-size:28px; font-weight:bold; color:#111827; margin-bottom:4px;">${overallRate}%</div>
+        <div style="font-size:12px; color:#6B7280; margin-bottom:4px;">${totalDone} / ${totalTasks} 완료</div>
+        <div style="font-size:11px; color:#9CA3AF;">평균 일일 할일: ${(totalTasks/daysInMonth).toFixed(1)}개</div>
+      </div>
+      <!-- 성찰 작성일 -->
+      <div style="flex:1; min-width:180px; background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+        <div style="font-size:13px; color:#6B7280; margin-bottom:12px; font-weight:500;">📝 성찰 작성일</div>
+        <div style="font-size:28px; font-weight:bold; color:${reflects.length === 0 ? '#EF4444' : '#111827'}; margin-bottom:4px;">${reflects.length}일</div>
+        <div style="font-size:12px; color:#6B7280; margin-bottom:4px;">${Math.round(reflects.length/daysInMonth*100)}% 작성률</div>
+        <div style="font-size:11px; color:#9CA3AF;">${daysInMonth}일 중 ${reflects.length}일 기록</div>
+      </div>
+    </div>
+
+    <!-- 카테고리별 완료율 -->
+    <div style="font-size:14px; font-weight:600; color:#374151; margin-bottom:12px;">🏷 카테고리별 완료율</div>
+    <div style="display:flex; flex-wrap:wrap; gap:12px;">
+      ${['work','job','growth','personal'].map(cat => {
+        const catItems = catData[cat] || [];
+        const catDone = catItems.filter(t=>t.done).length;
+        const catTotal = catItems.length;
+        const catRate = catTotal > 0 ? Math.round(catDone/catTotal*100) : 0;
+        let bg = '#F3F4F6'; let tc = '#374151';
+        if(cat==='work') { bg='#FEF3C7'; tc='#D97706'; }
+        if(cat==='job') { bg='#DBEAFE'; tc='#2563EB'; }
+        if(cat==='growth') { bg='#D1FAE5'; tc='#059669'; }
+        if(cat==='personal') { bg='#FCE7F3'; tc='#DB2777'; }
+        return \`
+        <div style="flex:1; min-width:120px; background:white; border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:4px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+          <div style="font-size:12px; font-weight:600; color:\${tc}; background:\${bg}; padding:2px 6px; border-radius:4px; align-self:flex-start;">\${CAT_LABEL[cat] || cat}</div>
+          <div style="font-size:18px; font-weight:bold; color:#111827; margin-top:4px;">\${catRate}%</div>
+          <div style="font-size:11px; color:#6B7280;">\${catDone}/\${catTotal} 완료</div>
         </div>
-        <div class="prog-track"><div class="prog-fill" style="width:${rate}%"></div></div>
-      </div>`;
-    }).join('')}
+        \`;
+      }).join('')}
+    </div>
   </div>
 
-  ${routineRates.length > 0 ? `
-  <div class="rv-card">
-    <div class="rv-card-title">🏆 이번 달 잘 지킨 루틴 TOP 3</div>
-    ${routineRates.map((r,i) => `
-    <div class="top3-item">
-      <div class="top3-rank">${i+1}</div>
-      <div class="top3-label">${r.text}</div>
-      <div class="top3-rate">${r.rate}%</div>
-    </div>`).join('')}
-  </div>` : ''}
+  <!-- 2. 월간 분석 섹션 -->
+  <div style="background:#FFF5F5; border:1.5px solid #FFD0D0; border-radius:16px; padding:24px; margin-bottom: 20px;">
+    <!-- 섹션 헤더 -->
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
+      <div style="width:32px; height:32px; border-radius:50%; background:#FF4444; display:flex; align-items:center; justify-content:center; color:white; font-size:16px;">💡</div>
+      <div style="font-size:18px; font-weight:bold; color:#333;">월간 분석</div>
+    </div>
 
-  <div class="rv-card">
-    <div class="rv-card-title">🤖 AI 월간 총평</div>
-    <button class="ai-review-btn" id="monthly-ai-btn" onclick="callAiReview(${JSON.stringify(aiMsg).replace(/</g,'\\u003c')},'monthly-ai-result','monthly-ai-btn')">
-      ✨ AI 월간 총평 받기
-    </button>
-    <div id="monthly-ai-result"></div>
+    <!-- 실천율 서브섹션 -->
+    <div style="margin-bottom:20px;">
+      <div style="font-weight:bold; color:#FF4444; margin-bottom:12px;">🎯 실천율</div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start;">
+          <div style="color:#F59E0B; font-weight:bold; flex-shrink:0;">!</div>
+          <div style="font-size:14px; color:#333; line-height:1.4;">이번 달 루틴은 ${routineRate}% 달성했습니다. ${routineRate >= 70 ? '아주 잘하고 있어요!' : '조금만 더 분발해봐요!'}</div>
+        </div>
+        <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start;">
+          <div style="color:#F59E0B; font-weight:bold; flex-shrink:0;">!</div>
+          <div style="font-size:14px; color:#333; line-height:1.4;">이번 달 할일은 ${overallRate}% 완료했습니다. ${overallRate >= 80 ? '훌륭한 한 달이네요!' : '중요한 일부터 하나씩 해나가요.'}</div>
+        </div>
+        <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start;">
+          <div style="color:#F59E0B; font-weight:bold; flex-shrink:0;">!</div>
+          <div style="font-size:14px; color:#333; line-height:1.4;">성찰 작성일은 ${reflects.length}일입니다. ${reflects.length >= 10 ? '꾸준한 기록이 눈부셔요!' : '매일의 생각을 조금씩 남겨보세요.'}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 전월 대비 변화 서브섹션 -->
+    <div style="margin-bottom:20px;">
+      <div style="font-weight:bold; color:#FF4444; margin-bottom:12px;">↗ 전월 대비 변화</div>
+      <div style="background:white; border-radius:12px; padding:16px; text-align:center;">
+        ${hasPrevData ? `
+          <div style="font-size:15px; font-weight:bold; color:${routineDiff > 0 ? '#ef4444' : (routineDiff < 0 ? '#3b82f6' : '#333')};">
+            ${routineDiff > 0 ? '▲+'+routineDiff : (routineDiff < 0 ? '▼'+Math.abs(routineDiff) : '-')} % 루틴 달성
+          </div>
+          <div style="font-size:15px; font-weight:bold; color:${todoDiff > 0 ? '#ef4444' : (todoDiff < 0 ? '#3b82f6' : '#333')}; margin-top:4px;">
+            ${todoDiff > 0 ? '▲+'+todoDiff : (todoDiff < 0 ? '▼'+Math.abs(todoDiff) : '-')} % 할일 완료
+          </div>
+        ` : `<div style="font-size:14px; color:#9CA3AF;">전월 대비 큰 변화가 없습니다.</div>`}
+      </div>
+    </div>
+
+    <!-- 월간 패턴 서브섹션 -->
+    <div style="margin-bottom:10px;">
+      <div style="font-weight:bold; color:#FF4444; margin-bottom:12px;">〰 월간 패턴</div>
+      <div style="display:flex; flex-wrap:wrap; gap:12px;">
+        <div style="flex:1; min-width:140px; background:white; border-radius:12px; padding:16px;">
+          <div style="font-size:12px; color:#6B7280; margin-bottom:8px;">📅 가장 활발한 요일</div>
+          <div style="font-size:24px; font-weight:bold; color:#111827; margin-bottom:4px;">${bestDayLabel}</div>
+          <div style="font-size:11px; color:#9CA3AF;">할일 ${bestDayTodo}개, 루틴 ${bestDayRoutine}개 완료</div>
+        </div>
+        <div style="flex:1; min-width:140px; background:white; border-radius:12px; padding:16px;">
+          <div style="font-size:12px; color:#6B7280; margin-bottom:8px;">🏆 가장 완료율 높은 카테고리</div>
+          <div style="font-size:24px; font-weight:bold; color:#111827; margin-bottom:4px;">${bestCat}</div>
+          <div style="font-size:11px; color:#9CA3AF;">${bestCatRate > 0 ? Math.round(bestCatRate) : 0}% 완료</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. AI 월간 성찰 섹션 -->
+  <div style="background:linear-gradient(135deg, #F3E8FF, #FCE7F3); border-radius:16px; padding:24px; margin-bottom:20px;">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
+      <div style="width:32px; height:32px; border-radius:50%; background:#8B5CF6; display:flex; align-items:center; justify-content:center; color:white; font-size:16px;">✨</div>
+      <div style="font-size:18px; font-weight:bold; color:#111827;">AI 월간 성찰</div>
+    </div>
+    
+    <div id="monthly-ai-result" style="text-align:center;">
+      <div style="font-size:48px; margin-bottom:16px;">✨</div>
+      <div style="font-size:16px; font-weight:bold; color:#6B7280; margin-bottom:8px;">AI 월간 성찰이 아직 없습니다</div>
+      <div style="font-size:13px; color:#9CA3AF; margin-bottom:24px;">이번 달의 활동을 분석하여 맞춤형 피드백을 제공합니다.</div>
+    </div>
+    <div style="text-align:center;">
+      <button id="monthly-ai-btn" onclick="callAiReview(${JSON.stringify(aiMsg).replace(/</g,'\\\\u003c')},'monthly-ai-result','monthly-ai-btn')" style="background:#8B5CF6; color:white; border:none; border-radius:8px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer; box-shadow:0 4px 6px rgba(139, 92, 246, 0.25);">✦ AI 성찰 생성하기</button>
+    </div>
   </div>`;
 
   document.getElementById('monthly-body').innerHTML = html;
