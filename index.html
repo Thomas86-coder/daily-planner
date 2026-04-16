@@ -4314,30 +4314,110 @@ async function loadWeeklyPage() {
     return { date: d, str: fmtDateStr(d), label: DOW_LABEL[d.getDay()] };
   });
 
+  // 전주 대비 데이터 조회 및 계산
+  const lastMonday = new Date(monday);
+  lastMonday.setDate(monday.getDate() - 7);
+  const lastSunday = new Date(sunday);
+  lastSunday.setDate(sunday.getDate() - 7);
+  const lastStartStr = fmtDateStr(lastMonday);
+  const lastEndStr = fmtDateStr(lastSunday);
+
+  const [{ data: lastTodoData }, { data: lastRoutineData }] = await Promise.all([
+    sb.from('todos').select('done').gte('log_date', lastStartStr).lte('log_date', lastEndStr),
+    sb.from('routine_logs').select('done').gte('log_date', lastStartStr).lte('log_date', lastEndStr)
+  ]);
+
+  const lastTodos = lastTodoData || [];
+  const lastLogs = lastRoutineData || [];
+  
+  const lastDoneAll = lastTodos.filter(t => t.done).length;
+  const lastTotalAll = lastTodos.length;
+  const lastOverallRate = lastTotalAll > 0 ? Math.round(lastDoneAll / lastTotalAll * 100) : 0;
+  
+  const lastRoutineDone = lastLogs.filter(l => l.done).length;
+  const lastRoutineRate = routineTotal > 0 ? Math.round(lastRoutineDone / routineTotal * 100) : 0;
+
+  const hasPrevData = lastTotalAll > 0 || lastLogs.length > 0;
+  const todoDiff = overallRate - lastOverallRate;
+  const routineDiff = routineRate - lastRoutineRate;
+
+  // 가장 활발한 요일 계산
+  let maxActive = -1;
+  let bestDayIndex = 0;
+  let bestDayTodo = 0;
+  let bestDayRoutine = 0;
+  days.forEach((day, i) => {
+    const tCount = todos.filter(t => t.log_date === day.str && t.done).length;
+    const rCount = logs.filter(l => l.log_date === day.str && l.done).length;
+    if ((tCount + rCount) > maxActive) {
+      maxActive = tCount + rCount;
+      bestDayIndex = i;
+      bestDayTodo = tCount;
+      bestDayRoutine = rCount;
+    }
+  });
+  const bestDayLabel = days[bestDayIndex].label + '요일';
+
   // AI 총평용 메시지는 이제 generateWeeklyAIReview 내부에서 구성됩니다.
 
   // HTML 렌더링
   const html = `
-  <div class="rv-stat-grid">
-    <div class="rv-stat-card">
-      <div class="rv-stat-label">할일 완료율</div>
-      <div class="rv-stat-value">${overallRate}<span style="font-size:14px;font-weight:500;color:var(--text-muted)">%</span></div>
-      <div class="rv-stat-sub">${doneAll} / ${totalAll} 완료</div>
+  <div style="background:#FFF5F5; border:1px solid #FFD0D0; border-radius:16px; padding:24px; margin-bottom: 20px;">
+    <!-- 섹션 헤더 -->
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
+      <div style="width:32px; height:32px; border-radius:50%; background:#FF4444; display:flex; align-items:center; justify-content:center; color:white; font-size:16px;">💡</div>
+      <div style="font-size:18px; font-weight:bold; color:#333;">주간 분석</div>
     </div>
-    <div class="rv-stat-card">
-      <div class="rv-stat-label">루틴 달성률</div>
-      <div class="rv-stat-value">${routineRate}<span style="font-size:14px;font-weight:500;color:var(--text-muted)">%</span></div>
-      <div class="rv-stat-sub">${routineDone} / ${routineTotal} 달성</div>
+
+    <!-- 실천율 서브섹션 -->
+    <div style="margin-bottom:20px;">
+      <div style="font-weight:bold; color:#FF4444; margin-bottom:12px;">🎯 실천율</div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:16px; display:flex; gap:12px; align-items:flex-start;">
+          <div style="color:#F59E0B; font-weight:bold; flex-shrink:0;">!</div>
+          <div style="font-size:14px; color:#333; line-height:1.4;">이번 주 루틴은 ${routineRate}% 달성했습니다. ${routineRate >= 70 ? '아주 잘하고 있어요!' : '조금만 더 분발해봐요!'}</div>
+        </div>
+        <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:16px; display:flex; gap:12px; align-items:flex-start;">
+          <div style="color:#F59E0B; font-weight:bold; flex-shrink:0;">!</div>
+          <div style="font-size:14px; color:#333; line-height:1.4;">이번 주 할일은 ${overallRate}% 완료했습니다. ${overallRate >= 80 ? '훌륭한 한 주네요!' : '중요한 일부터 하나씩 해나가요.'}</div>
+        </div>
+        <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:16px; display:flex; gap:12px; align-items:flex-start;">
+          <div style="color:#F59E0B; font-weight:bold; flex-shrink:0;">!</div>
+          <div style="font-size:14px; color:#333; line-height:1.4;">성찰 작성일은 ${reflects.length}일입니다. ${reflects.length >= 5 ? '꾸준한 기록이 눈부셔요!' : '매일의 생각을 조금씩 남겨보세요.'}</div>
+        </div>
+      </div>
     </div>
-    <div class="rv-stat-card">
-      <div class="rv-stat-label">성찰 작성일</div>
-      <div class="rv-stat-value">${reflects.length}<span style="font-size:14px;font-weight:500;color:var(--text-muted)">일</span></div>
-      <div class="rv-stat-sub">이번 주 7일 중</div>
+
+    <!-- 전주 대비 변화 서브섹션 -->
+    <div style="margin-bottom:20px;">
+      <div style="font-weight:bold; color:#FF4444; margin-bottom:12px;">↗ 전주 대비 변화</div>
+      <div style="background:white; border-radius:12px; padding:16px; text-align:center;">
+        ${hasPrevData ? `
+          <div style="font-size:15px; font-weight:bold; color:${routineDiff > 0 ? '#ef4444' : (routineDiff < 0 ? '#3b82f6' : '#333')};">
+            ${routineDiff > 0 ? '▲+'+routineDiff : (routineDiff < 0 ? '▼'+Math.abs(routineDiff) : '-')} % 루틴 달성
+          </div>
+          <div style="font-size:15px; font-weight:bold; color:${todoDiff > 0 ? '#ef4444' : (todoDiff < 0 ? '#3b82f6' : '#333')}; margin-top:4px;">
+            ${todoDiff > 0 ? '▲+'+todoDiff : (todoDiff < 0 ? '▼'+Math.abs(todoDiff) : '-')} % 할일 완료
+          </div>
+        ` : `<div style="font-size:14px; color:#9CA3AF;">전주 대비 큰 변화가 없습니다.</div>`}
+      </div>
     </div>
-    <div class="rv-stat-card">
-      <div class="rv-stat-label">최우수 카테고리</div>
-      <div class="rv-stat-value" style="font-size:18px">${bestCat}</div>
-      <div class="rv-stat-sub">${Math.round(bestCatRate)}% 달성</div>
+
+    <!-- 주간 패턴 서브섹션 -->
+    <div style="margin-bottom:10px;">
+      <div style="font-weight:bold; color:#FF4444; margin-bottom:12px;">〰 주간 패턴</div>
+      <div style="display:flex; flex-wrap:wrap; gap:12px;">
+        <div style="flex:1; min-width:140px; background:white; border-radius:12px; padding:16px;">
+          <div style="font-size:12px; color:#6B7280; margin-bottom:8px;">📅 가장 활발한 요일</div>
+          <div style="font-size:24px; font-weight:bold; color:#111827; margin-bottom:4px;">${bestDayLabel}</div>
+          <div style="font-size:11px; color:#9CA3AF;">할일 ${bestDayTodo}개, 루틴 ${bestDayRoutine}개 완료</div>
+        </div>
+        <div style="flex:1; min-width:140px; background:white; border-radius:12px; padding:16px;">
+          <div style="font-size:12px; color:#6B7280; margin-bottom:8px;">🏆 가장 완료율 높은 카테고리</div>
+          <div style="font-size:24px; font-weight:bold; color:#111827; margin-bottom:4px;">${bestCat}</div>
+          <div style="font-size:11px; color:#9CA3AF;">${bestCatRate > 0 ? Math.round(bestCatRate) : 0}% 완료</div>
+        </div>
+      </div>
     </div>
   </div>
 
