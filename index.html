@@ -1990,14 +1990,16 @@ body {
     <!-- RECURRING PAGE REPLACED BY MODAL -->
 
     <!-- WEEKLY PAGE -->
-    <div id="page-weekly" style="display:none;padding:20px 28px;">
-      <div class="review-header">
-        <button class="review-nav-btn" onclick="weeklyOffset--; loadWeeklyPage()">&#8249;</button>
-        <div style="flex:1;text-align:center">
-          <div class="review-title">주간 리뷰</div>
-          <div class="review-range" id="weekly-range">-</div>
+    <div id="page-weekly" style="display:none;padding:16px;">
+      <div style="background:white; border-radius:12px; padding:16px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <button onclick="weeklyOffset--; loadWeeklyPage()" style="background:none; border:none; font-size:20px; color:#6B7280; cursor:pointer; padding:8px;">&#8249;</button>
+        <div style="text-align:center;">
+          <div id="weekly-title" style="font-size:16px; font-weight:bold; color:#111827; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <!-- JS 렌더링 영역 -->
+          </div>
+          <div id="weekly-range" style="font-size:13px; color:#6B7280; margin-top:2px;">-</div>
         </div>
-        <button class="review-nav-btn" onclick="weeklyOffset++; loadWeeklyPage()">&#8250;</button>
+        <button onclick="weeklyOffset++; loadWeeklyPage()" style="background:none; border:none; font-size:20px; color:#6B7280; cursor:pointer; padding:8px;">&#8250;</button>
       </div>
       <div id="weekly-body"><div class="rv-spinner">데이터 불러오는 중...</div></div>
     </div>
@@ -4255,8 +4257,14 @@ async function loadWeeklyPage() {
 
   const startStr = fmtDateStr(monday);
   const endStr = fmtDateStr(sunday);
+  
+  const weekNum = Math.ceil(monday.getDate() / 7);
+  document.getElementById('weekly-title').innerHTML = `
+    📅 ${monday.getFullYear()}년 ${monday.getMonth()+1}월 ${weekNum}주차
+    ${weeklyOffset === 0 ? '<span style="font-size:11px; background:#EDE9FE; color:#7C3AED; padding:2px 8px; border-radius:12px; font-weight:600;">이번주</span>' : ''}
+  `;
   document.getElementById('weekly-range').textContent =
-    `${monday.getMonth()+1}월 ${monday.getDate()}일 ~ ${sunday.getMonth()+1}월 ${sunday.getDate()}일`;
+    `${monday.getMonth()+1}/${monday.getDate()} ~ ${sunday.getMonth()+1}/${sunday.getDate()}`;
 
   // 데이터 조회
   const currentYear = monday.getFullYear();
@@ -4362,7 +4370,70 @@ async function loadWeeklyPage() {
 
   // HTML 렌더링
   const html = `
-  <div style="background:#FFF5F5; border:1px solid #FFD0D0; border-radius:16px; padding:24px; margin-bottom: 20px;">
+  <style>
+    /* 로컬 스타일 */
+    #weekly-ai-result > div { text-align: left; }
+  </style>
+
+  <!-- 1. 주간 지표 섹션 -->
+  <div style="border:1.5px solid #C7D2FE; background:#F8F9FF; border-radius:16px; padding:24px; margin-bottom:20px;">
+    <!-- 헤더 -->
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
+      <div style="width:32px; height:32px; border-radius:50%; background:#818CF8; display:flex; align-items:center; justify-content:center; color:white; font-size:16px;">📊</div>
+      <div style="font-size:18px; font-weight:bold; color:#111827;">주간 지표</div>
+    </div>
+
+    <!-- 상단 카드 3개 -->
+    <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:24px;">
+      <!-- 루틴 실천율 -->
+      <div style="flex:1; min-width:180px; background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+        <div style="font-size:13px; color:#6B7280; margin-bottom:12px; font-weight:500;">🔄 루틴 실천율</div>
+        <div style="font-size:28px; font-weight:bold; color:${routineRate === 0 ? '#EF4444' : (routineRate >= 50 ? '#10B981' : '#111827')}; margin-bottom:4px;">${routineRate}%</div>
+        <div style="font-size:12px; color:#6B7280; margin-bottom:4px;">${routineDone} / ${routineTotal} 체크</div>
+        <div style="font-size:11px; color:#9CA3AF;">★ 모닝: -% &nbsp; 🌙 나이트: -%</div>
+      </div>
+      <!-- 할일 완료율 -->
+      <div style="flex:1; min-width:180px; background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+        <div style="font-size:13px; color:#6B7280; margin-bottom:12px; font-weight:500;">✅ 할일 완료율</div>
+        <div style="font-size:28px; font-weight:bold; color:#111827; margin-bottom:4px;">${overallRate}%</div>
+        <div style="font-size:12px; color:#6B7280; margin-bottom:4px;">${doneAll} / ${totalAll} 완료</div>
+        <div style="font-size:11px; color:#9CA3AF;">평균 일일 할일: ${(totalAll/7).toFixed(1)}개</div>
+      </div>
+      <!-- 성찰 작성일 -->
+      <div style="flex:1; min-width:180px; background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+        <div style="font-size:13px; color:#6B7280; margin-bottom:12px; font-weight:500;">📝 성찰 작성일</div>
+        <div style="font-size:28px; font-weight:bold; color:${reflects.length === 0 ? '#EF4444' : '#111827'}; margin-bottom:4px;">${reflects.length}일</div>
+        <div style="font-size:12px; color:#6B7280; margin-bottom:4px;">${Math.round(reflects.length/7*100)}% 작성률</div>
+        <div style="font-size:11px; color:#9CA3AF;">7일 중 ${reflects.length}일 기록</div>
+      </div>
+    </div>
+
+    <!-- 카테고리별 완료율 -->
+    <div style="font-size:14px; font-weight:600; color:#374151; margin-bottom:12px;">🏷 카테고리별 완료율</div>
+    <div style="display:flex; flex-wrap:wrap; gap:12px;">
+      ${['work','job','growth','personal'].map(cat => {
+        const catItems = cats[cat] || [];
+        const catDone = catItems.filter(t=>t.done).length;
+        const catTotal = catItems.length;
+        const catRate = catTotal > 0 ? Math.round(catDone/catTotal*100) : 0;
+        let bg = '#F3F4F6'; let tc = '#374151'; // fallback
+        if(cat==='work') { bg='#FEF3C7'; tc='#D97706'; } // yellow
+        if(cat==='job') { bg='#DBEAFE'; tc='#2563EB'; } // blue
+        if(cat==='growth') { bg='#D1FAE5'; tc='#059669'; } // green
+        if(cat==='personal') { bg='#FCE7F3'; tc='#DB2777'; } // pink
+        return `
+        <div style="flex:1; min-width:120px; background:white; border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:4px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+          <div style="font-size:12px; font-weight:600; color:${tc}; background:${bg}; padding:2px 6px; border-radius:4px; align-self:flex-start;">${CAT_LABEL[cat] || cat}</div>
+          <div style="font-size:18px; font-weight:bold; color:#111827; margin-top:4px;">${catRate}%</div>
+          <div style="font-size:11px; color:#6B7280;">${catDone}/${catTotal} 완료</div>
+        </div>
+        `;
+      }).join('')}
+    </div>
+  </div>
+
+  <!-- 2. 주간 분석 섹션 -->
+  <div style="background:#FFF5F5; border:1.5px solid #FFD0D0; border-radius:16px; padding:24px; margin-bottom: 20px;">
     <!-- 섹션 헤더 -->
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
       <div style="width:32px; height:32px; border-radius:50%; background:#FF4444; display:flex; align-items:center; justify-content:center; color:white; font-size:16px;">💡</div>
@@ -4373,15 +4444,15 @@ async function loadWeeklyPage() {
     <div style="margin-bottom:20px;">
       <div style="font-weight:bold; color:#FF4444; margin-bottom:12px;">🎯 실천율</div>
       <div style="display:flex; flex-direction:column; gap:8px;">
-        <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:16px; display:flex; gap:12px; align-items:flex-start;">
+        <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start;">
           <div style="color:#F59E0B; font-weight:bold; flex-shrink:0;">!</div>
           <div style="font-size:14px; color:#333; line-height:1.4;">이번 주 루틴은 ${routineRate}% 달성했습니다. ${routineRate >= 70 ? '아주 잘하고 있어요!' : '조금만 더 분발해봐요!'}</div>
         </div>
-        <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:16px; display:flex; gap:12px; align-items:flex-start;">
+        <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start;">
           <div style="color:#F59E0B; font-weight:bold; flex-shrink:0;">!</div>
           <div style="font-size:14px; color:#333; line-height:1.4;">이번 주 할일은 ${overallRate}% 완료했습니다. ${overallRate >= 80 ? '훌륭한 한 주네요!' : '중요한 일부터 하나씩 해나가요.'}</div>
         </div>
-        <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:16px; display:flex; gap:12px; align-items:flex-start;">
+        <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start;">
           <div style="color:#F59E0B; font-weight:bold; flex-shrink:0;">!</div>
           <div style="font-size:14px; color:#333; line-height:1.4;">성찰 작성일은 ${reflects.length}일입니다. ${reflects.length >= 5 ? '꾸준한 기록이 눈부셔요!' : '매일의 생각을 조금씩 남겨보세요.'}</div>
         </div>
@@ -4421,88 +4492,51 @@ async function loadWeeklyPage() {
     </div>
   </div>
 
-  <div class="rv-card">
-    <div class="rv-card-title">📅 요일별 할일 완료 현황</div>
-    ${todos.length === 0 ? '<div class="rv-empty">이번 주 할일 데이터가 없어요</div>' : `
-    <div class="day-bars">
-      ${days.map((day, i) => {
-        const doneN = todos.filter(t => t.log_date === day.str && t.done).length;
-        const totalN = todos.filter(t => t.log_date === day.str).length;
-        const rate = totalN > 0 ? doneN / totalN : 0;
-        const h = Math.round(rate * 75);
-        const isToday = day.str === fmtDateStr(new Date());
-        return `<div class="day-bar-wrap ${isToday ? 'day-bar-today' : ''}">
-          <div class="day-bar-num">${doneN}</div>
-          <div class="day-bar-track">
-            <div class="day-bar-fill" style="height:${h}px;background:${rateColor(rate*100)};"></div>
-          </div>
-          <div class="day-bar-label">${day.label}${isToday ? '●' : ''}</div>
-        </div>`;
-      }).join('')}
-    </div>`}
-  </div>
-
-  <div class="rv-card">
-    <div class="rv-card-title">📂 카테고리별 완료율</div>
-    ${Object.entries(cats).map(([cat, items]) => {
-      const r = items.length > 0 ? Math.round(items.filter(t=>t.done).length / items.length * 100) : 0;
-      return `<div class="prog-item">
-        <div class="prog-header">
-          <span class="prog-label">${CAT_LABEL[cat]}</span>
-          <span class="prog-val">${r}% (${items.filter(t=>t.done).length}/${items.length})</span>
-        </div>
-        <div class="prog-track"><div class="prog-fill" style="width:${r}%"></div></div>
-      </div>`;
-    }).join('')}
-  </div>
-
-  <div class="rv-card">
-    <div class="rv-card-title">⚡ 루틴 달성 현황</div>
-    ${weeklyRoutineItems.length === 0 ? '<div class="rv-empty">루틴이 설정되지 않았어요</div>' : `
-    <div class="routine-grid">
+  <!-- 3. 루틴 달성 현황 섹션 -->
+  <div style="border:1px solid #E5E7EB; background:white; border-radius:16px; padding:24px; margin-bottom:20px;">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
+      <div style="font-size:18px;">⚡</div>
+      <div style="font-size:18px; font-weight:bold; color:#111827;">루틴 달성 현황</div>
+    </div>
+    ${weeklyRoutineItems.length === 0 ? '<div style="color:#9CA3AF; font-size:14px;">루틴이 설정되지 않았어요</div>' : `
+    <div style="display:flex; flex-direction:column; gap:12px;">
       ${weeklyRoutineItems.map(r => {
         const dots = days.map(day => {
           const logEntry = logs.find(l => l.log_date === day.str && l.routine_id === r.id);
           const isPast = day.date <= new Date();
-          const cls = !isPast ? 'future' : (logEntry && logEntry.done ? 'done' : 'miss');
-          return `<div class="routine-dot ${cls}" title="${day.label}">${cls === 'done' ? '✓' : (cls === 'future' ? '' : '✗')}</div>`;
+          const done = logEntry && logEntry.done;
+          if (!isPast && !done) return `<div style="width:24px; height:24px; border-radius:6px; border:1px solid #E5E7EB; display:flex; align-items:center; justify-content:center; background:#F9FAFB;"></div>`;
+          return done 
+            ? `<div style="width:24px; height:24px; border-radius:6px; background:#8B5CF6; color:white; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:bold;">✓</div>`
+            : `<div style="width:24px; height:24px; border-radius:6px; background:#F3F4F6; color:#9CA3AF; display:flex; align-items:center; justify-content:center; font-size:14px;">×</div>`;
         }).join('');
         const doneCount = days.filter(day => logs.find(l => l.log_date === day.str && l.routine_id === r.id && l.done)).length;
-        return `<div class="routine-row">
-          <div class="routine-row-label">${r.label}</div>
-          <div class="routine-dots">${dots}</div>
-          <div style="font-size:11.5px;color:var(--text-muted);margin-left:8px;">${doneCount}/7일</div>
-        </div>`;
+        return `
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding-bottom:12px; border-bottom:1px solid #F3F4F6;">
+          <div style="font-size:14px; font-weight:500; color:#374151; min-width:100px; flex:1;">${r.label}</div>
+          <div style="display:flex; gap:6px;">${dots}</div>
+          <div style="font-size:13px; color:#6B7280; width:40px; text-align:right;">${doneCount}/7일</div>
+        </div>
+        `;
       }).join('')}
     </div>`}
   </div>
 
-  ${reflects.length > 0 ? `
-  <div class="rv-card">
-    <div class="rv-card-title">📝 이번 주 성찰 모아보기</div>
-    <div>
-      ${reflects.map((ref, i) => `
-      <div class="reflect-item">
-        <button class="reflect-toggle" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
-          <span>${ref.log_date}</span>
-          <span class="chevron">▼</span>
-        </button>
-        <div class="reflect-body">
-          ${ref.mood ? `<div class="reflect-field"><strong>감사한 일</strong><span>${ref.mood}</span></div>` : ''}
-          ${ref.good_things ? `<div class="reflect-field"><strong>잘한 일</strong><span>${ref.good_things}</span></div>` : ''}
-          ${ref.regrets ? `<div class="reflect-field"><strong>아쉬운 점</strong><span>${ref.regrets}</span></div>` : ''}
-          ${ref.tomorrow_goal ? `<div class="reflect-field"><strong>내일 다짐</strong><span>${ref.tomorrow_goal}</span></div>` : ''}
-        </div>
-      </div>`).join('')}
+  <!-- 4. AI 주간 성찰 섹션 -->
+  <div style="background:linear-gradient(135deg, #F3E8FF, #FCE7F3); border-radius:16px; padding:24px; margin-bottom:20px;">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
+      <div style="width:32px; height:32px; border-radius:50%; background:#8B5CF6; display:flex; align-items:center; justify-content:center; color:white; font-size:16px;">✨</div>
+      <div style="font-size:18px; font-weight:bold; color:#111827;">AI 주간 성찰</div>
     </div>
-  </div>` : ''}
-
-  <div class="rv-card">
-    <div class="rv-card-title">🤖 AI 주간 총평</div>
-    <button class="ai-review-btn" id="weekly-ai-btn" onclick="generateWeeklyAIReview('${startStr}', '${endStr}')">
-      ✨ AI 주간 총평 받기
-    </button>
-    <div id="weekly-ai-result"></div>
+    
+    <div id="weekly-ai-result" style="text-align:center;">
+      <div style="font-size:48px; margin-bottom:16px;">✨</div>
+      <div style="font-size:16px; font-weight:bold; color:#6B7280; margin-bottom:8px;">AI 주간 성찰이 아직 없습니다</div>
+      <div style="font-size:13px; color:#9CA3AF; margin-bottom:24px;">이번 주의 활동을 분석하여 맞춤형 피드백을 제공합니다.</div>
+    </div>
+    <div style="text-align:center;">
+      <button id="weekly-ai-btn" onclick="generateWeeklyAIReview('${startStr}', '${endStr}')" style="background:#8B5CF6; color:white; border:none; border-radius:8px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer; box-shadow:0 4px 6px rgba(139, 92, 246, 0.25);">✦ AI 성찰 생성하기</button>
+    </div>
   </div>`;
 
   document.getElementById('weekly-body').innerHTML = html;
