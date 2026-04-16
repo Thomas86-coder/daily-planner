@@ -4270,20 +4270,27 @@ async function loadWeeklyPage() {
   document.getElementById('weekly-range').textContent =
     `${monday.getMonth()+1}/${monday.getDate()} ~ ${sunday.getMonth()+1}/${sunday.getDate()}`;
 
-  // 데이터 조회
-  const currentYear = monday.getFullYear();
-  const currentMonth = monday.getMonth() + 1;
-  const [{ data: todoData }, { data: routineData }, { data: reflectData }, { data: routinesData }] = await Promise.all([
-    sb.from('todos').select('*').gte('log_date', startStr).lte('log_date', endStr),
-    sb.from('routine_logs').select('*').gte('log_date', startStr).lte('log_date', endStr),
-    sb.from('reflections').select('*').gte('log_date', startStr).lte('log_date', endStr).order('log_date', {ascending:false}),
-    sb.from('routines').select('*').eq('year', currentYear).eq('month', currentMonth)
-  ]);
+  const bodyEl = document.getElementById('weekly-body');
+  try {
+    // 데이터 조회
+    const currentYear = monday.getFullYear();
+    const currentMonth = monday.getMonth() + 1;
+    const [todoRes, routineRes, reflectRes, routinesRes] = await Promise.all([
+      sb.from('todos').select('*').gte('log_date', startStr).lte('log_date', endStr),
+      sb.from('routine_logs').select('*').gte('log_date', startStr).lte('log_date', endStr),
+      sb.from('reflections').select('*').gte('log_date', startStr).lte('log_date', endStr).order('log_date', {ascending:false}),
+      sb.from('routines').select('*').eq('year', currentYear).eq('month', currentMonth)
+    ]);
 
-  const todos = todoData || [];
-  const logs = routineData || [];
-  const reflects = reflectData || [];
-  const routineMetaList = routinesData || [];
+    if (todoRes.error) console.error('주간 todos 조회 실패:', todoRes.error);
+    if (routineRes.error) console.error('주간 routine_logs 조회 실패:', routineRes.error);
+    if (reflectRes.error) console.error('주간 reflections 조회 실패:', reflectRes.error);
+    if (routinesRes.error) console.error('주간 routines 조회 실패:', routinesRes.error);
+
+    const todos = todoRes.data || [];
+    const logs = routineRes.data || [];
+    const reflects = reflectRes.data || [];
+    const routineMetaList = routinesRes.data || [];
 
   // 완료율 계산
   const doneAll = todos.filter(t => t.done).length;
@@ -4334,13 +4341,16 @@ async function loadWeeklyPage() {
   const lastStartStr = fmtDateStr(lastMonday);
   const lastEndStr = fmtDateStr(lastSunday);
 
-  const [{ data: lastTodoData }, { data: lastRoutineData }] = await Promise.all([
+  const [lastTodoRes, lastRoutineRes] = await Promise.all([
     sb.from('todos').select('done').gte('log_date', lastStartStr).lte('log_date', lastEndStr),
     sb.from('routine_logs').select('done').gte('log_date', lastStartStr).lte('log_date', lastEndStr)
   ]);
 
-  const lastTodos = lastTodoData || [];
-  const lastLogs = lastRoutineData || [];
+  if (lastTodoRes.error) console.error('전주 todos 조회 실패:', lastTodoRes.error);
+  if (lastRoutineRes.error) console.error('전주 routine_logs 조회 실패:', lastRoutineRes.error);
+
+  const lastTodos = lastTodoRes.data || [];
+  const lastLogs = lastRoutineRes.data || [];
   
   const lastDoneAll = lastTodos.filter(t => t.done).length;
   const lastTotalAll = lastTodos.length;
@@ -4543,7 +4553,11 @@ async function loadWeeklyPage() {
     </div>
   </div>`;
 
-  document.getElementById('weekly-body').innerHTML = html;
+    bodyEl.innerHTML = html;
+  } catch (error) {
+    console.error('주간 데이터 로드 실패:', error);
+    bodyEl.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#9CA3AF; font-size:15px; background:white; border-radius:12px; border:1px solid #E5E7EB;">데이터를 표시할 수 없습니다.<br>인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.</div>';
+  }
 }
 
 // ════════════════════════════════════════════════
@@ -4578,17 +4592,25 @@ async function loadMonthlyPage() {
   const lastMonthStartStr = fmtDateStr(lastMonthStartDate);
   const lastMonthEndStr = fmtDateStr(lastMonthEndDate);
 
-  const [{ data: todoData }, { data: routineData }, { data: reflectData }, { data: lastTodoData }, { data: lastRoutineData }] = await Promise.all([
-    sb.from('todos').select('log_date,category,done').gte('log_date', startStr).lte('log_date', endStr),
-    sb.from('routine_logs').select('log_date,routine_id,done').gte('log_date', startStr).lte('log_date', endStr),
-    sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr),
-    sb.from('todos').select('done').gte('log_date', lastMonthStartStr).lte('log_date', lastMonthEndStr),
-    sb.from('routine_logs').select('done').gte('log_date', lastMonthStartStr).lte('log_date', lastMonthEndStr)
-  ]);
+  const bodyEl = document.getElementById('monthly-body');
+  try {
+    const [todoRes, routineRes, reflectRes, lastTodoRes, lastRoutineRes] = await Promise.all([
+      sb.from('todos').select('log_date,category,done').gte('log_date', startStr).lte('log_date', endStr),
+      sb.from('routine_logs').select('log_date,routine_id,done').gte('log_date', startStr).lte('log_date', endStr),
+      sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr),
+      sb.from('todos').select('done').gte('log_date', lastMonthStartStr).lte('log_date', lastMonthEndStr),
+      sb.from('routine_logs').select('done').gte('log_date', lastMonthStartStr).lte('log_date', lastMonthEndStr)
+    ]);
 
-  const todos = todoData || [];
-  const logs = routineData || [];
-  const reflects = reflectData || [];
+    if (todoRes.error) console.error('월간 todos 조회 실패:', todoRes.error);
+    if (routineRes.error) console.error('월간 routine_logs 조회 실패:', routineRes.error);
+    if (reflectRes.error) console.error('월간 reflections 조회 실패:', reflectRes.error);
+    if (lastTodoRes.error) console.error('전월 todos 조회 실패:', lastTodoRes.error);
+    if (lastRoutineRes.error) console.error('전월 routine_logs 조회 실패:', lastRoutineRes.error);
+
+    const todos = todoRes.data || [];
+    const logs = routineRes.data || [];
+    const reflects = reflectRes.data || [];
 
   // 통계
   const totalTasks = todos.length;
@@ -4615,8 +4637,8 @@ async function loadMonthlyPage() {
     catStats.push(`${CAT_LABEL[cat] || cat}: ${cTotal > 0 ? Math.round(r) : 0}% (${cDone}/${cTotal}개)`);
   });
 
-  const lastTodosList = lastTodoData || [];
-  const lastLogsList = lastRoutineData || [];
+  const lastTodosList = lastTodoRes.data || [];
+  const lastLogsList = lastRoutineRes.data || [];
   const lastTotalTasks = lastTodosList.length;
   const lastTotalDone = lastTodosList.filter(t=>t.done).length;
   const lastOverallRate = lastTotalTasks > 0 ? Math.round(lastTotalDone/lastTotalTasks*100) : 0;
@@ -4799,7 +4821,11 @@ async function loadMonthlyPage() {
     </div>
   </div>`;
 
-  document.getElementById('monthly-body').innerHTML = html;
+    bodyEl.innerHTML = html;
+  } catch (error) {
+    console.error('월간 데이터 로드 실패:', error);
+    bodyEl.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#9CA3AF; font-size:15px; background:white; border-radius:12px; border:1px solid #E5E7EB;">데이터를 표시할 수 없습니다.<br>인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.</div>';
+  }
 }
 
 // ════════════════════════════════════════════════
@@ -4820,17 +4846,25 @@ async function loadYearlyPage() {
   `;
   document.getElementById('yearly-range').textContent = `${targetYear}년 1월 1일 ~ 12월 31일`;
 
-  const [{ data: todoData }, { data: routineData }, { data: reflectData }, { data: lastTodoData }, { data: lastRoutineData }] = await Promise.all([
-    sb.from('todos').select('log_date,category,done').gte('log_date', startStr).lte('log_date', endStr),
-    sb.from('routine_logs').select('log_date,done').gte('log_date', startStr).lte('log_date', endStr),
-    sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr),
-    sb.from('todos').select('done').gte('log_date', lastYearStartStr).lte('log_date', lastYearEndStr),
-    sb.from('routine_logs').select('done').gte('log_date', lastYearStartStr).lte('log_date', lastYearEndStr)
-  ]);
+  const bodyEl = document.getElementById('yearly-body');
+  try {
+    const [todoRes, routineRes, reflectRes, lastTodoRes, lastRoutineRes] = await Promise.all([
+      sb.from('todos').select('log_date,category,done').gte('log_date', startStr).lte('log_date', endStr),
+      sb.from('routine_logs').select('log_date,done').gte('log_date', startStr).lte('log_date', endStr),
+      sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr),
+      sb.from('todos').select('done').gte('log_date', lastYearStartStr).lte('log_date', lastYearEndStr),
+      sb.from('routine_logs').select('done').gte('log_date', lastYearStartStr).lte('log_date', lastYearEndStr)
+    ]);
 
-  const todos = todoData || [];
-  const logs = routineData || [];
-  const reflects = reflectData || [];
+    if (todoRes.error) console.error('연간 todos 조회 실패:', todoRes.error);
+    if (routineRes.error) console.error('연간 routine_logs 조회 실패:', routineRes.error);
+    if (reflectRes.error) console.error('연간 reflections 조회 실패:', reflectRes.error);
+    if (lastTodoRes.error) console.error('전년 todos 조회 실패:', lastTodoRes.error);
+    if (lastRoutineRes.error) console.error('전년 routine_logs 조회 실패:', lastRoutineRes.error);
+
+    const todos = todoRes.data || [];
+    const logs = routineRes.data || [];
+    const reflects = reflectRes.data || [];
 
   const isLeap = (targetYear % 4 === 0 && targetYear % 100 !== 0) || targetYear % 400 === 0;
   const daysInYear = isLeap ? 366 : 365;
@@ -4883,8 +4917,8 @@ async function loadYearlyPage() {
   }
 
   // 전년 대비
-  const lastTodosList = lastTodoData || [];
-  const lastLogsList = lastRoutineData || [];
+  const lastTodosList = lastTodoRes.data || [];
+  const lastLogsList = lastRoutineRes.data || [];
   const lastTotalTasks = lastTodosList.length;
   const lastTotalDone = lastTodosList.filter(t=>t.done).length;
   const lastOverallRate = lastTotalTasks > 0 ? Math.round(lastTotalDone/lastTotalTasks*100) : 0;
@@ -5059,7 +5093,11 @@ async function loadYearlyPage() {
     </div>
   </div>`;
 
-  document.getElementById('yearly-body').innerHTML = html;
+    bodyEl.innerHTML = html;
+  } catch (error) {
+    console.error('연간 데이터 로드 실패:', error);
+    bodyEl.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#9CA3AF; font-size:15px; background:white; border-radius:12px; border:1px solid #E5E7EB;">데이터를 표시할 수 없습니다.<br>인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.</div>';
+  }
 }
 
 // ── 프로젝트 관련 코드 ──
