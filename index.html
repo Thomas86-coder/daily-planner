@@ -4249,6 +4249,7 @@ ${reflectionSummary}
 }
 
 async function loadWeeklyPage() {
+  console.log('[주간리뷰] 함수 시작');
   document.getElementById('weekly-body').innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
 
   // 이번 주 월요일~일요일 계산
@@ -4275,12 +4276,16 @@ async function loadWeeklyPage() {
     // 데이터 조회
     const currentYear = monday.getFullYear();
     const currentMonth = monday.getMonth() + 1;
+    console.log('[주간리뷰] weekStart:', startStr, 'weekEnd:', endStr);
+
     const [todoRes, routineRes, reflectRes, routinesRes] = await Promise.all([
       sb.from('todos').select('*').gte('log_date', startStr).lte('log_date', endStr),
       sb.from('routine_logs').select('*').gte('log_date', startStr).lte('log_date', endStr),
       sb.from('reflections').select('*').gte('log_date', startStr).lte('log_date', endStr).order('log_date', {ascending:false}),
       sb.from('routines').select('*').eq('year', currentYear).eq('month', currentMonth)
     ]);
+
+    console.log('[주간리뷰] todos 조회 결과:', todoRes.data, todoRes.error);
 
     if (todoRes.error) console.error('주간 todos 조회 실패:', todoRes.error);
     if (routineRes.error) console.error('주간 routine_logs 조회 실패:', routineRes.error);
@@ -4558,12 +4563,21 @@ async function loadWeeklyPage() {
     console.error('주간 데이터 로드 실패:', error);
     bodyEl.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#9CA3AF; font-size:15px; background:white; border-radius:12px; border:1px solid #E5E7EB;">데이터를 표시할 수 없습니다.<br>인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.</div>';
   }
+
+  // 강제 렌더링으로 빠른 확인
+  document.querySelectorAll('[class*="loading"], [id*="loading"], .rv-spinner').forEach(el => {
+    if (el.textContent && el.textContent.includes('불러오는')) el.style.display = 'none';
+  });
+  document.querySelectorAll('[class*="weekly"], [id*="weekly"]').forEach(el => {
+    if (el.style.display === 'none') el.style.display = 'block';
+  });
 }
 
 // ════════════════════════════════════════════════
 // ── 월간 리뷰 ──
 // ════════════════════════════════════════════════
 async function loadMonthlyPage() {
+  console.log('[월간리뷰] 함수 시작');
   document.getElementById('monthly-body').innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
 
   const now = new Date();
@@ -4594,6 +4608,8 @@ async function loadMonthlyPage() {
 
   const bodyEl = document.getElementById('monthly-body');
   try {
+    console.log('[월간리뷰] monthStart:', startStr, 'monthEnd:', endStr);
+
     const [todoRes, routineRes, reflectRes, lastTodoRes, lastRoutineRes] = await Promise.all([
       sb.from('todos').select('log_date,category,done').gte('log_date', startStr).lte('log_date', endStr),
       sb.from('routine_logs').select('log_date,routine_id,done').gte('log_date', startStr).lte('log_date', endStr),
@@ -4601,6 +4617,8 @@ async function loadMonthlyPage() {
       sb.from('todos').select('done').gte('log_date', lastMonthStartStr).lte('log_date', lastMonthEndStr),
       sb.from('routine_logs').select('done').gte('log_date', lastMonthStartStr).lte('log_date', lastMonthEndStr)
     ]);
+
+    console.log('[월간리뷰] todos 조회 결과:', todoRes.data, todoRes.error);
 
     if (todoRes.error) console.error('월간 todos 조회 실패:', todoRes.error);
     if (routineRes.error) console.error('월간 routine_logs 조회 실패:', routineRes.error);
@@ -4826,12 +4844,21 @@ async function loadMonthlyPage() {
     console.error('월간 데이터 로드 실패:', error);
     bodyEl.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#9CA3AF; font-size:15px; background:white; border-radius:12px; border:1px solid #E5E7EB;">데이터를 표시할 수 없습니다.<br>인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.</div>';
   }
+
+  // 강제 렌더링으로 빠른 확인
+  document.querySelectorAll('[class*="loading"], [id*="loading"], .rv-spinner').forEach(el => {
+    if (el.textContent && el.textContent.includes('불러오는')) el.style.display = 'none';
+  });
+  document.querySelectorAll('[class*="monthly"], [id*="monthly"]').forEach(el => {
+    if (el.style.display === 'none') el.style.display = 'block';
+  });
 }
 
 // ════════════════════════════════════════════════
 // ── 연간 리뷰 ──
 // ════════════════════════════════════════════════
 async function loadYearlyPage() {
+  console.log('[연간리뷰] 함수 시작');
   document.getElementById('yearly-body').innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
 
   const targetYear = new Date().getFullYear() + yearlyOffset;
@@ -4848,6 +4875,8 @@ async function loadYearlyPage() {
 
   const bodyEl = document.getElementById('yearly-body');
   try {
+    console.log('[연간리뷰] yearStart:', startStr, 'yearEnd:', endStr);
+
     const [todoRes, routineRes, reflectRes, lastTodoRes, lastRoutineRes] = await Promise.all([
       sb.from('todos').select('log_date,category,done').gte('log_date', startStr).lte('log_date', endStr),
       sb.from('routine_logs').select('log_date,done').gte('log_date', startStr).lte('log_date', endStr),
@@ -4855,6 +4884,8 @@ async function loadYearlyPage() {
       sb.from('todos').select('done').gte('log_date', lastYearStartStr).lte('log_date', lastYearEndStr),
       sb.from('routine_logs').select('done').gte('log_date', lastYearStartStr).lte('log_date', lastYearEndStr)
     ]);
+
+    console.log('[연간리뷰] todos 조회 결과:', todoRes.data, todoRes.error);
 
     if (todoRes.error) console.error('연간 todos 조회 실패:', todoRes.error);
     if (routineRes.error) console.error('연간 routine_logs 조회 실패:', routineRes.error);
@@ -5098,6 +5129,14 @@ async function loadYearlyPage() {
     console.error('연간 데이터 로드 실패:', error);
     bodyEl.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#9CA3AF; font-size:15px; background:white; border-radius:12px; border:1px solid #E5E7EB;">데이터를 표시할 수 없습니다.<br>인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.</div>';
   }
+
+  // 강제 렌더링으로 빠른 확인
+  document.querySelectorAll('[class*="loading"], [id*="loading"], .rv-spinner').forEach(el => {
+    if (el.textContent && el.textContent.includes('불러오는')) el.style.display = 'none';
+  });
+  document.querySelectorAll('[class*="yearly"], [id*="yearly"]').forEach(el => {
+    if (el.style.display === 'none') el.style.display = 'block';
+  });
 }
 
 // ── 프로젝트 관련 코드 ──
