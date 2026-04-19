@@ -4292,8 +4292,7 @@ ${reflectionSummary}
 }
 
 async function loadWeeklyPage() {
-  alert('주간 함수 호출됨');
-  console.log('[주간리뷰] 함수 시작');
+    console.log('[주간리뷰] 함수 시작');
   const bodyEl = document.getElementById('weekly-body');
   if (bodyEl) bodyEl.innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
 
@@ -4616,7 +4615,19 @@ async function loadWeeklyPage() {
     </div>
   </div>`;
 
-  if (bodyEl) bodyEl.innerHTML = html;
+  if (bodyEl) {
+    bodyEl.innerHTML = html;
+    bodyEl.style.display = 'block';
+    bodyEl.style.visibility = 'visible';
+    bodyEl.style.opacity = '1';
+  }
+
+  const reviewContent = document.querySelector('#weekly-content, .weekly-content, [id*="weekly"][id*="content"], [class*="weekly"][class*="content"]');
+  if (reviewContent) {
+    reviewContent.style.display = 'block';
+    reviewContent.style.visibility = 'visible';
+    reviewContent.style.opacity = '1';
+  }
 
   // 강제 렌더링으로 빠른 확인 (try/catch 우회하여 100% 실행 보장)
   document.querySelectorAll('[class*="loading"], [id*="loading"], .rv-spinner').forEach(el => {
@@ -4631,8 +4642,7 @@ async function loadWeeklyPage() {
 // ── 월간 리뷰 ──
 // ════════════════════════════════════════════════
 async function loadMonthlyPage() {
-  alert('월간 함수 호출됨');
-  console.log('[월간리뷰] 함수 시작');
+    console.log('[월간리뷰] 함수 시작');
   const bodyEl = document.getElementById('monthly-body');
   if (bodyEl) bodyEl.innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
 
@@ -4904,7 +4914,19 @@ async function loadMonthlyPage() {
     </div>
   </div>`;
 
-  if (bodyEl) bodyEl.innerHTML = html;
+  if (bodyEl) {
+    bodyEl.innerHTML = html;
+    bodyEl.style.display = 'block';
+    bodyEl.style.visibility = 'visible';
+    bodyEl.style.opacity = '1';
+  }
+
+  const reviewContent = document.querySelector('#yearly-content, .yearly-content, [id*="yearly"][id*="content"], [class*="yearly"][class*="content"]');
+  if (reviewContent) {
+    reviewContent.style.display = 'block';
+    reviewContent.style.visibility = 'visible';
+    reviewContent.style.opacity = '1';
+  }
 
   // 강제 렌더링으로 빠른 확인
   document.querySelectorAll('[class*="loading"], [id*="loading"], .rv-spinner').forEach(el => {
@@ -4919,8 +4941,7 @@ async function loadMonthlyPage() {
 // ── 연간 리뷰 ──
 // ════════════════════════════════════════════════
 async function loadYearlyPage() {
-  alert('연간 함수 호출됨');
-  console.log('[연간리뷰] 함수 시작');
+    console.log('[연간리뷰] 함수 시작');
   const bodyEl = document.getElementById('yearly-body');
   if (bodyEl) bodyEl.innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
 
@@ -5193,7 +5214,19 @@ async function loadYearlyPage() {
     </div>
   </div>`;
 
-  if (bodyEl) bodyEl.innerHTML = html;
+  if (bodyEl) {
+    bodyEl.innerHTML = html;
+    bodyEl.style.display = 'block';
+    bodyEl.style.visibility = 'visible';
+    bodyEl.style.opacity = '1';
+  }
+
+  const reviewContent = document.querySelector('#yearly-content, .yearly-content, [id*="yearly"][id*="content"], [class*="yearly"][class*="content"]');
+  if (reviewContent) {
+    reviewContent.style.display = 'block';
+    reviewContent.style.visibility = 'visible';
+    reviewContent.style.opacity = '1';
+  }
 
   // 강제 렌더링으로 빠른 확인
   document.querySelectorAll('[class*="loading"], [id*="loading"], .rv-spinner').forEach(el => {
