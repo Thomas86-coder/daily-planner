@@ -3078,12 +3078,27 @@ function navigate(page) {
   const target = document.getElementById('page-' + page);
   if (target) {
     target.style.display = '';
-    if (page === 'weekly') loadWeeklyPage();
-    else if (page === 'monthly') loadMonthlyPage();
-    else if (page === 'yearly') loadYearlyPage();
-    else if (page === 'goals') loadGoalsData();
-    else if (page === 'projects') loadProjectsData();
-    else if (page === 'recurring') loadRecurringTasks();
+    
+    // Step 2: 탭 전환 시 element 존재 확인
+    if (page === 'weekly') {
+      const weeklySection = document.getElementById('page-weekly');
+      if (!weeklySection) { console.error('주간 리뷰 섹션을 찾을 수 없음'); return; }
+      loadWeeklyPage();
+    } else if (page === 'monthly') {
+      const monthlySection = document.getElementById('page-monthly');
+      if (!monthlySection) { console.error('월간 리뷰 섹션을 찾을 수 없음'); return; }
+      loadMonthlyPage();
+    } else if (page === 'yearly') {
+      const yearlySection = document.getElementById('page-yearly');
+      if (!yearlySection) { console.error('연간 리뷰 섹션을 찾을 수 없음'); return; }
+      loadYearlyPage();
+    } else if (page === 'goals') {
+      loadGoalsData();
+    } else if (page === 'projects') {
+      loadProjectsData();
+    } else if (page === 'recurring') {
+      loadRecurringTasks();
+    }
   } else {
     const todayEl = document.getElementById('page-today');
     if (todayEl) {
@@ -4250,7 +4265,8 @@ ${reflectionSummary}
 
 async function loadWeeklyPage() {
   console.log('[주간리뷰] 함수 시작');
-  document.getElementById('weekly-body').innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
+  const bodyEl = document.getElementById('weekly-body');
+  if (bodyEl) bodyEl.innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
 
   // 이번 주 월요일~일요일 계산
   const today = new Date();
@@ -4264,14 +4280,18 @@ async function loadWeeklyPage() {
   const endStr = fmtDateStr(sunday);
   
   const weekNum = Math.ceil(monday.getDate() / 7);
-  document.getElementById('weekly-title').innerHTML = `
-    📅 ${monday.getFullYear()}년 ${monday.getMonth()+1}월 ${weekNum}주차
-    ${weeklyOffset === 0 ? '<span style="font-size:11px; background:#EDE9FE; color:#7C3AED; padding:2px 8px; border-radius:12px; font-weight:600;">이번주</span>' : ''}
-  `;
-  document.getElementById('weekly-range').textContent =
-    `${monday.getMonth()+1}/${monday.getDate()} ~ ${sunday.getMonth()+1}/${sunday.getDate()}`;
+  const titleEl = document.getElementById('weekly-title');
+  if (titleEl) {
+    titleEl.innerHTML = `
+      📅 ${monday.getFullYear()}년 ${monday.getMonth()+1}월 ${weekNum}주차
+      ${weeklyOffset === 0 ? '<span style="font-size:11px; background:#EDE9FE; color:#7C3AED; padding:2px 8px; border-radius:12px; font-weight:600;">이번주</span>' : ''}
+    `;
+  }
+  const rangeEl = document.getElementById('weekly-range');
+  if (rangeEl) {
+    rangeEl.textContent = `${monday.getMonth()+1}/${monday.getDate()} ~ ${sunday.getMonth()+1}/${sunday.getDate()}`;
+  }
 
-  const bodyEl = document.getElementById('weekly-body');
   try {
     // 데이터 조회
     const currentYear = monday.getFullYear();
@@ -4558,19 +4578,19 @@ async function loadWeeklyPage() {
     </div>
   </div>`;
 
-    bodyEl.innerHTML = html;
+    if (bodyEl) bodyEl.innerHTML = html;
   } catch (error) {
     console.error('주간 데이터 로드 실패:', error);
-    bodyEl.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#9CA3AF; font-size:15px; background:white; border-radius:12px; border:1px solid #E5E7EB;">데이터를 표시할 수 없습니다.<br>인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.</div>';
+    if (bodyEl) bodyEl.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#9CA3AF; font-size:15px; background:white; border-radius:12px; border:1px solid #E5E7EB;">데이터를 표시할 수 없습니다.<br>인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.</div>';
+  } finally {
+    // 강제 렌더링으로 빠른 확인
+    document.querySelectorAll('[class*="loading"], [id*="loading"], .rv-spinner').forEach(el => {
+      if (el.textContent && el.textContent.includes('불러오는')) el.style.display = 'none';
+    });
+    document.querySelectorAll('[class*="weekly"], [id*="weekly"]').forEach(el => {
+      if (el.style.display === 'none') el.style.display = 'block';
+    });
   }
-
-  // 강제 렌더링으로 빠른 확인
-  document.querySelectorAll('[class*="loading"], [id*="loading"], .rv-spinner').forEach(el => {
-    if (el.textContent && el.textContent.includes('불러오는')) el.style.display = 'none';
-  });
-  document.querySelectorAll('[class*="weekly"], [id*="weekly"]').forEach(el => {
-    if (el.style.display === 'none') el.style.display = 'block';
-  });
 }
 
 // ════════════════════════════════════════════════
@@ -4578,7 +4598,8 @@ async function loadWeeklyPage() {
 // ════════════════════════════════════════════════
 async function loadMonthlyPage() {
   console.log('[월간리뷰] 함수 시작');
-  document.getElementById('monthly-body').innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
+  const bodyEl = document.getElementById('monthly-body');
+  if (bodyEl) bodyEl.innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
 
   const now = new Date();
   const year = now.getFullYear();
@@ -4593,12 +4614,17 @@ async function loadMonthlyPage() {
   const endStr = fmtDateStr(endDate);
   const daysInMonth = endDate.getDate();
 
-  document.getElementById('monthly-title').innerHTML = `
-    📅 ${targetYear}년 ${targetMonth + 1}월
-    ${monthlyOffset === 0 ? '<span style="font-size:11px; background:#D1FAE5; color:#059669; padding:2px 8px; border-radius:12px; font-weight:600;">이번 달</span>' : ''}
-  `;
-  document.getElementById('monthly-range').textContent =
-    `${startDate.getMonth()+1}/1 ~ ${endDate.getMonth()+1}/${endDate.getDate()}`;
+  const titleEl = document.getElementById('monthly-title');
+  if (titleEl) {
+    titleEl.innerHTML = `
+      📅 ${targetYear}년 ${targetMonth + 1}월
+      ${monthlyOffset === 0 ? '<span style="font-size:11px; background:#D1FAE5; color:#059669; padding:2px 8px; border-radius:12px; font-weight:600;">이번 달</span>' : ''}
+    `;
+  }
+  const rangeEl = document.getElementById('monthly-range');
+  if (rangeEl) {
+    rangeEl.textContent = `${startDate.getMonth()+1}/1 ~ ${endDate.getMonth()+1}/${endDate.getDate()}`;
+  }
 
   // 전월 데이터 조회를 위해 날짜 계산
   const lastMonthStartDate = new Date(targetYear, targetMonth - 1, 1);
@@ -4839,19 +4865,19 @@ async function loadMonthlyPage() {
     </div>
   </div>`;
 
-    bodyEl.innerHTML = html;
+    if (bodyEl) bodyEl.innerHTML = html;
   } catch (error) {
     console.error('월간 데이터 로드 실패:', error);
-    bodyEl.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#9CA3AF; font-size:15px; background:white; border-radius:12px; border:1px solid #E5E7EB;">데이터를 표시할 수 없습니다.<br>인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.</div>';
+    if (bodyEl) bodyEl.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#9CA3AF; font-size:15px; background:white; border-radius:12px; border:1px solid #E5E7EB;">데이터를 표시할 수 없습니다.<br>인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.</div>';
+  } finally {
+    // 강제 렌더링으로 빠른 확인
+    document.querySelectorAll('[class*="loading"], [id*="loading"], .rv-spinner').forEach(el => {
+      if (el.textContent && el.textContent.includes('불러오는')) el.style.display = 'none';
+    });
+    document.querySelectorAll('[class*="monthly"], [id*="monthly"]').forEach(el => {
+      if (el.style.display === 'none') el.style.display = 'block';
+    });
   }
-
-  // 강제 렌더링으로 빠른 확인
-  document.querySelectorAll('[class*="loading"], [id*="loading"], .rv-spinner').forEach(el => {
-    if (el.textContent && el.textContent.includes('불러오는')) el.style.display = 'none';
-  });
-  document.querySelectorAll('[class*="monthly"], [id*="monthly"]').forEach(el => {
-    if (el.style.display === 'none') el.style.display = 'block';
-  });
 }
 
 // ════════════════════════════════════════════════
@@ -4859,7 +4885,8 @@ async function loadMonthlyPage() {
 // ════════════════════════════════════════════════
 async function loadYearlyPage() {
   console.log('[연간리뷰] 함수 시작');
-  document.getElementById('yearly-body').innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
+  const bodyEl = document.getElementById('yearly-body');
+  if (bodyEl) bodyEl.innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
 
   const targetYear = new Date().getFullYear() + yearlyOffset;
   const startStr = `${targetYear}-01-01`;
@@ -4867,13 +4894,18 @@ async function loadYearlyPage() {
   const lastYearStartStr = `${targetYear - 1}-01-01`;
   const lastYearEndStr = `${targetYear - 1}-12-31`;
 
-  document.getElementById('yearly-title').innerHTML = `
-    📅 ${targetYear}년
-    ${yearlyOffset === 0 ? '<span style="font-size:11px; background:#D1FAE5; color:#059669; padding:2px 8px; border-radius:12px; font-weight:600;">올해</span>' : ''}
-  `;
-  document.getElementById('yearly-range').textContent = `${targetYear}년 1월 1일 ~ 12월 31일`;
+  const titleEl = document.getElementById('yearly-title');
+  if (titleEl) {
+    titleEl.innerHTML = `
+      📅 ${targetYear}년
+      ${yearlyOffset === 0 ? '<span style="font-size:11px; background:#D1FAE5; color:#059669; padding:2px 8px; border-radius:12px; font-weight:600;">올해</span>' : ''}
+    `;
+  }
+  const rangeEl = document.getElementById('yearly-range');
+  if (rangeEl) {
+    rangeEl.textContent = `${targetYear}년 1월 1일 ~ 12월 31일`;
+  }
 
-  const bodyEl = document.getElementById('yearly-body');
   try {
     console.log('[연간리뷰] yearStart:', startStr, 'yearEnd:', endStr);
 
@@ -5124,19 +5156,19 @@ async function loadYearlyPage() {
     </div>
   </div>`;
 
-    bodyEl.innerHTML = html;
+    if (bodyEl) bodyEl.innerHTML = html;
   } catch (error) {
     console.error('연간 데이터 로드 실패:', error);
-    bodyEl.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#9CA3AF; font-size:15px; background:white; border-radius:12px; border:1px solid #E5E7EB;">데이터를 표시할 수 없습니다.<br>인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.</div>';
+    if (bodyEl) bodyEl.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#9CA3AF; font-size:15px; background:white; border-radius:12px; border:1px solid #E5E7EB;">데이터를 표시할 수 없습니다.<br>인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.</div>';
+  } finally {
+    // 강제 렌더링으로 빠른 확인
+    document.querySelectorAll('[class*="loading"], [id*="loading"], .rv-spinner').forEach(el => {
+      if (el.textContent && el.textContent.includes('불러오는')) el.style.display = 'none';
+    });
+    document.querySelectorAll('[class*="yearly"], [id*="yearly"]').forEach(el => {
+      if (el.style.display === 'none') el.style.display = 'block';
+    });
   }
-
-  // 강제 렌더링으로 빠른 확인
-  document.querySelectorAll('[class*="loading"], [id*="loading"], .rv-spinner').forEach(el => {
-    if (el.textContent && el.textContent.includes('불러오는')) el.style.display = 'none';
-  });
-  document.querySelectorAll('[class*="yearly"], [id*="yearly"]').forEach(el => {
-    if (el.style.display === 'none') el.style.display = 'block';
-  });
 }
 
 // ── 프로젝트 관련 코드 ──
