@@ -4253,15 +4253,18 @@ ${reflectionSummary}
     btn.disabled = false;
 
     // Supabase에 저장
-    const { data: { user } } = await sb.auth.getUser();
+    const { data: sessionData } = await sb.auth.getSession();
+    const user = sessionData?.session?.user;
     if (user) {
       const weekKey = getISOWeekKey(weekStart);
-      await sb.from('ai_reviews').upsert({
-        user_id: user.id,
-        type: 'weekly',
-        period: weekKey,
-        content: formatted
-      }, { onConflict: 'user_id,type,period' });
+      const { data: existing } = await sb.from('ai_reviews').select('id').eq('type', 'weekly').eq('period', weekKey).maybeSingle();
+      if (existing) {
+        const { error } = await sb.from('ai_reviews').update({ content: formatted }).eq('id', existing.id);
+        if (error) console.error("Weekly AI Update Error:", error);
+      } else {
+        const { error } = await sb.from('ai_reviews').insert({ user_id: user.id, type: 'weekly', period: weekKey, content: formatted });
+        if (error) console.error("Weekly AI Insert Error:", error);
+      }
     }
 
   } catch(e) {
@@ -4343,15 +4346,18 @@ async function generateMonthlyAIReview(startStr, endStr) {
     btn.innerHTML = '🔄 다시 생성하기';
     btn.disabled = false;
 
-    const { data: { user } } = await sb.auth.getUser();
+    const { data: sessionData } = await sb.auth.getSession();
+    const user = sessionData?.session?.user;
     if (user) {
       const monthKey = getMonthKey(startStr);
-      await sb.from('ai_reviews').upsert({
-        user_id: user.id,
-        type: 'monthly',
-        period: monthKey,
-        content: formatted
-      }, { onConflict: 'user_id,type,period' });
+      const { data: existing } = await sb.from('ai_reviews').select('id').eq('type', 'monthly').eq('period', monthKey).maybeSingle();
+      if (existing) {
+        const { error } = await sb.from('ai_reviews').update({ content: formatted }).eq('id', existing.id);
+        if (error) console.error("Monthly AI Update Error:", error);
+      } else {
+        const { error } = await sb.from('ai_reviews').insert({ user_id: user.id, type: 'monthly', period: monthKey, content: formatted });
+        if (error) console.error("Monthly AI Insert Error:", error);
+      }
     }
 
   } catch(e) {
@@ -4446,15 +4452,18 @@ async function generateYearlyAIReview(startStr, endStr) {
     btn.innerHTML = '🔄 다시 생성하기';
     btn.disabled = false;
 
-    const { data: { user } } = await sb.auth.getUser();
+    const { data: sessionData } = await sb.auth.getSession();
+    const user = sessionData?.session?.user;
     if (user) {
       const yearKey = getYearKey(startStr);
-      await sb.from('ai_reviews').upsert({
-        user_id: user.id,
-        type: 'yearly',
-        period: yearKey,
-        content: formatted
-      }, { onConflict: 'user_id,type,period' });
+      const { data: existing } = await sb.from('ai_reviews').select('id').eq('type', 'yearly').eq('period', yearKey).maybeSingle();
+      if (existing) {
+        const { error } = await sb.from('ai_reviews').update({ content: formatted }).eq('id', existing.id);
+        if (error) console.error("Yearly AI Update Error:", error);
+      } else {
+        const { error } = await sb.from('ai_reviews').insert({ user_id: user.id, type: 'yearly', period: yearKey, content: formatted });
+        if (error) console.error("Yearly AI Insert Error:", error);
+      }
     }
 
   } catch(e) {
@@ -4487,13 +4496,12 @@ async function loadWeeklyPage() {
   const currentYear = monday.getFullYear();
   const currentMonth = monday.getMonth() + 1;
   const weekKey = getISOWeekKey(startStr);
-  const { data: { user } } = await sb.auth.getUser();
   const [{ data: todoData }, { data: routineData }, { data: reflectData }, { data: routinesData }, { data: savedReview }] = await Promise.all([
     sb.from('todos').select('*').gte('log_date', startStr).lte('log_date', endStr),
     sb.from('routine_logs').select('*').gte('log_date', startStr).lte('log_date', endStr),
     sb.from('reflections').select('*').gte('log_date', startStr).lte('log_date', endStr).order('log_date', {ascending:false}),
     sb.from('routines').select('*').eq('year', currentYear).eq('month', currentMonth),
-    user ? sb.from('ai_reviews').select('content').eq('user_id', user.id).eq('type', 'weekly').eq('period', weekKey).maybeSingle() : Promise.resolve({data:null})
+    sb.from('ai_reviews').select('content').eq('type', 'weekly').eq('period', weekKey).maybeSingle()
   ]);
 
   const todos = todoData || [];
@@ -4718,12 +4726,11 @@ async function loadMonthlyPage() {
     `${targetYear}년 ${targetMonth + 1}월`;
 
   const monthKey = getMonthKey(startStr);
-  const { data: { user } } = await sb.auth.getUser();
   const [{ data: todoData }, { data: routineData }, { data: reflectData }, { data: savedReview }] = await Promise.all([
     sb.from('todos').select('log_date,category,done').gte('log_date', startStr).lte('log_date', endStr),
     sb.from('routine_logs').select('log_date,routine_id,done').gte('log_date', startStr).lte('log_date', endStr),
     sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr),
-    user ? sb.from('ai_reviews').select('content').eq('user_id', user.id).eq('type', 'monthly').eq('period', monthKey).maybeSingle() : Promise.resolve({data:null})
+    sb.from('ai_reviews').select('content').eq('type', 'monthly').eq('period', monthKey).maybeSingle()
   ]);
 
   const todos = todoData || [];
@@ -4973,12 +4980,11 @@ async function loadYearlyPage() {
   document.getElementById('yearly-range').textContent = `${targetYear}년`;
 
   const yearKey = getYearKey(startStr);
-  const { data: { user } } = await sb.auth.getUser();
   const [{ data: todoData }, { data: routineData }, { data: reflectData }, { data: savedReview }] = await Promise.all([
     sb.from('todos').select('log_date,done').gte('log_date', startStr).lte('log_date', endStr),
     sb.from('routine_logs').select('log_date,done').gte('log_date', startStr).lte('log_date', endStr),
     sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr),
-    user ? sb.from('ai_reviews').select('content').eq('user_id', user.id).eq('type', 'yearly').eq('period', yearKey).maybeSingle() : Promise.resolve({data:null})
+    sb.from('ai_reviews').select('content').eq('type', 'yearly').eq('period', yearKey).maybeSingle()
   ]);
 
   const todos = todoData || [];
