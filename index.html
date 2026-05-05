@@ -4253,18 +4253,28 @@ ${reflectionSummary}
     btn.disabled = false;
 
     // Supabase에 저장
-    const { data: sessionData } = await sb.auth.getSession();
-    const user = sessionData?.session?.user;
-    if (user) {
-      const weekKey = getISOWeekKey(weekStart);
-      const { data: existing } = await sb.from('ai_reviews').select('id').eq('type', 'weekly').eq('period', weekKey).maybeSingle();
-      if (existing) {
-        const { error } = await sb.from('ai_reviews').update({ content: formatted }).eq('id', existing.id);
-        if (error) console.error("Weekly AI Update Error:", error);
-      } else {
-        const { error } = await sb.from('ai_reviews').insert({ user_id: user.id, type: 'weekly', period: weekKey, content: formatted });
-        if (error) console.error("Weekly AI Insert Error:", error);
-      }
+    const weekKey = getISOWeekKey(weekStart);
+    const { data: existing, error: selErr } = await sb.from('ai_reviews').select('id').eq('type', 'weekly').eq('period', weekKey).maybeSingle();
+    
+    if (selErr && selErr.code === 'PGRST205') {
+      console.error("ai_reviews 테이블이 없습니다. 아래 SQL을 Supabase에서 실행해주세요:\n" + `CREATE TABLE ai_reviews (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  type TEXT NOT NULL,
+  period TEXT NOT NULL,
+  content TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(type, period)
+);`);
+      alert("ai_reviews 테이블이 없습니다. 브라우저 콘솔을 확인해 SQL을 실행해주세요.");
+      return;
+    }
+
+    if (existing) {
+      const { error } = await sb.from('ai_reviews').update({ content: formatted }).eq('id', existing.id);
+      if (error) console.error("Weekly AI Update Error:", error);
+    } else {
+      const { error } = await sb.from('ai_reviews').insert({ type: 'weekly', period: weekKey, content: formatted });
+      if (error) console.error("Weekly AI Insert Error:", error);
     }
 
   } catch(e) {
@@ -4346,18 +4356,28 @@ async function generateMonthlyAIReview(startStr, endStr) {
     btn.innerHTML = '🔄 다시 생성하기';
     btn.disabled = false;
 
-    const { data: sessionData } = await sb.auth.getSession();
-    const user = sessionData?.session?.user;
-    if (user) {
-      const monthKey = getMonthKey(startStr);
-      const { data: existing } = await sb.from('ai_reviews').select('id').eq('type', 'monthly').eq('period', monthKey).maybeSingle();
-      if (existing) {
-        const { error } = await sb.from('ai_reviews').update({ content: formatted }).eq('id', existing.id);
-        if (error) console.error("Monthly AI Update Error:", error);
-      } else {
-        const { error } = await sb.from('ai_reviews').insert({ user_id: user.id, type: 'monthly', period: monthKey, content: formatted });
-        if (error) console.error("Monthly AI Insert Error:", error);
-      }
+    const monthKey = getMonthKey(startStr);
+    const { data: existing, error: selErr } = await sb.from('ai_reviews').select('id').eq('type', 'monthly').eq('period', monthKey).maybeSingle();
+    
+    if (selErr && selErr.code === 'PGRST205') {
+      console.error("ai_reviews 테이블이 없습니다. 아래 SQL을 Supabase에서 실행해주세요:\n" + `CREATE TABLE ai_reviews (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  type TEXT NOT NULL,
+  period TEXT NOT NULL,
+  content TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(type, period)
+);`);
+      alert("ai_reviews 테이블이 없습니다. 브라우저 콘솔을 확인해 SQL을 실행해주세요.");
+      return;
+    }
+
+    if (existing) {
+      const { error } = await sb.from('ai_reviews').update({ content: formatted }).eq('id', existing.id);
+      if (error) console.error("Monthly AI Update Error:", error);
+    } else {
+      const { error } = await sb.from('ai_reviews').insert({ type: 'monthly', period: monthKey, content: formatted });
+      if (error) console.error("Monthly AI Insert Error:", error);
     }
 
   } catch(e) {
@@ -4452,18 +4472,28 @@ async function generateYearlyAIReview(startStr, endStr) {
     btn.innerHTML = '🔄 다시 생성하기';
     btn.disabled = false;
 
-    const { data: sessionData } = await sb.auth.getSession();
-    const user = sessionData?.session?.user;
-    if (user) {
-      const yearKey = getYearKey(startStr);
-      const { data: existing } = await sb.from('ai_reviews').select('id').eq('type', 'yearly').eq('period', yearKey).maybeSingle();
-      if (existing) {
-        const { error } = await sb.from('ai_reviews').update({ content: formatted }).eq('id', existing.id);
-        if (error) console.error("Yearly AI Update Error:", error);
-      } else {
-        const { error } = await sb.from('ai_reviews').insert({ user_id: user.id, type: 'yearly', period: yearKey, content: formatted });
-        if (error) console.error("Yearly AI Insert Error:", error);
-      }
+    const yearKey = getYearKey(startStr);
+    const { data: existing, error: selErr } = await sb.from('ai_reviews').select('id').eq('type', 'yearly').eq('period', yearKey).maybeSingle();
+    
+    if (selErr && selErr.code === 'PGRST205') {
+      console.error("ai_reviews 테이블이 없습니다. 아래 SQL을 Supabase에서 실행해주세요:\n" + `CREATE TABLE ai_reviews (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  type TEXT NOT NULL,
+  period TEXT NOT NULL,
+  content TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(type, period)
+);`);
+      alert("ai_reviews 테이블이 없습니다. 브라우저 콘솔을 확인해 SQL을 실행해주세요.");
+      return;
+    }
+
+    if (existing) {
+      const { error } = await sb.from('ai_reviews').update({ content: formatted }).eq('id', existing.id);
+      if (error) console.error("Yearly AI Update Error:", error);
+    } else {
+      const { error } = await sb.from('ai_reviews').insert({ type: 'yearly', period: yearKey, content: formatted });
+      if (error) console.error("Yearly AI Insert Error:", error);
     }
 
   } catch(e) {
