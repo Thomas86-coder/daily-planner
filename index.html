@@ -3670,40 +3670,34 @@ async function runAIAnalysis() {
         return `${cat}: ${done}/${items.length}개 완료`;
       }).join(', ');
 
-    const userMessage = `
-오늘 하루를 분석해주세요.
+    const userMessage = `${THOMAS_MENTOR_PERSONA}
 
-[할일 완료율] ${todoRate}% (${doneTodos}/${totalTodos}개)
-[루틴 달성률] ${routineRate}% (${doneRoutines}/${totalRoutines}개)
-[카테고리별] ${catSummary}
+아래는 형의 오늘 하루 성찰 기록이야. 이걸 읽고 아래 형식으로 팩폭과 따뜻함이 섞인 짧은 코멘트를 남겨줘.
 
-[오늘 성찰]
+[기록 내용]
+- 할일 완료율: ${todoRate}% (${doneTodos}/${totalTodos}개)
+- 루틴 달성률: ${routineRate}% (${doneRoutines}/${totalRoutines}개)
+- 카테고리별: ${catSummary}
+
 - 감사했던 일: ${ref?.mood || '미작성'}
 - 잘한 일: ${ref?.good_things || '미작성'}
 - 아쉬웠던 점: ${ref?.regrets || '미작성'}
 - 내일 다짐: ${ref?.tomorrow_goal || '미작성'}
 
-위 데이터를 바탕으로 따뜻하고 구체적인 피드백을 해주세요.
-반드시 아래 형식으로 한국어로 작성:
+출력 형식:
+---
+🔥 **오늘의 한 줄 진단**
+형 오늘 어땠는지 1문장. 직설적으로.
 
-📊 오늘의 성과
-(완료율 한 줄 요약)
+✅ **오늘 진짜 잘한 거** (혹은 잘 견딘 거)
+1개만. 목표와 연결해서.
 
-✅ 잘한 점
-1. (구체적 칭찬)
-2. (구체적 칭찬)
+⚠️ **솔직히 짚을 거**
+트리거 짚고 내일 끊을 행동 1개.
 
-💡 아쉬운 점
-1. (개선 제안)
-2. (개선 제안)
-
-🎯 내일을 위한 제안
-1. (실행 가능한 제안)
-2. (실행 가능한 제안)
-
-💬 오늘의 응원 한마디
-(따뜻하고 힘이 되는 문장 한 줄)
-    `.trim();
+🎯 **내일 1순위**
+딱 1개.
+---`;
 
     const resp = await fetch(
       'https://qxqkpgkiuzdvkdieqynf.supabase.co/functions/v1/ai-analysis',
