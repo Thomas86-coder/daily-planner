@@ -2587,7 +2587,11 @@ async function loadData() {
       const btn = document.getElementById('aiBtn');
       if (ref.ai_feedback) {
         if (resultDiv && contentDiv) {
-          contentDiv.textContent = ref.ai_feedback;
+          const formattedText = ref.ai_feedback
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
+          contentDiv.innerHTML = '';
+          contentDiv.innerHTML = formattedText;
           resultDiv.style.display = 'block';
         }
         if (btn) btn.innerHTML = '✨ 오늘 하루 분석받기 (재분석)';
@@ -3703,6 +3707,9 @@ async function runAIAnalysis() {
 
 🎯 **내일 1순위**
 딱 1개. 오늘 데이터에서 가장 약한 1가지를 보강할 작은 행동. 이거 하나만 잡으면 내일 성공 수준.
+
+위 5개 섹션만 작성하고 반드시 거기서 끝내줘. 
+[오늘의 성과], [잘한 점] 등 추가 섹션 절대 작성 금지.
 ---`;
 
     const resp = await fetch(
@@ -3733,7 +3740,11 @@ async function runAIAnalysis() {
     const resultDiv = document.getElementById('aiResult');
     const contentDiv = document.getElementById('aiContent');
     if (resultDiv && contentDiv) {
-      contentDiv.textContent = result;
+      const formattedText = result
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+      contentDiv.innerHTML = ''; // 먼저 비우기
+      contentDiv.innerHTML = formattedText; // 그 다음 삽입
       resultDiv.style.display = 'block';
     }
 
