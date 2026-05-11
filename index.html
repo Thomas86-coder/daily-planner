@@ -2061,7 +2061,7 @@ body {
           <option value="todo">오늘 할일</option>
           <option value="project">프로젝트 할일</option>
         </select>
-        <button onclick="executeHistorySearch()" style="background:#8b5cf6; color:white; border-radius:8px; padding:8px 20px; border:none; font-weight:600; cursor:pointer;">🔍 검색</button>
+        <button type="button" onclick="executeHistorySearch()" style="background:#8b5cf6; color:white; border-radius:8px; padding:8px 20px; border:none; font-weight:600; cursor:pointer;">🔍 검색</button>
       </div>
       <!-- 통계 카드 -->
       <div class="rv-stat-grid" style="grid-template-columns:repeat(3,1fr); gap:12px;">
@@ -6014,6 +6014,9 @@ function renderProjects() {
     const type = document.getElementById('hist-type').value;
 
     const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    const today = (new Date(now - offset)).toISOString().split('T')[0];
+    
     let startDate = null;
     let endDate = null;
 
@@ -6038,10 +6041,7 @@ function renderProjects() {
     if(listEl) listEl.innerHTML = '<div class="rv-spinner">데이터 검색 중...</div>';
 
     try {
-      const { data: { user } } = await sb.auth.getUser();
-      const currentUserId = user ? user.id : 'mock-user';
-      console.log('현재 user.id:', currentUserId);
-      console.log('검색 조건:', { type, period, cat, startDate, endDate });
+      console.log('검색 조건:', { type, period, cat, today });
 
       let todosRaw = [];
       let pTodosRaw = [];
@@ -6049,63 +6049,63 @@ function renderProjects() {
       // 1. 일반 할일 (todos)
       if (type === 'all' || type === 'todo') {
         let query = sb.from('todos')
-          .select('*')
-          .eq('done', true)
-          .eq('user_id', currentUserId);
+          .select('id, text, done, completed_at, log_date, category')
+          .eq('done', true);
         
-        if (startDate) query = query.gte('completed_at', startDate.toISOString());
-        if (endDate) query = query.lte('completed_at', endDate.toISOString());
+        if (period === 'today') {
+          query = query.eq('log_date', today);
+        } else {
+          if (startDate) query = query.gte('completed_at', startDate.toISOString());
+          if (endDate) query = query.lte('completed_at', endDate.toISOString());
+        }
+        
         if (cat !== 'all') query = query.eq('category', cat);
-        
         query = query.order('completed_at', { ascending: false });
 
-        const { data, error } = await query;
-        console.log('todos 완료 결과:', data, error);
-        if (error) throw error;
-        todosRaw = data || [];
+        const { data: todoData, error: todoError } = await query;
+        console.log('todos 결과:', todoData, todoError);
+        if (todoError) throw todoError;
+        todosRaw = todoData || [];
       }
 
       // 2. 프로젝트 할일 (project_todos)
       if (type === 'all' || type === 'project') {
-        // projects 조인 조건은 내부에서 처리 (inner join 필수)
-        let selectQuery = cat !== 'all' ? '*, projects!inner(title, category)' : '*, projects(title, category)';
-        let query = sb.from('project_todos')
+        let selectQuery = cat !== 'all' ? 'id, text, done, completed_at, projects!inner(name, category)' : 'id, text, done, completed_at, projects(name, category)';
+        let ptQuery = sb.from('project_todos')
           .select(selectQuery)
           .eq('done', true);
         
-        if (startDate) query = query.gte('completed_at', startDate.toISOString());
-        if (endDate) query = query.lte('completed_at', endDate.toISOString());
-        if (cat !== 'all') query = query.eq('projects.category', cat);
+        if (startDate) ptQuery = ptQuery.gte('completed_at', startDate.toISOString());
+        if (endDate) ptQuery = ptQuery.lte('completed_at', endDate.toISOString());
+        if (cat !== 'all') ptQuery = ptQuery.eq('projects.category', cat);
         
-        query = query.order('completed_at', { ascending: false });
+        ptQuery = ptQuery.order('completed_at', { ascending: false });
 
-        const { data, error } = await query;
-        console.log('project_todos 완료 결과:', data, error);
-        if (error) throw error;
-        pTodosRaw = data || [];
+        const { data: ptData, error: ptError } = await ptQuery;
+        console.log('project_todos 결과:', ptData, ptError);
+        if (ptError) throw ptError;
+        pTodosRaw = ptData || [];
       }
 
-      const normalizedTodos = todosRaw.map(t => ({
-        id: 't_' + t.id,
+      const normalizedTodos = todosRaw.map(todo => ({
+        id: 't_' + todo.id,
         type: 'todo',
-        title: t.text,
-        category: t.category || 'Personal',
-        completed_at: t.completed_at
+        title: todo.text,
+        category: todo.category || 'Personal',
+        completed_at: todo.completed_at || todo.log_date || new Date().toISOString()
       }));
 
-      const normalizedPTodos = pTodosRaw.map(t => ({
-        id: 'pt_' + t.id,
+      const normalizedPTodos = pTodosRaw.map(pt => ({
+        id: 'pt_' + pt.id,
         type: 'project',
-        title: t.projects?.title ? `${t.projects.title} > ${t.text}` : t.text,
-        category: t.projects?.category || 'Work',
-        completed_at: t.completed_at
+        title: pt.projects?.name ? `${pt.projects.name} > ${pt.text}` : pt.text,
+        category: pt.projects?.category || 'Work',
+        completed_at: pt.completed_at || new Date().toISOString()
       }));
 
       historyFilteredItems = [...normalizedTodos, ...normalizedPTodos];
-      // 최신순 정렬
       historyFilteredItems.sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at));
 
-      // 통계 업데이트
       let todoCount = 0;
       let projCount = 0;
       historyFilteredItems.forEach(item => {
