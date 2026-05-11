@@ -5795,8 +5795,16 @@ function renderProjects() {
     }
     
     try {
-      const insertData = { category: cat, text, cycle, start_date: start, end_date: end ? end : null };
-      const { error } = await sb.from('recurring_tasks').insert([insertData]);
+      const { data, error } = await sb.from('recurring_tasks').insert({
+        category: cat,
+        text: text,
+        cycle: cycle,
+        start_date: start,
+        end_date: end ? end : null
+      }).select();
+      
+      console.log('INSERT 결과:', { data, error });
+
       if(error) {
         showToast('저장 권한 오류 (테이블을 생성해주세요) 🚨', true);
         throw error;
