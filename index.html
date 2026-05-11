@@ -1742,9 +1742,6 @@ body {
         <button class="nav-btn" id="nav-yearly" onclick="navigate('yearly')">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-check-2" style="width:16px;height:16px;"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="m9 16 2 2 4-4"/></svg> 연간
         </button>
-        <button class="nav-btn" id="nav-history" onclick="navigate('history')">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg> 완료 기록
-        </button>
       </div>
     </div>
   </div>
@@ -2027,65 +2024,6 @@ body {
         <button class="review-nav-btn" onclick="yearlyOffset++; loadYearlyPage()">&#8250;</button>
       </div>
       <div id="yearly-body"><div class="rv-spinner">데이터 불러오는 중...</div></div>
-    </div>
-
-    <!-- 완료 기록 페이지 -->
-    <div id="page-history" style="display:none;padding:20px 28px;">
-      <div class="review-header" style="justify-content:center; padding:18px 20px;">
-        <div class="review-title" style="flex:none;">완료 기록</div>
-      </div>
-      
-      <!-- 필터 영역 -->
-      <div class="history-filters" style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
-        <select id="hist-period" class="hist-select" onchange="onHistoryFilterChange()">
-          <option value="all">전체 기간</option>
-          <option value="today">오늘</option>
-          <option value="week">이번 주</option>
-          <option value="month">이번 달</option>
-          <option value="custom">직접 선택</option>
-        </select>
-        <div id="hist-custom-date" style="display:none; gap:6px; align-items:center;">
-          <input type="date" id="hist-start" class="hist-input" onchange="onHistoryFilterChange()">
-          <span style="color:var(--text-muted); font-size:13px;">~</span>
-          <input type="date" id="hist-end" class="hist-input" onchange="onHistoryFilterChange()">
-        </div>
-        <select id="hist-cat" class="hist-select" onchange="onHistoryFilterChange()">
-          <option value="all">모든 카테고리</option>
-          <option value="Work">Work</option>
-          <option value="Job">Job</option>
-          <option value="Growth">Growth</option>
-          <option value="Personal">Personal</option>
-        </select>
-        <select id="hist-type" class="hist-select" onchange="onHistoryFilterChange()">
-          <option value="all">모든 종류</option>
-          <option value="todo">오늘 할일</option>
-          <option value="project">프로젝트 할일</option>
-        </select>
-        <button type="button" onclick="executeHistorySearch()" style="background:#8b5cf6; color:white; border-radius:8px; padding:8px 20px; border:none; font-weight:600; cursor:pointer;">🔍 검색</button>
-      </div>
-      <!-- 통계 카드 -->
-      <div class="rv-stat-grid" style="grid-template-columns:repeat(3,1fr); gap:12px;">
-        <div class="rv-stat-card">
-          <div class="rv-stat-label">완료한 할일</div>
-          <div class="rv-stat-value" id="hist-stat-todo">0</div>
-        </div>
-        <div class="rv-stat-card">
-          <div class="rv-stat-label">완료한 프로젝트 할일</div>
-          <div class="rv-stat-value" id="hist-stat-proj">0</div>
-        </div>
-        <div class="rv-stat-card">
-          <div class="rv-stat-label">총 완료</div>
-          <div class="rv-stat-value" style="color:var(--primary);" id="hist-stat-total">0</div>
-        </div>
-      </div>
-
-      <!-- 리스트 컨테이너 -->
-      <div id="history-list" class="history-list"></div>
-      
-      <!-- 더 보기 버튼 -->
-      <div id="history-load-more" style="display:none; text-align:center; margin-top:20px;">
-        <button onclick="loadMoreHistory()" class="hist-more-btn">더 보기</button>
-      </div>
     </div>
     
     <!-- GOALS PAGE -->
@@ -3124,7 +3062,7 @@ async function goToday() {
 }
 
 // ── 네비게이션 ──
-const PAGES = ['today','weekly','monthly','yearly','goals','projects','recurring','history'];
+const PAGES = ['today','weekly','monthly','yearly','goals','projects','recurring'];
 function navigate(page) {
   document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
   const navEl = document.getElementById('nav-' + page);
@@ -3144,7 +3082,6 @@ function navigate(page) {
     else if (page === 'goals') loadGoalsData();
     else if (page === 'projects') loadProjectsData();
     else if (page === 'recurring') loadRecurringTasks();
-    else if (page === 'history') loadHistoryData();
   } else {
     const todayEl = document.getElementById('page-today');
     if (todayEl) {
@@ -4000,78 +3937,6 @@ init();
 .top3-rank { width:26px; height:26px; border-radius:50%; background:var(--gradient); color:white; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .top3-label { flex:1; font-size:13px; color:var(--text-primary); }
 .top3-rate { font-size:13px; font-weight:700; color:var(--primary); }
-
-/* 완료 기록 전용 스타일 */
-.hist-select, .hist-input {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  font-size: 13px;
-  color: var(--text-primary);
-  font-family: inherit;
-  outline: none;
-}
-.hist-select:focus, .hist-input:focus { border-color: var(--primary); }
-.hist-more-btn {
-  padding: 10px 24px;
-  border-radius: 8px;
-  background: var(--hover);
-  color: var(--text-secondary);
-  border: none;
-  font-weight: 600;
-  font-size: 13.5px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.hist-more-btn:hover { background: var(--border); color: var(--text-primary); }
-
-.hist-group { margin-bottom: 24px; }
-.hist-date-header {
-  background: rgba(0,0,0,0.03);
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  margin-bottom: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.hist-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  margin-bottom: 8px;
-  position: relative;
-  overflow: hidden;
-}
-.hist-item-bar {
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 4px;
-}
-.hist-item-bar.cat-work { background: #f97316; }
-.hist-item-bar.cat-job { background: #3b82f6; }
-.hist-item-bar.cat-growth { background: #10b981; }
-.hist-item-bar.cat-personal { background: #ec4899; }
-
-.hist-icon { font-size: 16px; flex-shrink: 0; }
-.hist-title { flex: 1; font-size: 14px; color: var(--text-primary); line-height: 1.4; word-break: break-all; }
-.hist-badge {
-  background: #e8f5e9;
-  color: #2e7d32;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 6px;
-  flex-shrink: 0;
-}
 </style>
 
 
@@ -5986,240 +5851,6 @@ function renderProjects() {
       showToast('오늘 할일에 등록되었습니다! 👏');
       if(typeof fetchDataForDate === 'function') fetchDataForDate(currentDate);
     } catch(e) { console.error(e); showToast('등록 중 오류 발생', true); }
-  }
-
-  // ── 완료 기록 (Completion History) ──
-  let historyItems = [];
-  let historyFilteredItems = [];
-  let historyCurrentPage = 1;
-  const historyPageSize = 30;
-
-  async function loadHistoryData() {
-    await executeHistorySearch();
-  }
-
-  function onHistoryFilterChange() {
-    const period = document.getElementById('hist-period').value;
-    const customDateWrap = document.getElementById('hist-custom-date');
-    if (period === 'custom') {
-      customDateWrap.style.display = 'flex';
-    } else {
-      customDateWrap.style.display = 'none';
-    }
-  }
-
-  async function executeHistorySearch() {
-    const period = document.getElementById('hist-period').value;
-    const cat = document.getElementById('hist-cat').value;
-    const type = document.getElementById('hist-type').value;
-
-    const now = new Date();
-    const offset = now.getTimezoneOffset() * 60000;
-    const today = (new Date(now - offset)).toISOString().split('T')[0];
-    
-    let startDate = null;
-    let endDate = null;
-
-    if (period === 'today') {
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-    } else if (period === 'week') {
-      const day = now.getDay() || 7;
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day + 1);
-      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - day), 23, 59, 59, 999);
-    } else if (period === 'month') {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-    } else if (period === 'custom') {
-      const sVal = document.getElementById('hist-start').value;
-      const eVal = document.getElementById('hist-end').value;
-      if (sVal) startDate = new Date(sVal + 'T00:00:00');
-      if (eVal) endDate = new Date(eVal + 'T23:59:59.999');
-    }
-
-    const listEl = document.getElementById('history-list');
-    if(listEl) listEl.innerHTML = '<div class="rv-spinner">데이터 검색 중...</div>';
-
-    try {
-      console.log('검색 조건:', { type, period, cat, today });
-
-      let todosRaw = [];
-      let pTodosRaw = [];
-
-      // 1. 일반 할일 (todos)
-      if (type === 'all' || type === 'todo') {
-        let query = sb.from('todos')
-          .select('id, text, done, completed_at, log_date, category')
-          .eq('done', true);
-        
-        if (period === 'today') {
-          query = query.eq('log_date', today);
-        } else {
-          if (startDate) query = query.gte('completed_at', startDate.toISOString());
-          if (endDate) query = query.lte('completed_at', endDate.toISOString());
-        }
-        
-        if (cat !== 'all') query = query.eq('category', cat);
-        query = query.order('completed_at', { ascending: false });
-
-        const { data: todoData, error: todoError } = await query;
-        console.log('todos 결과:', todoData, todoError);
-        if (todoError) throw todoError;
-        todosRaw = todoData || [];
-      }
-
-      // 2. 프로젝트 할일 (project_todos)
-      if (type === 'all' || type === 'project') {
-        let selectQuery = cat !== 'all' ? 'id, text, done, completed_at, projects!inner(name, category)' : 'id, text, done, completed_at, projects(name, category)';
-        let ptQuery = sb.from('project_todos')
-          .select(selectQuery)
-          .eq('done', true);
-        
-        if (startDate) ptQuery = ptQuery.gte('completed_at', startDate.toISOString());
-        if (endDate) ptQuery = ptQuery.lte('completed_at', endDate.toISOString());
-        if (cat !== 'all') ptQuery = ptQuery.eq('projects.category', cat);
-        
-        ptQuery = ptQuery.order('completed_at', { ascending: false });
-
-        const { data: ptData, error: ptError } = await ptQuery;
-        console.log('project_todos 결과:', ptData, ptError);
-        if (ptError) throw ptError;
-        pTodosRaw = ptData || [];
-      }
-
-      const normalizedTodos = todosRaw.map(todo => ({
-        id: 't_' + todo.id,
-        type: 'todo',
-        title: todo.text,
-        category: todo.category || 'Personal',
-        completed_at: todo.completed_at || todo.log_date || new Date().toISOString()
-      }));
-
-      const normalizedPTodos = pTodosRaw.map(pt => ({
-        id: 'pt_' + pt.id,
-        type: 'project',
-        title: pt.projects?.name ? `${pt.projects.name} > ${pt.text}` : pt.text,
-        category: pt.projects?.category || 'Work',
-        completed_at: pt.completed_at || new Date().toISOString()
-      }));
-
-      historyFilteredItems = [...normalizedTodos, ...normalizedPTodos];
-      historyFilteredItems.sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at));
-
-      let todoCount = 0;
-      let projCount = 0;
-      historyFilteredItems.forEach(item => {
-        if (item.type === 'todo') todoCount++;
-        else if (item.type === 'project') projCount++;
-      });
-
-      document.getElementById('hist-stat-todo').innerText = todoCount;
-      document.getElementById('hist-stat-proj').innerText = projCount;
-      document.getElementById('hist-stat-total').innerText = todoCount + projCount;
-
-      historyCurrentPage = 1;
-      renderHistoryList(true);
-    } catch(e) {
-      console.error('검색 오류:', e);
-      if(listEl) listEl.innerHTML = `<div class="rv-empty">오류가 발생했습니다: ${e.message}</div>`;
-    }
-  }
-
-  function renderHistoryList(reset = false) {
-    const listEl = document.getElementById('history-list');
-    const moreBtn = document.getElementById('history-load-more');
-    if (!listEl) return;
-
-    if (historyFilteredItems.length === 0) {
-      listEl.innerHTML = `
-        <div style="text-align:center; padding:40px 20px; background:var(--card); border:1px solid var(--border); border-radius:12px; margin-top:20px;">
-          <div style="font-size:40px; margin-bottom:12px;">✅</div>
-          <div style="font-weight:700; color:var(--text-primary); font-size:16px; margin-bottom:4px;">완료된 항목이 없습니다</div>
-          <div style="color:var(--text-muted); font-size:14px;">오늘 할일을 완료해보세요!</div>
-        </div>
-      `;
-      if(moreBtn) moreBtn.style.display = 'none';
-      return;
-    }
-
-    if (reset) listEl.innerHTML = '';
-
-    const startIdx = (historyCurrentPage - 1) * historyPageSize;
-    const endIdx = startIdx + historyPageSize;
-    const itemsToShow = historyFilteredItems.slice(startIdx, endIdx);
-
-    // 날짜별 그룹핑 처리
-    // 리스트 컨테이너 내의 기존 그룹 중 마지막 그룹 찾기
-    let lastGroupDate = '';
-    const existingHeaders = listEl.querySelectorAll('.hist-group');
-    if (existingHeaders.length > 0) {
-      lastGroupDate = existingHeaders[existingHeaders.length - 1].dataset.date;
-    }
-
-    const DOW = ['일','월','화','수','목','금','토'];
-    
-    itemsToShow.forEach(item => {
-      const d = new Date(item.completed_at);
-      const dateStr = \`\${d.getFullYear()}년 \${d.getMonth()+1}월 \${d.getDate()}일 (\${DOW[d.getDay()]})\`;
-      
-      let groupEl;
-      if (dateStr !== lastGroupDate) {
-        groupEl = document.createElement('div');
-        groupEl.className = 'hist-group';
-        groupEl.dataset.date = dateStr;
-        
-        // 해당 날짜에 속하는 아이템 개수 (필터된 전체 목록 기준)
-        const countInDate = historyFilteredItems.filter(i => {
-          const id = new Date(i.completed_at);
-          return \`\${id.getFullYear()}년 \${id.getMonth()+1}월 \${id.getDate()}일 (\${DOW[id.getDay()]})\` === dateStr;
-        }).length;
-
-        groupEl.innerHTML = \`
-          <div class="hist-date-header">
-            <span>📅 \${dateStr}</span>
-            <span>\${countInDate}개 완료</span>
-          </div>
-          <div class="hist-items-container"></div>
-        \`;
-        listEl.appendChild(groupEl);
-        lastGroupDate = dateStr;
-      } else {
-        groupEl = existingHeaders[existingHeaders.length - 1] || listEl.lastElementChild;
-      }
-
-      const container = groupEl.querySelector('.hist-items-container');
-      
-      const itemEl = document.createElement('div');
-      itemEl.className = 'hist-item';
-      
-      const catColorClass = 'cat-' + (item.category || '').toLowerCase();
-      const icon = item.type === 'todo' ? '✅' : '📁';
-      const mStr = String(d.getMonth()+1);
-      const dStr = String(d.getDate());
-      const wdStr = DOW[d.getDay()];
-
-      itemEl.innerHTML = \`
-        <div class="hist-item-bar \${catColorClass}"></div>
-        <div class="hist-icon">\${icon}</div>
-        <div class="hist-title">
-          <span style="color:var(--text-muted); font-size:12px; font-weight:600; margin-right:4px;">[\${item.category}]</span>
-          \${item.title}
-        </div>
-        <div class="hist-badge">✓ \${mStr}/\${dStr}(\${wdStr}) 완료</div>
-      \`;
-      container.appendChild(itemEl);
-    });
-
-    if (endIdx < historyFilteredItems.length) {
-      if(moreBtn) moreBtn.style.display = 'block';
-    } else {
-      if(moreBtn) moreBtn.style.display = 'none';
-    }
-  }
-
-  function loadMoreHistory() {
-    historyCurrentPage++;
-    renderHistoryList(false);
   }
 
 </script>
