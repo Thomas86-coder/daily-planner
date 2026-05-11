@@ -5781,9 +5781,6 @@ function renderProjects() {
             
           if (!exist || exist.length === 0) {
             let mappedCat = t.category ? t.category.toLowerCase() : 'life';
-            if (mappedCat === 'job') mappedCat = 'work';
-            if (mappedCat === 'personal') mappedCat = 'life';
-            if (mappedCat === 'growth') mappedCat = 'growth';
             
             await sb.from('todos').insert({
               text: t.text,
@@ -5944,9 +5941,19 @@ function renderProjects() {
     } catch(e) { console.error(e); }
   }
 
-  async function addRecurringToToday(rtId) {
-    const rc = allRecurringTasks.find(x => x.id === rtId);
-    if (!rc) return;
+  async function addRecurringToToday(taskId) {
+    const { data: task, error: fetchError } = await sb
+      .from('recurring_tasks')
+      .select('*')
+      .eq('id', taskId)
+      .single();
+    
+    if (fetchError || !task) {
+      showToast('반복업무 조회 실패', true);
+      return;
+    }
+    
+    console.log('가져온 반복업무:', task);
     
     try {
       const dstr = typeof currentDate !== 'undefined' && currentDate ? currentDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
@@ -5954,34 +5961,32 @@ function renderProjects() {
       const { data: exist } = await sb.from('todos')
         .select('id')
         .eq('log_date', dstr)
-        .eq('text', rc.text);
+        .eq('text', task.text);
       
       if (exist && exist.length > 0) {
         showToast('이미 오늘 등록되어 있습니다', true);
         return;
       }
       
-      let mappedCat = rc.category ? rc.category.toLowerCase() : 'life';
-      if (mappedCat === 'job') mappedCat = 'work';
-      if (mappedCat === 'personal') mappedCat = 'life';
-      if (mappedCat === 'growth') mappedCat = 'growth';
+      const categoryValue = task.category ? task.category.toLowerCase() : 'life';
+      console.log('카테고리 값:', categoryValue);
       
       const insertData = {
-        text: rc.text,
-        category: mappedCat,
+        text: task.text,
+        category: categoryValue,
         log_date: dstr,
         done: false
       };
       
       const { data, error } = await sb.from('todos').insert(insertData).select();
-      console.log('오늘 할일 등록 결과:', data, error);
+      console.log('todos INSERT 결과:', data, error);
       
       if(error) {
-        showToast('등록 중 오류 발생: ' + error.message, true);
+        showToast('등록 오류: ' + error.message, true);
         throw error;
       }
       
-      showToast('✅ 오늘 할일에 등록되었습니다!');
+      showToast(`✅ ${task.category || categoryValue}에 등록되었습니다!`);
       if(typeof fetchDataForDate === 'function') fetchDataForDate(typeof currentDate !== 'undefined' ? currentDate : new Date());
       else if(typeof loadData === 'function') loadData();
     } catch(e) { console.error(e); showToast('등록 중 오류 발생', true); }
