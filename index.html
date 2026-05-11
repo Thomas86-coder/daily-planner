@@ -5720,8 +5720,14 @@ function renderProjects() {
 
   async function loadRecurringTasks() {
     try {
-      if(!window.sb) return;
-      const { data, error } = await sb.from('recurring_tasks').select('*').order('created_at', { ascending: false });
+      if(!sb) return;
+      const { data, error } = await sb
+        .from('recurring_tasks')
+        .select('id, category, text, cycle, start_date, end_date, created_at')
+        .order('created_at', { ascending: false });
+        
+      console.log('반복업무 목록 조회:', data, error);
+      
       if (error) { console.error('fetch recurring tasks err:', error); return; }
       allRecurringTasks = data || [];
       renderRecurringTasks();
