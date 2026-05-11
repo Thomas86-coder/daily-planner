@@ -2030,7 +2030,7 @@ body {
     </div>
 
     <!-- 완료 기록 페이지 -->
-    <div id="page-history" class="review-page">
+    <div id="page-history" style="display:none;padding:20px 28px;">
       <div class="review-header" style="justify-content:center; padding:18px 20px;">
         <div class="review-title" style="flex:none;">완료 기록</div>
       </div>
@@ -5999,18 +5999,21 @@ function renderProjects() {
     if(listEl) listEl.innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
 
     try {
-      // 1. 일반 할일 (todos) - done이 true이고 completed_at이 null이 아닌 항목
+      const user = { id: 'mock-user' }; // 임시 유저 설정
+
+      // 1. 일반 할일 (todos)
       const { data: todosData, error: tErr } = await sb.from('todos')
-        .select('id, text, category, done, completed_at')
-        .eq('done', true)
-        .not('completed_at', 'is', null);
+        .select('*')
+        .eq('is_completed', true)
+        .eq('user_id', user.id)
+        .order('completed_at', { ascending: false });
       if (tErr) throw tErr;
 
       // 2. 프로젝트 할일 (project_todos) - projects 테이블과 조인
       const { data: pTodosData, error: pErr } = await sb.from('project_todos')
-        .select('id, text, done, completed_at, projects!inner(title, category)')
-        .eq('done', true)
-        .not('completed_at', 'is', null);
+        .select('*, projects(title, category)')
+        .eq('is_completed', true)
+        .order('completed_at', { ascending: false });
       if (pErr) throw pErr;
 
       const normalizedTodos = (todosData || []).map(t => ({
