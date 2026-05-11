@@ -939,13 +939,13 @@ body {
     right: 16px;
     background: none;
     border: none;
-    color: #ef4444;
+    color: #9ca3af;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 18px;
     padding: 4px;
-    transition: transform 0.2s;
+    transition: all 0.2s;
   }
-  .rc-delete:hover { transform: scale(1.15); }
+  .rc-delete:hover { color: #ef4444; transform: scale(1.15); }
   .rc-divider {
     border-bottom: 2px dashed #fde68a;
     margin: 2px 0;
@@ -5759,7 +5759,7 @@ function renderProjects() {
       div.className = 'rc-card';
       div.innerHTML = `
         <button class="rc-delete" onclick="deleteRecurringTask('${t.id}')">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+          ✕
         </button>
         <div class="rc-header">
           <div class="rc-icon-box">${getRcCategoryIcon(t.category)}</div>
@@ -5771,12 +5771,10 @@ function renderProjects() {
         <div class="rc-divider"></div>
         <div class="rc-details">
           <span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
-            ${t.cycle}
+            🔄 ${t.cycle}
           </span>
           <span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-            ${startStr} ~ ${endStr}
+            📅 ${startStr} ~ ${endStr}
           </span>
         </div>
         <button class="rc-action-btn" onclick="addRecurringToToday('${t.id}')">
