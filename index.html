@@ -6038,7 +6038,11 @@ function renderProjects() {
     if(listEl) listEl.innerHTML = '<div class="rv-spinner">데이터 검색 중...</div>';
 
     try {
-      const user = { id: 'mock-user' }; // 임시 유저 설정
+      const { data: { user } } = await sb.auth.getUser();
+      const currentUserId = user ? user.id : 'mock-user';
+      console.log('현재 user.id:', currentUserId);
+      console.log('검색 조건:', { type, period, cat, startDate, endDate });
+
       let todosRaw = [];
       let pTodosRaw = [];
 
@@ -6046,8 +6050,8 @@ function renderProjects() {
       if (type === 'all' || type === 'todo') {
         let query = sb.from('todos')
           .select('*')
-          .eq('is_completed', true)
-          .eq('user_id', user.id);
+          .eq('done', true)
+          .eq('user_id', currentUserId);
         
         if (startDate) query = query.gte('completed_at', startDate.toISOString());
         if (endDate) query = query.lte('completed_at', endDate.toISOString());
@@ -6056,6 +6060,7 @@ function renderProjects() {
         query = query.order('completed_at', { ascending: false });
 
         const { data, error } = await query;
+        console.log('todos 완료 결과:', data, error);
         if (error) throw error;
         todosRaw = data || [];
       }
@@ -6066,7 +6071,7 @@ function renderProjects() {
         let selectQuery = cat !== 'all' ? '*, projects!inner(title, category)' : '*, projects(title, category)';
         let query = sb.from('project_todos')
           .select(selectQuery)
-          .eq('is_completed', true);
+          .eq('done', true);
         
         if (startDate) query = query.gte('completed_at', startDate.toISOString());
         if (endDate) query = query.lte('completed_at', endDate.toISOString());
@@ -6075,6 +6080,7 @@ function renderProjects() {
         query = query.order('completed_at', { ascending: false });
 
         const { data, error } = await query;
+        console.log('project_todos 완료 결과:', data, error);
         if (error) throw error;
         pTodosRaw = data || [];
       }
