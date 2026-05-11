@@ -2061,8 +2061,8 @@ body {
           <option value="todo">오늘 할일</option>
           <option value="project">프로젝트 할일</option>
         </select>
+        <button onclick="executeHistorySearch()" style="background:#8b5cf6; color:white; border-radius:8px; padding:8px 20px; border:none; font-weight:600; cursor:pointer;">🔍 검색</button>
       </div>
-
       <!-- 통계 카드 -->
       <div class="rv-stat-grid" style="grid-template-columns:repeat(3,1fr); gap:12px;">
         <div class="rv-stat-card">
@@ -5995,65 +5995,23 @@ function renderProjects() {
   const historyPageSize = 30;
 
   async function loadHistoryData() {
-    const listEl = document.getElementById('history-list');
-    if(listEl) listEl.innerHTML = '<div class="rv-spinner">데이터 불러오는 중...</div>';
-
-    try {
-      const user = { id: 'mock-user' }; // 임시 유저 설정
-
-      // 1. 일반 할일 (todos)
-      const { data: todosData, error: tErr } = await sb.from('todos')
-        .select('*')
-        .eq('is_completed', true)
-        .eq('user_id', user.id)
-        .order('completed_at', { ascending: false });
-      if (tErr) throw tErr;
-
-      // 2. 프로젝트 할일 (project_todos) - projects 테이블과 조인
-      const { data: pTodosData, error: pErr } = await sb.from('project_todos')
-        .select('*, projects(title, category)')
-        .eq('is_completed', true)
-        .order('completed_at', { ascending: false });
-      if (pErr) throw pErr;
-
-      const normalizedTodos = (todosData || []).map(t => ({
-        id: 't_' + t.id,
-        type: 'todo',
-        title: t.text,
-        category: t.category || 'Personal',
-        completed_at: t.completed_at
-      }));
-
-      const normalizedPTodos = (pTodosData || []).map(t => ({
-        id: 'pt_' + t.id,
-        type: 'project',
-        title: t.projects?.title ? `${t.projects.title} > ${t.text}` : t.text,
-        category: t.projects?.category || 'Work',
-        completed_at: t.completed_at
-      }));
-
-      historyItems = [...normalizedTodos, ...normalizedPTodos];
-      // 최신순 정렬
-      historyItems.sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at));
-      
-      onHistoryFilterChange();
-    } catch(e) {
-      console.error('완료 기록 로드 오류:', e);
-      if(listEl) listEl.innerHTML = `<div class="rv-empty">오류가 발생했습니다: ${e.message}</div>`;
-    }
+    await executeHistorySearch();
   }
 
   function onHistoryFilterChange() {
     const period = document.getElementById('hist-period').value;
-    const cat = document.getElementById('hist-cat').value;
-    const type = document.getElementById('hist-type').value;
-
     const customDateWrap = document.getElementById('hist-custom-date');
     if (period === 'custom') {
       customDateWrap.style.display = 'flex';
     } else {
       customDateWrap.style.display = 'none';
     }
+  }
+
+  async function executeHistorySearch() {
+    const period = document.getElementById('hist-period').value;
+    const cat = document.getElementById('hist-cat').value;
+    const type = document.getElementById('hist-type').value;
 
     const now = new Date();
     let startDate = null;
@@ -6076,33 +6034,89 @@ function renderProjects() {
       if (eVal) endDate = new Date(eVal + 'T23:59:59.999');
     }
 
-    historyFilteredItems = historyItems.filter(item => {
-      // 1. 기간 필터
-      if (startDate && endDate) {
-        const d = new Date(item.completed_at);
-        if (d < startDate || d > endDate) return false;
+    const listEl = document.getElementById('history-list');
+    if(listEl) listEl.innerHTML = '<div class="rv-spinner">데이터 검색 중...</div>';
+
+    try {
+      const user = { id: 'mock-user' }; // 임시 유저 설정
+      let todosRaw = [];
+      let pTodosRaw = [];
+
+      // 1. 일반 할일 (todos)
+      if (type === 'all' || type === 'todo') {
+        let query = sb.from('todos')
+          .select('*')
+          .eq('is_completed', true)
+          .eq('user_id', user.id);
+        
+        if (startDate) query = query.gte('completed_at', startDate.toISOString());
+        if (endDate) query = query.lte('completed_at', endDate.toISOString());
+        if (cat !== 'all') query = query.eq('category', cat);
+        
+        query = query.order('completed_at', { ascending: false });
+
+        const { data, error } = await query;
+        if (error) throw error;
+        todosRaw = data || [];
       }
-      // 2. 카테고리 필터
-      if (cat !== 'all' && (item.category || '').toLowerCase() !== cat.toLowerCase()) return false;
-      // 3. 종류 필터
-      if (type !== 'all' && item.type !== type) return false;
-      return true;
-    });
 
-    // 통계 업데이트
-    let todoCount = 0;
-    let projCount = 0;
-    historyFilteredItems.forEach(item => {
-      if (item.type === 'todo') todoCount++;
-      else if (item.type === 'project') projCount++;
-    });
+      // 2. 프로젝트 할일 (project_todos)
+      if (type === 'all' || type === 'project') {
+        // projects 조인 조건은 내부에서 처리 (inner join 필수)
+        let selectQuery = cat !== 'all' ? '*, projects!inner(title, category)' : '*, projects(title, category)';
+        let query = sb.from('project_todos')
+          .select(selectQuery)
+          .eq('is_completed', true);
+        
+        if (startDate) query = query.gte('completed_at', startDate.toISOString());
+        if (endDate) query = query.lte('completed_at', endDate.toISOString());
+        if (cat !== 'all') query = query.eq('projects.category', cat);
+        
+        query = query.order('completed_at', { ascending: false });
 
-    document.getElementById('hist-stat-todo').innerText = todoCount;
-    document.getElementById('hist-stat-proj').innerText = projCount;
-    document.getElementById('hist-stat-total').innerText = todoCount + projCount;
+        const { data, error } = await query;
+        if (error) throw error;
+        pTodosRaw = data || [];
+      }
 
-    historyCurrentPage = 1;
-    renderHistoryList(true);
+      const normalizedTodos = todosRaw.map(t => ({
+        id: 't_' + t.id,
+        type: 'todo',
+        title: t.text,
+        category: t.category || 'Personal',
+        completed_at: t.completed_at
+      }));
+
+      const normalizedPTodos = pTodosRaw.map(t => ({
+        id: 'pt_' + t.id,
+        type: 'project',
+        title: t.projects?.title ? `${t.projects.title} > ${t.text}` : t.text,
+        category: t.projects?.category || 'Work',
+        completed_at: t.completed_at
+      }));
+
+      historyFilteredItems = [...normalizedTodos, ...normalizedPTodos];
+      // 최신순 정렬
+      historyFilteredItems.sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at));
+
+      // 통계 업데이트
+      let todoCount = 0;
+      let projCount = 0;
+      historyFilteredItems.forEach(item => {
+        if (item.type === 'todo') todoCount++;
+        else if (item.type === 'project') projCount++;
+      });
+
+      document.getElementById('hist-stat-todo').innerText = todoCount;
+      document.getElementById('hist-stat-proj').innerText = projCount;
+      document.getElementById('hist-stat-total').innerText = todoCount + projCount;
+
+      historyCurrentPage = 1;
+      renderHistoryList(true);
+    } catch(e) {
+      console.error('검색 오류:', e);
+      if(listEl) listEl.innerHTML = `<div class="rv-empty">오류가 발생했습니다: ${e.message}</div>`;
+    }
   }
 
   function renderHistoryList(reset = false) {
