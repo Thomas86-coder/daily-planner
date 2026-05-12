@@ -5823,12 +5823,12 @@ function renderProjects() {
     } catch(e) { console.error(e); }
   }
 
-  function getRcCategoryIcon(cat) {
-    if (cat === 'Work') return '💼';
-    if (cat === 'Job') return '👔';
-    if (cat === 'Growth') return '🌱';
-    return '🏃';
-  }
+  const CATEGORY_STYLES = {
+    work: { bg: '#FFF7ED', border: '#FB923C', icon: '💼', iconBg: '#F97316' },
+    job: { bg: '#EFF6FF', border: '#60A5FA', icon: '📋', iconBg: '#3B82F6' },
+    growth: { bg: '#F0FDF4', border: '#4ADE80', icon: '🌱', iconBg: '#22C55E' },
+    personal: { bg: '#FDF2F8', border: '#F472B6', icon: '💜', iconBg: '#EC4899' }
+  };
 
   function renderRecurringTasks() {
     const grid = document.getElementById('recurring-grid');
@@ -5844,24 +5844,23 @@ function renderProjects() {
       const startStr = t.start_date || '지정안됨';
       const endStr = t.end_date || '계속';
       
-      const catLower = (t.category || 'work').toLowerCase();
-      let badgeBg = '#F59E42';
-      if (catLower === 'job') badgeBg = '#3B82F6';
-      else if (catLower === 'growth') badgeBg = '#9B8CD9';
-      else if (catLower === 'personal') badgeBg = '#E66BA4';
+      const cat = (t.category || 'work').toLowerCase();
+      const style = CATEGORY_STYLES[cat] || CATEGORY_STYLES.work;
       
       const div = document.createElement('div');
       div.className = 'rc-card';
+      div.style.background = style.bg;
+      div.style.borderColor = style.border;
       div.innerHTML = `
         <div style="position: absolute; top: 16px; right: 12px; display: flex; gap: 4px;">
           <button onclick="editRecurringTask('${t.id}')" style="background: none; border: none; cursor: pointer; font-size: 16px; padding: 4px; opacity: 0.7; transition: all 0.2s;" onmouseover="this.style.opacity='1'; this.style.transform='scale(1.15)'" onmouseout="this.style.opacity='0.7'; this.style.transform='scale(1)'">✏️</button>
           <button class="rc-delete" style="position: static; margin: 0; top: auto; right: auto;" onclick="deleteRecurringTask('${t.id}')">✕</button>
         </div>
         <div class="rc-header">
-          <div class="rc-icon-box">${getRcCategoryIcon(t.category)}</div>
+          <div class="rc-icon-box" style="background: ${style.iconBg};">${style.icon}</div>
           <div class="rc-info">
             <h3>${t.text}</h3>
-            <span class="rc-badge" style="background: ${badgeBg}">${t.category}</span>
+            <span class="rc-badge">${t.category}</span>
           </div>
         </div>
         <div class="rc-divider"></div>
