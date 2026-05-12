@@ -6151,44 +6151,63 @@ document.addEventListener('DOMContentLoaded', () => {
     if(window.updateDateBar) window.updateDateBar(); 
     loadData(); // Initial data load
   }, 500);
+});
+
 async function ch_searchCompleted() {
+  console.log('=== 완료 기록 검색 시작 ===');
+  
   const period = document.getElementById('ch-filter-period').value;
   const category = document.getElementById('ch-filter-category').value;
   const type = document.getElementById('ch-filter-type').value;
   
+  console.log('필터:', { period, category, type });
+  
+  // 기간 범위 계산 (YYYY-MM-DD 문자열)
   const today = new Date();
-  let startDate = null, endDate = null;
+  let startDateStr = null, endDateStr = null;
+  
+  const fmt = (d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  };
   
   if (period === 'today') {
-    startDate = new Date(today.setHours(0,0,0,0));
-    endDate = new Date(today.setHours(23,59,59,999));
+    startDateStr = fmt(today);
+    endDateStr = fmt(today);
   } else if (period === 'week') {
     const day = today.getDay();
     const diff = day === 0 ? -6 : 1 - day;
-    startDate = new Date(today);
-    startDate.setDate(today.getDate() + diff);
-    startDate.setHours(0,0,0,0);
-    endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 6);
-    endDate.setHours(23,59,59,999);
+    const start = new Date(today);
+    start.setDate(today.getDate() + diff);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    startDateStr = fmt(start);
+    endDateStr = fmt(end);
   } else if (period === 'month') {
-    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-    endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+    const start = new Date(today.getFullYear(), today.getMonth(), 1);
+    const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    startDateStr = fmt(start);
+    endDateStr = fmt(end);
   }
+  
+  console.log('날짜 범위:', { startDateStr, endDateStr });
   
   let allResults = [];
   
+  // todos 조회 (log_date 기준 - 안정적)
   if (type === 'all' || type === 'todo') {
     let q = sb.from('todos')
       .select('id, text, category, log_date, completed_at, done')
       .eq('done', true);
     
-    if (startDate) q = q.gte('completed_at', startDate.toISOString());
-    if (endDate) q = q.lte('completed_at', endDate.toISOString());
+    if (startDateStr) q = q.gte('log_date', startDateStr);
+    if (endDateStr) q = q.lte('log_date', endDateStr);
     if (category !== 'all') q = q.eq('category', category.toLowerCase());
     
     const { data, error } = await q;
-    console.log('todos 완료 조회:', data, error);
+    console.log('todos 결과:', data?.length, '개', error);
     
     if (data) {
       data.forEach(t => allResults.push({
@@ -6201,16 +6220,17 @@ async function ch_searchCompleted() {
     }
   }
   
+  // project_todos 조회
   if (type === 'all' || type === 'project') {
     let q = sb.from('project_todos')
       .select('id, text, done, completed_at, projects(name, category)')
       .eq('done', true);
     
-    if (startDate) q = q.gte('completed_at', startDate.toISOString());
-    if (endDate) q = q.lte('completed_at', endDate.toISOString());
+    if (startDateStr) q = q.gte('completed_at', startDateStr + 'T00:00:00');
+    if (endDateStr) q = q.lte('completed_at', endDateStr + 'T23:59:59');
     
     const { data, error } = await q;
-    console.log('project_todos 완료 조회:', data, error);
+    console.log('project_todos 결과:', data?.length, '개', error);
     
     if (data) {
       data.forEach(pt => {
@@ -6227,7 +6247,12 @@ async function ch_searchCompleted() {
     }
   }
   
-  allResults.sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at));
+  console.log('총 결과:', allResults.length, '개');
+  
+  // 최신순 정렬
+  allResults.sort((a, b) => 
+    new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime()
+  );
   
   ch_renderResults(allResults);
   ch_updateStats(allResults);
@@ -6235,7 +6260,12 @@ async function ch_searchCompleted() {
 
 function ch_renderResults(items) {
   const container = document.getElementById('ch-results');
-  if (!container) return;
+  console.log('컨테이너 찾음?', !!container);
+  
+  if (!container) {
+    console.error('ch-results element가 없음');
+    return;
+  }
   
   if (items.length === 0) {
     container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">완료된 항목이 없습니다</div>';
@@ -6294,8 +6324,6 @@ function ch_updateStats(items) {
   document.getElementById('ch-stat-project').textContent = projCount;
   document.getElementById('ch-stat-total').textContent = items.length;
 }
-
-});
 </script>
 </body>
 </html>
