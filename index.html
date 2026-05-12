@@ -5844,6 +5844,12 @@ function renderProjects() {
       const startStr = t.start_date || '지정안됨';
       const endStr = t.end_date || '계속';
       
+      const catLower = (t.category || 'work').toLowerCase();
+      let badgeBg = '#F59E42';
+      if (catLower === 'job') badgeBg = '#3B82F6';
+      else if (catLower === 'growth') badgeBg = '#9B8CD9';
+      else if (catLower === 'personal') badgeBg = '#E66BA4';
+      
       const div = document.createElement('div');
       div.className = 'rc-card';
       div.innerHTML = `
@@ -5855,7 +5861,7 @@ function renderProjects() {
           <div class="rc-icon-box">${getRcCategoryIcon(t.category)}</div>
           <div class="rc-info">
             <h3>${t.text}</h3>
-            <span class="rc-badge">${t.category}</span>
+            <span class="rc-badge" style="background: ${badgeBg}">${t.category}</span>
           </div>
         </div>
         <div class="rc-divider"></div>
