@@ -3720,43 +3720,58 @@ async function runAIAnalysis() {
         return `${cat}: ${done}/${items.length}개 완료`;
       }).join(', ');
 
-    const userMessage = `${THOMAS_MENTOR_PERSONA}
+    let strongestCat = '없음';
+    let weakestCat = '없음';
+    let maxRate = -1;
+    let minRate = 101;
+    Object.entries(cats).forEach(([cat, items]) => {
+      if (items.length > 0) {
+        const rate = items.filter(i => i.done).length / items.length;
+        if (rate > maxRate) { maxRate = rate; strongestCat = cat; }
+        if (rate < minRate) { minRate = rate; weakestCat = cat; }
+      }
+    });
 
-아래는 형의 오늘 하루 데이터야. 오직 이 데이터만 보고 분석해.
+    const userMessage = `당신은 Thomas의 인생 코치입니다. 80/20 법칙을 중요하게 여기며,
+계획과 실행 사이의 갭을 날카롭게 짚어주는 멘토입니다.
+오늘(${date}) 활동 데이터:
 
-[입력 데이터]
-- 할일 완료율: ${todoRate}% (${doneTodos}/${totalTodos}개)
-- 루틴 달성률: ${routineRate}% (${doneRoutines}/${totalRoutines}개)
-- 카테고리별: ${catSummary}
+할일 완료율: ${todoRate}% (${doneTodos}/${totalTodos}개)
+루틴 실천율: ${routineRate}% (${doneRoutines}/${totalRoutines}개)
+카테고리별: ${catSummary}
+가장 강했던 카테고리: ${strongestCat}
+가장 약했던 카테고리: ${weakestCat}
+오늘의 성찰:
+감사: ${ref?.mood || '미작성'}
+잘한일: ${ref?.good_things || '미작성'}
+아쉬운점: ${ref?.regrets || '미작성'}
+내일 다짐: ${ref?.tomorrow_goal || '미작성'}
 
-- 감사했던 일: ${ref?.mood || '미작성'}
-- 잘한 일: ${ref?.good_things || '미작성'}
-- 아쉬웠던 점: ${ref?.regrets || '미작성'}
-- 내일 다짐: ${ref?.tomorrow_goal || '미작성'}
+위 데이터를 바탕으로 아래 5개 섹션만 작성하세요.
+반드시 이 5개 섹션만 작성하고 그 외 어떤 내용도 추가하지 마세요.
+[오늘의 성과], [잘한 점], [아쉬운 점], [응원 한마디] 등
+별도 섹션을 만들지 마세요. 절대 반복 작성하지 마세요.
+🔥 오늘의 한 줄 진단
+(데이터의 핵심을 한 문장으로. 칭찬보다 정확한 진단 위주)
+📊 계획 vs 실행
+(80/20 관점에서 분석. 가장 중요한 20%에 집중했는지,
+시간을 80%에 쓴 건 아닌지 짚어주세요)
+✅ 오늘 진짜 잘한 거
+(데이터 기반으로 구체적인 1~2가지.
+"열심히 했어요" 같은 추상적 칭찬 금지)
+⚠️ 솔직히 짚을 거
+(80/20 법칙 관점에서 핵심 아쉬움.
+내일 바로 실행할 수 있는 구체적 행동 제안 포함)
+🎯 내일 1순위
+(내일 가장 먼저 처리해야 할 한 가지.
+80% 결과를 만들 20%의 행동이 무엇인지 명확히)
+작성 규칙:
 
-출력 형식:
----
-🔥 **오늘의 한 줄 진단**
-실천율과 완료율 데이터를 보고 1문장으로. "X% 했다"가 아니라 "X% — 이게 어떤 의미인지" 직설적으로.
-
-📊 **계획 vs 실행**
-- 루틴 실천율: ${routineRate}%
-- 할일 완료율: ${todoRate}%
-- 가장 강했던 카테고리: (왜 강했는지 1줄 추측)
-- 가장 약했던 카테고리: (왜 약했는지 성찰에서 단서 찾기)
-
-✅ **오늘 진짜 잘한 거**
-1개만. 데이터에서 가장 의미 있는 성취 1개. 왜 의미 있는지 1줄.
-
-⚠️ **솔직히 짚을 거**
-1개만. 데이터에서 보이는 패턴 1개. 성찰 내용에서 트리거가 보이면 짚기 + 내일 어떻게 끊을지 구체 행동 1개. 일반론 금지.
-
-🎯 **내일 1순위**
-딱 1개. 오늘 데이터에서 가장 약한 1가지를 보강할 작은 행동. 이거 하나만 잡으면 내일 성공 수준.
-
-위 5개 섹션만 작성하고 반드시 거기서 끝내줘. 
-[오늘의 성과], [잘한 점] 등 추가 섹션 절대 작성 금지.
----`;
+총 분량 350자 이내
+위 5개 섹션 외 다른 섹션 작성 절대 금지
+5번째 섹션 작성 후 즉시 종료
+"---" 같은 구분선 사용 금지
+[대괄호] 형식 섹션 사용 금지`;
 
     const resp = await fetch(
       'https://qxqkpgkiuzdvkdieqynf.supabase.co/functions/v1/ai-analysis',
@@ -3766,12 +3781,34 @@ async function runAIAnalysis() {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4cWtwZ2tpdXpkdmtkaWVxeW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjI3OTAsImV4cCI6MjA5MDI5ODc5MH0.T6FT8YQKAPwIgPfKU1guaRx-izWvta7fM1nLMuzggZI'
         },
-        body: JSON.stringify({ userMessage })
+        body: JSON.stringify({ userMessage, max_tokens: 1000 })
       }
     );
 
     const data = await resp.json();
-    const result = data.result || '분석 결과를 가져올 수 없어요';
+    let result = data.result || '분석 결과를 가져올 수 없어요';
+
+    // 응답 후처리 (안전장치)
+    let cleanText = result;
+
+    // "🎯 내일 1순위" 섹션 이후의 반복/추가 섹션 제거
+    const stopMarkers = [
+      '\n---',
+      '\n[오늘의 성과]',
+      '\n[잘한 점]',
+      '\n[아쉬운 점]',
+      '\n[응원 한마디]',
+      '\n[내일 개선'
+    ];
+
+    for (const marker of stopMarkers) {
+      const idx = cleanText.indexOf(marker);
+      if (idx > 0) {
+        cleanText = cleanText.substring(0, idx).trim();
+      }
+    }
+    
+    result = cleanText;
 
     // 데이터베이스에 저장
     if (result && data.result) {
