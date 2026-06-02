@@ -3861,7 +3861,11 @@ async function init() {
   lucide.createIcons();
 }
 
-init();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
 
 </script>
 
