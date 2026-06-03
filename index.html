@@ -3708,7 +3708,7 @@ async function generateMonthlyResultAI(category) {
 [완료율] ${doneCount}/${totalCount}`;
 
     const { data: aiData, error: aiErr } = await sb.functions.invoke('ai-analysis', {
-      body: { userMessage }
+      body: { userMessage, responseType: "monthlyResult" }
     });
 
     if (aiErr) throw new Error(aiErr.message);
