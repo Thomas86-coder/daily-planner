@@ -2229,6 +2229,39 @@ body {
           </div>
         </div>
 
+        <!-- 신규: 월간 원씽 섹션 -->
+        <div id="monthly-onething-section" style="margin-bottom: 24px;">
+          <h3 style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px; font-size: 18px;">
+            <span id="onething-month-label">년 월 월간 원씽</span>
+          </h3>
+          <div class="onething-grid">
+            <!-- Work -->
+            <div class="onething-box work">
+              <div class="onething-label">💼 Work (업무)</div>
+              <input type="text" id="onething-input-m-work" class="onething-input" placeholder="업무 카테고리 원씽을 입력하세요">
+              <button id="onething-save-m-work" class="onething-save-btn" onclick="saveMonthlyOneThing('work')">저장</button>
+            </div>
+            <!-- Job -->
+            <div class="onething-box job">
+              <div class="onething-label">📋 Job (직무)</div>
+              <input type="text" id="onething-input-m-job" class="onething-input" placeholder="직무 카테고리 원씽을 입력하세요">
+              <button id="onething-save-m-job" class="onething-save-btn" onclick="saveMonthlyOneThing('job')">저장</button>
+            </div>
+            <!-- Growth -->
+            <div class="onething-box growth">
+              <div class="onething-label">🌱 Growth (성장)</div>
+              <input type="text" id="onething-input-m-growth" class="onething-input" placeholder="성장 카테고리 원씽을 입력하세요">
+              <button id="onething-save-m-growth" class="onething-save-btn" onclick="saveMonthlyOneThing('growth')">저장</button>
+            </div>
+            <!-- Personal -->
+            <div class="onething-box personal">
+              <div class="onething-label">💜 Personal (개인)</div>
+              <input type="text" id="onething-input-m-personal" class="onething-input" placeholder="개인 카테고리 원씽을 입력하세요">
+              <button id="onething-save-m-personal" class="onething-save-btn" onclick="saveMonthlyOneThing('personal')">저장</button>
+            </div>
+          </div>
+        </div>
+
         <!-- 카드 3: 월간 실천계획 -->
         <div class="gc-card theme-mint">
           <div class="gc-header" onclick="this.parentElement.classList.toggle('collapsed')">
@@ -3416,9 +3449,87 @@ async function saveYearlyOneThing(category) {
   }
 }
 
+async function loadMonthlyOneThings() {
+  const labelEl = document.getElementById('onething-month-label');
+  if (labelEl) labelEl.textContent = `${goalsYear}년 ${goalsMonth}월 월간 원씽`;
+  
+  try {
+    const { data, error } = await sb
+      .from('one_things')
+      .select('*')
+      .eq('scope', 'monthly')
+      .eq('year', goalsYear)
+      .eq('month', goalsMonth);
+      
+    if (error) {
+      console.error('월간 원씽 로드 실패:', error);
+      return;
+    }
+    
+    // 초기화
+    ['work', 'job', 'growth', 'personal'].forEach(cat => {
+      const el = document.getElementById(`onething-input-m-${cat}`);
+      if (el) el.value = '';
+    });
+    
+    // 값 채우기
+    if (data) {
+      data.forEach(item => {
+        const el = document.getElementById(`onething-input-m-${item.category}`);
+        if (el) el.value = item.text || '';
+      });
+    }
+  } catch (err) {
+    console.error('loadMonthlyOneThings 에러:', err);
+  }
+}
+
+async function saveMonthlyOneThing(category) {
+  const el = document.getElementById(`onething-input-m-${category}`);
+  if (!el) return;
+  const text = el.value.trim();
+  
+  const btn = document.getElementById(`onething-save-m-${category}`);
+  const originalText = btn.textContent;
+  btn.textContent = '저장 중...';
+  btn.disabled = true;
+  
+  try {
+    const { error } = await sb
+      .from('one_things')
+      .upsert({
+        scope: 'monthly',
+        category: category,
+        year: goalsYear,
+        month: goalsMonth,
+        text: text,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'scope, category, year, month'
+      });
+      
+    if (error) throw error;
+    
+    btn.textContent = '저장됨 ✓';
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }, 2000);
+    
+  } catch (err) {
+    console.error('월간 원씽 저장 실패:', err);
+    btn.textContent = '실패';
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }, 2000);
+  }
+}
+
 async function loadGoalsData() {
   updateGoalsNavUI();
   await loadYearlyOneThings();
+  await loadMonthlyOneThings();
 
   let monthRoutines = [];
   try {
