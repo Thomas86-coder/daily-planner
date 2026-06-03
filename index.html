@@ -2603,15 +2603,9 @@ function updateDateBar() {
   const isToday = cd.getTime() === today.getTime();
   
   const dateEl = document.getElementById('dateDisplay');
-  const dayEl = document.getElementById('dayDisplay');
   
   if (dateEl) {
     dateEl.textContent = `${d.getFullYear()}년 ${m}월 ${day}일 (${DAYS[d.getDay()]})`;
-  }
-  if (dayEl) {
-    dayEl.textContent = isToday ? `${dow}요일 · 오늘` : `${dow}요일`;
-  } else {
-    console.warn('dayDisplay 요소를 찾을 수 없습니다.');
   }
 }
 
