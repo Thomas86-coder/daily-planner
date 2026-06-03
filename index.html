@@ -2244,24 +2244,36 @@ body {
               <div class="onething-label">💼 Work (업무)</div>
               <input type="text" id="onething-input-m-work" class="onething-input" placeholder="업무 카테고리 원씽을 입력하세요">
               <button id="onething-save-m-work" class="onething-save-btn" onclick="saveMonthlyOneThing('work')">저장</button>
+              <div class="onething-label" style="margin-top: 8px; font-size: 13px; color: #555;">🏆 월말 결과</div>
+              <input type="text" id="onething-result-m-work" class="onething-input" placeholder="월말 결과를 입력하세요">
+              <button id="onething-save-result-m-work" class="onething-save-btn" onclick="saveMonthlyOneThingResult('work')">저장</button>
             </div>
             <!-- Job -->
             <div class="onething-box job">
               <div class="onething-label">📋 Job (직무)</div>
               <input type="text" id="onething-input-m-job" class="onething-input" placeholder="직무 카테고리 원씽을 입력하세요">
               <button id="onething-save-m-job" class="onething-save-btn" onclick="saveMonthlyOneThing('job')">저장</button>
+              <div class="onething-label" style="margin-top: 8px; font-size: 13px; color: #555;">🏆 월말 결과</div>
+              <input type="text" id="onething-result-m-job" class="onething-input" placeholder="월말 결과를 입력하세요">
+              <button id="onething-save-result-m-job" class="onething-save-btn" onclick="saveMonthlyOneThingResult('job')">저장</button>
             </div>
             <!-- Growth -->
             <div class="onething-box growth">
               <div class="onething-label">🌱 Growth (성장)</div>
               <input type="text" id="onething-input-m-growth" class="onething-input" placeholder="성장 카테고리 원씽을 입력하세요">
               <button id="onething-save-m-growth" class="onething-save-btn" onclick="saveMonthlyOneThing('growth')">저장</button>
+              <div class="onething-label" style="margin-top: 8px; font-size: 13px; color: #555;">🏆 월말 결과</div>
+              <input type="text" id="onething-result-m-growth" class="onething-input" placeholder="월말 결과를 입력하세요">
+              <button id="onething-save-result-m-growth" class="onething-save-btn" onclick="saveMonthlyOneThingResult('growth')">저장</button>
             </div>
             <!-- Personal -->
             <div class="onething-box personal">
               <div class="onething-label">💜 Personal (개인)</div>
               <input type="text" id="onething-input-m-personal" class="onething-input" placeholder="개인 카테고리 원씽을 입력하세요">
               <button id="onething-save-m-personal" class="onething-save-btn" onclick="saveMonthlyOneThing('personal')">저장</button>
+              <div class="onething-label" style="margin-top: 8px; font-size: 13px; color: #555;">🏆 월말 결과</div>
+              <input type="text" id="onething-result-m-personal" class="onething-input" placeholder="월말 결과를 입력하세요">
+              <button id="onething-save-result-m-personal" class="onething-save-btn" onclick="saveMonthlyOneThingResult('personal')">저장</button>
             </div>
           </div>
         </div>
@@ -3542,14 +3554,18 @@ async function loadMonthlyOneThings() {
     // 초기화
     ['work', 'job', 'growth', 'personal'].forEach(cat => {
       const el = document.getElementById(`onething-input-m-${cat}`);
+      const elRes = document.getElementById(`onething-result-m-${cat}`);
       if (el) el.value = '';
+      if (elRes) elRes.value = '';
     });
     
     // 값 채우기
     if (data) {
       data.forEach(item => {
         const el = document.getElementById(`onething-input-m-${item.category}`);
+        const elRes = document.getElementById(`onething-result-m-${item.category}`);
         if (el) el.value = item.text || '';
+        if (elRes) elRes.value = item.result || '';
       });
     }
   } catch (err) {
@@ -3591,6 +3607,48 @@ async function saveMonthlyOneThing(category) {
     
   } catch (err) {
     console.error('월간 원씽 저장 실패:', err);
+    btn.textContent = '실패';
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }, 2000);
+  }
+}
+
+async function saveMonthlyOneThingResult(category) {
+  const el = document.getElementById(`onething-result-m-${category}`);
+  if (!el) return;
+  const resultText = el.value.trim();
+  
+  const btn = document.getElementById(`onething-save-result-m-${category}`);
+  const originalText = btn.textContent;
+  btn.textContent = '저장 중...';
+  btn.disabled = true;
+  
+  try {
+    const { error } = await sb
+      .from('one_things')
+      .upsert({
+        scope: 'monthly',
+        category: category,
+        year: goalsYear,
+        month: goalsMonth,
+        result: resultText,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'scope, category, year, month'
+      });
+      
+    if (error) throw error;
+    
+    btn.textContent = '저장됨 ✓';
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }, 2000);
+    
+  } catch (err) {
+    console.error('월간 결과 저장 실패:', err);
     btn.textContent = '실패';
     setTimeout(() => {
       btn.textContent = originalText;
