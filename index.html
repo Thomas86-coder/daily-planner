@@ -6196,58 +6196,6 @@ function renderProjects() {
 
   let hasAutoRegistered = false;
 
-  async function autoRegisterRecurringTasks(tasks) {
-    try {
-      const today = new Date();
-      const dstr = today.toISOString().split('T')[0];
-      const dayOfWeek = today.getDay(); // 0(일) ~ 6(토)
-      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-      const todayName = dayNames[dayOfWeek];
-      
-      let addedCount = 0;
-      
-      for (const t of tasks) {
-        if (t.start_date && t.start_date > dstr) continue;
-        if (t.end_date && t.end_date < dstr) continue;
-        
-        const cycle = t.cycle || '';
-        let shouldAdd = false;
-        if (cycle.includes('매일')) shouldAdd = true;
-        else if ((cycle.includes('월~금') || cycle.includes('주중')) && dayOfWeek >= 1 && dayOfWeek <= 5) shouldAdd = true;
-        else if (cycle.includes('주말') && (dayOfWeek === 0 || dayOfWeek === 6)) shouldAdd = true;
-        else if (cycle.includes(todayName)) shouldAdd = true;
-        else if (cycle.includes('주 1회') && dayOfWeek === 1) shouldAdd = true;
-        else if (cycle.includes('월 1회') && today.getDate() === 1) shouldAdd = true;
-        
-        if (shouldAdd) {
-          const { data: exist } = await sb.from('todos')
-            .select('id')
-            .eq('log_date', dstr)
-            .eq('text', t.text);
-            
-          if (!exist || exist.length === 0) {
-            let mappedCat = t.category ? t.category.toLowerCase() : 'life';
-            
-            await sb.from('todos').insert({
-              text: t.text,
-              category: mappedCat,
-              log_date: dstr,
-              done: false
-            });
-            addedCount++;
-          }
-        }
-      }
-      
-      if (addedCount > 0) {
-        console.log(`자동 등록 완료: ${addedCount}건`);
-        if (typeof loadData === 'function') loadData();
-      }
-    } catch (e) {
-      console.error('Auto register recurring tasks error:', e);
-    }
-  }
-
   async function loadRecurringTasks() {
     try {
       if(!sb) return;
@@ -6264,7 +6212,7 @@ function renderProjects() {
       
       if (!hasAutoRegistered && allRecurringTasks.length > 0) {
         hasAutoRegistered = true;
-        autoRegisterRecurringTasks(allRecurringTasks);
+        autoRegisterRecurringTasks();
       }
     } catch(e) { console.error(e); }
   }
