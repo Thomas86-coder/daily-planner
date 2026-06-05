@@ -4872,6 +4872,26 @@ async function generateWeeklyAIReview(weekStart, weekEnd) {
       return parts.join(' / ');
     }).filter(p => p.length > 0).join('\n') || '성찰 기록 없음';
 
+    // 오늘의 원씽 집계
+    let oneThingStatsStr = "";
+    try {
+      const { data: otData, error: otErr } = await sb
+        .from('daily_one_things')
+        .select('log_date, text, done')
+        .gte('log_date', weekStart)
+        .lte('log_date', weekEnd);
+
+      if (otErr) throw otErr;
+
+      const validOt = (otData || []).filter(item => item.text && item.text.trim().length > 0);
+      const setDays = validOt.length;
+      const doneDays = validOt.filter(item => item.done).length;
+
+      oneThingStatsStr = `\n■ 이번 주 오늘의 원씽: 설정 ${setDays}일 / 달성 ${doneDays}일 (7일 중)`;
+    } catch(err) {
+      console.error('Weekly AI: daily_one_things 로드 실패', err);
+    }
+
     // 2. 프롬프트 구성
     const userMessage = `${THOMAS_MENTOR_PERSONA}
 
@@ -4881,7 +4901,7 @@ async function generateWeeklyAIReview(weekStart, weekEnd) {
 - 할일 완료율: ${todoRate}% (${completedTodos}/${totalTodos}개)
 - 카테고리별: ${catStats}
 - 루틴 달성률: ${routineRate}% (${completedRoutine}/${totalRoutineSlots}회)
-${routineDetails}
+${routineDetails}${oneThingStatsStr}
 - 성찰 기록 (${reflectionCount}일 작성):
 ${reflectionSummary}
 
