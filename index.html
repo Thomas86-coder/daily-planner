@@ -2900,20 +2900,24 @@ async function saveDailyOneThing() {
   const text = inputEl.value.trim();
   const done = checkEl.checked;
   
+  const payload = {
+    log_date: dStr,
+    text: text,
+    done: done,
+    updated_at: new Date().toISOString()
+  };
+  console.log('one_thing upsert payload:', payload);
+
   try {
     const { error } = await sb
       .from('daily_one_things')
-      .upsert({
-        log_date: dStr,
-        text: text,
-        done: done,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'log_date' });
+      .upsert(payload, { onConflict: 'log_date' });
       
     if (error) throw error;
   } catch(e) {
     console.error('오늘의 원씽 저장 오류:', e);
-    showToast('오늘의 원씽 저장 중 오류가 발생했습니다.');
+    console.error('code:', e?.code, 'message:', e?.message, 'details:', e?.details, 'hint:', e?.hint);
+    showToast('오늘의 원씽 저장 오류: ' + (e?.message || '알 수 없는 오류'));
   }
 }
 
