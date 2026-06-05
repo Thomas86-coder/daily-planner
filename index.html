@@ -4939,8 +4939,16 @@ ${reflectionSummary}
 
     // Supabase에 저장
     const weekKey = getISOWeekKey(weekStart);
-    const { data: existing, error: selErr } = await sb.from('ai_reviews').select('id').eq('type', 'weekly').eq('period', weekKey).maybeSingle();
+    console.log('ai_reviews insert payload:', { type: 'weekly', period: weekKey, content: formatted.substring(0, 50) + '...' });
     
+    const { data: existingList, error: selErr } = await sb
+      .from('ai_reviews')
+      .select('id')
+      .eq('type', 'weekly')
+      .eq('period', weekKey)
+      .order('created_at', { ascending: false })
+      .limit(1);
+      
     if (selErr && selErr.code === 'PGRST205') {
       console.error("ai_reviews 테이블이 없습니다. 아래 SQL을 Supabase에서 실행해주세요:\n" + `CREATE TABLE ai_reviews (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -4953,6 +4961,8 @@ ${reflectionSummary}
       alert("ai_reviews 테이블이 없습니다. 브라우저 콘솔을 확인해 SQL을 실행해주세요.");
       return;
     }
+
+    const existing = existingList && existingList.length > 0 ? existingList[0] : null;
 
     if (existing) {
       const { error } = await sb.from('ai_reviews').update({ content: formatted }).eq('id', existing.id);
@@ -5225,14 +5235,15 @@ async function loadWeeklyPage() {
   const currentYear = monday.getFullYear();
   const currentMonth = monday.getMonth() + 1;
   const weekKey = getISOWeekKey(startStr);
-  const [{ data: todoData }, { data: routineData }, { data: reflectData }, { data: routinesData }, { data: savedReview }] = await Promise.all([
+  const [{ data: todoData }, { data: routineData }, { data: reflectData }, { data: routinesData }, { data: savedReviewList }] = await Promise.all([
     sb.from('todos').select('*').gte('log_date', startStr).lte('log_date', endStr),
     sb.from('routine_logs').select('*').gte('log_date', startStr).lte('log_date', endStr),
     sb.from('reflections').select('*').gte('log_date', startStr).lte('log_date', endStr).order('log_date', {ascending:false}),
     sb.from('routines').select('*').eq('year', currentYear).eq('month', currentMonth),
-    sb.from('ai_reviews').select('content').eq('type', 'weekly').eq('period', weekKey).maybeSingle()
+    sb.from('ai_reviews').select('content').eq('type', 'weekly').eq('period', weekKey).order('created_at', { ascending: false }).limit(1)
   ]);
 
+  const savedReview = savedReviewList && savedReviewList.length > 0 ? savedReviewList[0] : null;
   const todos = todoData || [];
   const logs = routineData || [];
   const reflects = reflectData || [];
