@@ -1955,6 +1955,31 @@ body {
           <div id="learningList" style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
             <!-- JS 렌더링 -->
           </div>
+          
+          <button
+            id="learningAiBtn"
+            onclick="generateLearningAnalysis()"
+            style="
+              width:100%; padding:14px; margin-top:16px;
+              background: linear-gradient(135deg, #10b981, #3b82f6);
+              color:white; border:none; border-radius:10px;
+              font-size:15px; font-weight:700; cursor:pointer;
+              font-family:inherit;
+            ">
+            📚 오늘 배운 내용 분석받기
+          </button>
+          
+          <div id="learningAiResult" style="display:none; margin-top:16px;">
+            <div
+              id="learningAiContent"
+              style="
+                font-size:14px; line-height:1.9;
+                color:#1f2937; white-space:pre-wrap;
+                background:#f8f8ff; border-radius:10px;
+                padding:16px; border:1px solid #e5e7eb;
+              ">
+            </div>
+          </div>
         </div>
       </div>
 
@@ -3038,6 +3063,77 @@ async function deleteLearningNote(id) {
     console.error('오늘 배운 것 삭제 오류:', e);
     showToast('오늘 배운 것 삭제 중 오류가 발생했습니다.');
   }
+}
+
+async function generateLearningAnalysis() {
+  const btn = document.getElementById('learningAiBtn');
+  if (!btn) return;
+
+  btn.disabled = true;
+  btn.innerHTML = '⏳ 분석 중...';
+
+  try {
+    const date = todayStr(currentDate);
+
+    // 1. 메모 조회
+    const { data: lnData, error: lnErr } = await sb
+      .from('learning_notes')
+      .select('text')
+      .eq('log_date', date)
+      .order('created_at', { ascending: true });
+
+    if (lnErr) throw lnErr;
+
+    if (!lnData || lnData.length === 0) {
+      showToast('분석할 배운 내용이 없습니다.');
+      btn.disabled = false;
+      btn.innerHTML = '📚 오늘 배운 내용 분석받기';
+      return;
+    }
+
+    // 2. userMessage 구성
+    let userMessage = "■ 오늘 배운 것:\n";
+    userMessage += lnData.map(n => "- " + n.text).join('\n');
+
+    // 3. Edge Function 호출
+    const resp = await fetch(
+      'https://qxqkpgkiuzdvkdieqynf.supabase.co/functions/v1/ai-analysis',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4cWtwZ2tpdXpkdmtkaWVxeW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjI3OTAsImV4cCI6MjA5MDI5ODc5MH0.T6FT8YQKAPwIgPfKU1guaRx-izWvta7fM1nLMuzggZI'
+        },
+        body: JSON.stringify({ userMessage, max_tokens: 1000, responseType: 'learningAnalysis' })
+      }
+    );
+
+    const data = await resp.json();
+    let result = data.result || data.message || data.content || data.text || data.response || '분석 결과를 가져올 수 없어요';
+
+    // 4. 결과 렌더링
+    const resultDiv = document.getElementById('learningAiResult');
+    const contentDiv = document.getElementById('learningAiContent');
+    if (resultDiv && contentDiv) {
+      const formattedText = result
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+      contentDiv.innerHTML = `
+        <div style="line-height:1.9;font-size:15px;color:#333;padding:8px 0;">
+          ${formattedText}
+        </div>
+      `;
+      resultDiv.style.display = 'block';
+    }
+
+    showToast('배운 내용 분석 완료! 🤖');
+  } catch(e) {
+    console.error('배운 내용 분석 오류:', e);
+    showToast('분석 중 오류가 발생했어요 😢');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '📚 오늘 배운 내용 분석받기';
 }
 
 // ── 루틴 렌더링 ──
@@ -4353,22 +4449,6 @@ async function runAIAnalysis() {
       }
     });
 
-    let learningNotesStr = "■ 오늘 배운 것: 기록 없음";
-    try {
-      const { data: lnData, error: lnErr } = await sb
-        .from('learning_notes')
-        .select('text')
-        .eq('log_date', date)
-        .order('created_at', { ascending: true });
-        
-      if (lnErr) throw lnErr;
-      if (lnData && lnData.length > 0) {
-        learningNotesStr = "■ 오늘 배운 것:\n" + lnData.map(n => "- " + n.text).join('\n');
-      }
-    } catch(e) {
-      console.error('AI 분석: 오늘 배운 것 로드 실패', e);
-    }
-
     const userMessage = `당신은 Thomas의 인생 코치입니다. 80/20 법칙을 중요하게 여기며,
 계획과 실행 사이의 갭을 날카롭게 짚어주는 멘토입니다.
 오늘(${date}) 활동 데이터:
@@ -4383,7 +4463,6 @@ async function runAIAnalysis() {
 잘한일: ${ref?.good_things || '미작성'}
 아쉬운점: ${ref?.regrets || '미작성'}
 내일 다짐: ${ref?.tomorrow_goal || '미작성'}
-${learningNotesStr}
 
 위 데이터를 바탕으로 아래 5개 섹션만 작성하세요.
 반드시 이 5개 섹션만 작성하고 그 외 어떤 내용도 추가하지 마세요.
@@ -4419,12 +4498,34 @@ ${learningNotesStr}
           'Content-Type': 'application/json',
           'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4cWtwZ2tpdXpkdmtkaWVxeW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjI3OTAsImV4cCI6MjA5MDI5ODc5MH0.T6FT8YQKAPwIgPfKU1guaRx-izWvta7fM1nLMuzggZI'
         },
-        body: JSON.stringify({ userMessage, max_tokens: 1000, responseType: 'dailyAnalysis' })
+        body: JSON.stringify({ userMessage, max_tokens: 1000 })
       }
     );
 
     const data = await resp.json();
-    let result = data.result || data.message || data.content || data.text || data.response || '분석 결과를 가져올 수 없어요';
+    let result = data.result || '분석 결과를 가져올 수 없어요';
+
+    // 응답 후처리 (안전장치)
+    let cleanText = result;
+
+    // "🎯 내일 1순위" 섹션 이후의 반복/추가 섹션 제거
+    const stopMarkers = [
+      '\n---',
+      '\n[오늘의 성과]',
+      '\n[잘한 점]',
+      '\n[아쉬운 점]',
+      '\n[응원 한마디]',
+      '\n[내일 개선'
+    ];
+
+    for (const marker of stopMarkers) {
+      const idx = cleanText.indexOf(marker);
+      if (idx > 0) {
+        cleanText = cleanText.substring(0, idx).trim();
+      }
+    }
+    
+    result = cleanText;
 
     // 데이터베이스에 저장
     if (result && data.result) {
@@ -4442,11 +4543,8 @@ ${learningNotesStr}
       const formattedText = result
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\n/g, '<br>');
-      contentDiv.innerHTML = `
-        <div style="line-height:1.9;font-size:15px;color:#333;padding:8px 0;">
-          ${formattedText}
-        </div>
-      `;
+      contentDiv.innerHTML = ''; // 먼저 비우기
+      contentDiv.innerHTML = formattedText; // 그 다음 삽입
       resultDiv.style.display = 'block';
     }
 
