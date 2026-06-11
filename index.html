@@ -2818,6 +2818,7 @@ async function loadData() {
     await loadTodayOneThing();
     await loadDailyOneThing();
     await loadLearningNotes();
+    await loadLearningAnalysis();
     renderTodos();
 
     // 5) 어제 미완료 체크 (오늘 날짜일 때만)
@@ -3065,6 +3066,61 @@ async function deleteLearningNote(id) {
   }
 }
 
+async function loadLearningAnalysis() {
+  const date = todayStr(currentDate);
+  const resultDiv = document.getElementById('learningAiResult');
+  const contentDiv = document.getElementById('learningAiContent');
+  
+  if (!resultDiv || !contentDiv) return;
+
+  try {
+    const { data, error } = await sb
+      .from('learning_reviews')
+      .select('content')
+      .eq('log_date', date)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (data && data.content) {
+      let lines = data.content.split('\n').map(line => line.trim());
+      let reducedLines = [];
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i] === '' && (reducedLines.length === 0 || reducedLines[reducedLines.length - 1] === '')) {
+          continue;
+        }
+        reducedLines.push(lines[i]);
+      }
+
+      const formattedLines = reducedLines.map((line, idx) => {
+        let text = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        if (/^(📚|🤔|➕|🎯)/.test(text)) {
+          const mt = idx === 0 ? '0' : '18px';
+          return `<div style="font-weight: 700; margin-top: ${mt}; margin-bottom: 4px; color: #111827;">${text}</div>`;
+        } else if (text === '') {
+          return '<div style="height: 4px;"></div>';
+        } else {
+          return `<div>${text}</div>`;
+        }
+      });
+
+      const formattedText = formattedLines.join('');
+      contentDiv.innerHTML = `
+        <div style="line-height:1.6;font-size:15px;color:#333;padding:4px 0;">
+          ${formattedText}
+        </div>
+      `;
+      resultDiv.style.display = 'block';
+    } else {
+      contentDiv.innerHTML = '';
+      resultDiv.style.display = 'none';
+    }
+  } catch(e) {
+    console.error('배운 내용 분석 로드 오류:', e);
+    showToast('분석 결과를 불러오는 중 오류가 발생했습니다.');
+  }
+}
+
 async function generateLearningAnalysis() {
   const btn = document.getElementById('learningAiBtn');
   if (!btn) return;
@@ -3111,7 +3167,20 @@ async function generateLearningAnalysis() {
     const data = await resp.json();
     let result = data.result || data.message || data.content || data.text || data.response || '분석 결과를 가져올 수 없어요';
 
-    // 4. 결과 렌더링
+    // 4. 결과 DB 저장
+    if (result && data.result) {
+      try {
+        const { error: upsertErr } = await sb
+          .from('learning_reviews')
+          .upsert({ log_date: date, content: result }, { onConflict: 'log_date' });
+        if (upsertErr) throw upsertErr;
+      } catch(e) {
+        console.error('배운 내용 분석 저장 오류:', e);
+        showToast('분석 결과를 저장하는 중 오류가 발생했습니다.');
+      }
+    }
+
+    // 5. 결과 렌더링
     const resultDiv = document.getElementById('learningAiResult');
     const contentDiv = document.getElementById('learningAiContent');
     if (resultDiv && contentDiv) {
