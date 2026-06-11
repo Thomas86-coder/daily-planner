@@ -1947,7 +1947,7 @@ body {
         </div>
         <div class="card-body">
           <div class="add-todo-row">
-            <input class="add-todo-input" id="learningInput" placeholder="낮에 배운 것을 키워드로 빠르게... (예: J-1 stipend FLSA 적용 여부)" onkeydown="if(event.key==='Enter'){event.preventDefault();addLearningNote();}">
+            <textarea class="add-todo-input" id="learningInput" rows="2" style="resize:vertical;" placeholder="낮에 배운 것을 키워드로 빠르게... (예: J-1 stipend FLSA 적용 여부)" onkeydown="if(event.key==='Enter' && !event.shiftKey && !event.isComposing){event.preventDefault();addLearningNote();}"></textarea>
             <button class="add-btn" onclick="addLearningNote()">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
             </button>
@@ -2969,6 +2969,7 @@ async function loadLearningNotes() {
         textSpan.textContent = note.text;
         textSpan.style.flex = '1';
         textSpan.style.wordBreak = 'break-all';
+        textSpan.style.whiteSpace = 'pre-wrap';
         textSpan.style.marginRight = '8px';
         
         const delBtn = document.createElement('button');
@@ -2994,9 +2995,13 @@ async function loadLearningNotes() {
 
 async function addLearningNote() {
   const inputEl = document.getElementById('learningInput');
-  if (!inputEl) return;
+  if (!inputEl || inputEl.disabled) return;
   const text = inputEl.value.trim();
   if (!text) return;
+
+  // 중복 추가 방지 (낙관적 클리어)
+  inputEl.disabled = true;
+  inputEl.value = '';
 
   const dStr = todayStr(currentDate);
   
@@ -3007,11 +3012,15 @@ async function addLearningNote() {
       
     if (error) throw error;
     
-    inputEl.value = '';
     loadLearningNotes();
   } catch(e) {
     console.error('오늘 배운 것 추가 오류:', e);
     showToast('오늘 배운 것 추가 중 오류가 발생했습니다.');
+    // 실패 시 텍스트 복구
+    inputEl.value = text;
+  } finally {
+    inputEl.disabled = false;
+    inputEl.focus();
   }
 }
 
