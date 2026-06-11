@@ -3083,33 +3083,16 @@ async function loadLearningAnalysis() {
     if (error) throw error;
 
     if (data && data.content) {
-      let lines = data.content.split('\n').map(line => line.trim());
-      let reducedLines = [];
-      for (let i = 0; i < lines.length; i++) {
-        if (lines[i] === '' && (reducedLines.length === 0 || reducedLines[reducedLines.length - 1] === '')) {
-          continue;
-        }
-        reducedLines.push(lines[i]);
-      }
+      let cleanResult = data.content.split('\n')
+        .map(line => line.trim())
+        .join('\n')
+        .trim();
 
-      const formattedLines = reducedLines.map((line, idx) => {
-        let text = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        if (/^(📚|🤔|➕|🎯)/.test(text)) {
-          const mt = idx === 0 ? '0' : '18px';
-          return `<div style="font-weight: 700; margin-top: ${mt}; margin-bottom: 4px; color: #111827;">${text}</div>`;
-        } else if (text === '') {
-          return '<div style="height: 4px;"></div>';
-        } else {
-          return `<div>${text}</div>`;
-        }
-      });
+      const formattedText = cleanResult
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
 
-      const formattedText = formattedLines.join('');
-      contentDiv.innerHTML = `
-        <div style="line-height:1.6;font-size:15px;color:#333;padding:4px 0;">
-          ${formattedText}
-        </div>
-      `;
+      contentDiv.innerHTML = formattedText;
       resultDiv.style.display = 'block';
     } else {
       contentDiv.innerHTML = '';
@@ -3184,37 +3167,16 @@ async function generateLearningAnalysis() {
     const resultDiv = document.getElementById('learningAiResult');
     const contentDiv = document.getElementById('learningAiContent');
     if (resultDiv && contentDiv) {
-      // (1) 줄별 공백 제거
-      let lines = result.split('\n').map(line => line.trim());
-      
-      // (3) 연속된 빈 줄 하나로 축소
-      let reducedLines = [];
-      for (let i = 0; i < lines.length; i++) {
-        if (lines[i] === '' && (reducedLines.length === 0 || reducedLines[reducedLines.length - 1] === '')) {
-          continue; // 연속 빈 줄 무시 (맨 첫 줄이 빈 줄인 경우도 무시)
-        }
-        reducedLines.push(lines[i]);
-      }
+      let cleanResult = result.split('\n')
+        .map(line => line.trim())
+        .join('\n')
+        .trim();
 
-      // (4) 이모지 제목 볼드 및 여백 처리
-      const formattedLines = reducedLines.map((line, idx) => {
-        let text = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        if (/^(📚|🤔|➕|🎯)/.test(text)) {
-          const mt = idx === 0 ? '0' : '18px';
-          return `<div style="font-weight: 700; margin-top: ${mt}; margin-bottom: 4px; color: #111827;">${text}</div>`;
-        } else if (text === '') {
-          return '<div style="height: 4px;"></div>'; // 빈 줄을 약간의 여백으로 변환
-        } else {
-          return `<div>${text}</div>`;
-        }
-      });
+      const formattedText = cleanResult
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
 
-      const formattedText = formattedLines.join('');
-      contentDiv.innerHTML = `
-        <div style="line-height:1.6;font-size:15px;color:#333;padding:4px 0;">
-          ${formattedText}
-        </div>
-      `;
+      contentDiv.innerHTML = formattedText;
       resultDiv.style.display = 'block';
     }
 
