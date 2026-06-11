@@ -4344,6 +4344,22 @@ async function runAIAnalysis() {
       }
     });
 
+    let learningNotesStr = "■ 오늘 배운 것: 기록 없음";
+    try {
+      const { data: lnData, error: lnErr } = await sb
+        .from('learning_notes')
+        .select('text')
+        .eq('log_date', date)
+        .order('created_at', { ascending: true });
+        
+      if (lnErr) throw lnErr;
+      if (lnData && lnData.length > 0) {
+        learningNotesStr = "■ 오늘 배운 것:\n" + lnData.map(n => "- " + n.text).join('\n');
+      }
+    } catch(e) {
+      console.error('AI 분석: 오늘 배운 것 로드 실패', e);
+    }
+
     const userMessage = `당신은 Thomas의 인생 코치입니다. 80/20 법칙을 중요하게 여기며,
 계획과 실행 사이의 갭을 날카롭게 짚어주는 멘토입니다.
 오늘(${date}) 활동 데이터:
@@ -4358,6 +4374,7 @@ async function runAIAnalysis() {
 잘한일: ${ref?.good_things || '미작성'}
 아쉬운점: ${ref?.regrets || '미작성'}
 내일 다짐: ${ref?.tomorrow_goal || '미작성'}
+${learningNotesStr}
 
 위 데이터를 바탕으로 아래 5개 섹션만 작성하세요.
 반드시 이 5개 섹션만 작성하고 그 외 어떤 내용도 추가하지 마세요.
@@ -4393,34 +4410,12 @@ async function runAIAnalysis() {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4cWtwZ2tpdXpkdmtkaWVxeW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjI3OTAsImV4cCI6MjA5MDI5ODc5MH0.T6FT8YQKAPwIgPfKU1guaRx-izWvta7fM1nLMuzggZI'
         },
-        body: JSON.stringify({ userMessage, max_tokens: 1000 })
+        body: JSON.stringify({ userMessage, max_tokens: 1000, responseType: 'dailyAnalysis' })
       }
     );
 
     const data = await resp.json();
-    let result = data.result || '분석 결과를 가져올 수 없어요';
-
-    // 응답 후처리 (안전장치)
-    let cleanText = result;
-
-    // "🎯 내일 1순위" 섹션 이후의 반복/추가 섹션 제거
-    const stopMarkers = [
-      '\n---',
-      '\n[오늘의 성과]',
-      '\n[잘한 점]',
-      '\n[아쉬운 점]',
-      '\n[응원 한마디]',
-      '\n[내일 개선'
-    ];
-
-    for (const marker of stopMarkers) {
-      const idx = cleanText.indexOf(marker);
-      if (idx > 0) {
-        cleanText = cleanText.substring(0, idx).trim();
-      }
-    }
-    
-    result = cleanText;
+    let result = data.result || data.message || data.content || data.text || data.response || '분석 결과를 가져올 수 없어요';
 
     // 데이터베이스에 저장
     if (result && data.result) {
@@ -4438,8 +4433,11 @@ async function runAIAnalysis() {
       const formattedText = result
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\n/g, '<br>');
-      contentDiv.innerHTML = ''; // 먼저 비우기
-      contentDiv.innerHTML = formattedText; // 그 다음 삽입
+      contentDiv.innerHTML = `
+        <div style="line-height:1.9;font-size:15px;color:#333;padding:8px 0;">
+          ${formattedText}
+        </div>
+      `;
       resultDiv.style.display = 'block';
     }
 
