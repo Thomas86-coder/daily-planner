@@ -3083,10 +3083,18 @@ async function loadLearningAnalysis() {
     if (error) throw error;
 
     if (data && data.content) {
-      let cleanResult = data.content.split('\n')
-        .map(line => line.trim())
-        .join('\n')
-        .trim();
+      let lines = data.content.split('\n').map(line => line.trim());
+      let normalizedLines = [];
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        if (line === '' && (normalizedLines.length === 0 || normalizedLines[normalizedLines.length - 1] === '')) continue;
+        normalizedLines.push(line);
+        let textWithoutBold = line.replace(/\*\*/g, '');
+        if (/^(📚|🤔|➕|🎯)/.test(textWithoutBold)) {
+          if (i + 1 < lines.length && lines[i+1].trim() === '') i++;
+        }
+      }
+      let cleanResult = normalizedLines.join('\n').trim();
 
       const formattedText = cleanResult
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -3167,10 +3175,18 @@ async function generateLearningAnalysis() {
     const resultDiv = document.getElementById('learningAiResult');
     const contentDiv = document.getElementById('learningAiContent');
     if (resultDiv && contentDiv) {
-      let cleanResult = result.split('\n')
-        .map(line => line.trim())
-        .join('\n')
-        .trim();
+      let lines = result.split('\n').map(line => line.trim());
+      let normalizedLines = [];
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        if (line === '' && (normalizedLines.length === 0 || normalizedLines[normalizedLines.length - 1] === '')) continue;
+        normalizedLines.push(line);
+        let textWithoutBold = line.replace(/\*\*/g, '');
+        if (/^(📚|🤔|➕|🎯)/.test(textWithoutBold)) {
+          if (i + 1 < lines.length && lines[i+1].trim() === '') i++;
+        }
+      }
+      let cleanResult = normalizedLines.join('\n').trim();
 
       const formattedText = cleanResult
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
