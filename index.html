@@ -1938,6 +1938,26 @@ body {
         </div>
       </div>
 
+      <!-- LEARNING NOTES CARD -->
+      <div class="card" id="learning-notes-section" style="margin-bottom: 24px;">
+        <div class="card-header">
+          <div class="card-title">
+            📚 오늘 배운 것
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="add-todo-row">
+            <input class="add-todo-input" id="learningInput" placeholder="낮에 배운 것을 키워드로 빠르게... (예: J-1 stipend FLSA 적용 여부)" onkeydown="if(event.key==='Enter'){event.preventDefault();addLearningNote();}">
+            <button class="add-btn" onclick="addLearningNote()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+            </button>
+          </div>
+          <div id="learningList" style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
+            <!-- JS 렌더링 -->
+          </div>
+        </div>
+      </div>
+
       <!-- REFLECTION CARD -->
       <div class="card reflection-card" id="reflection-section">
         <div class="card-header">
@@ -2772,6 +2792,7 @@ async function loadData() {
     renderRoutines();
     await loadTodayOneThing();
     await loadDailyOneThing();
+    await loadLearningNotes();
     renderTodos();
 
     // 5) 어제 미완료 체크 (오늘 날짜일 때만)
@@ -2917,6 +2938,96 @@ async function saveDailyOneThing() {
     console.error('오늘의 원씽 저장 오류:', e);
     console.error('code:', e?.code, 'message:', e?.message, 'details:', e?.details, 'hint:', e?.hint);
     showToast('오늘의 원씽 저장 오류: ' + (e?.message || '알 수 없는 오류'));
+  }
+}
+
+// ── 오늘 배운 것 로직 ──
+async function loadLearningNotes() {
+  const dStr = todayStr(currentDate);
+  const listEl = document.getElementById('learningList');
+  if (!listEl) return;
+
+  try {
+    const { data, error } = await sb
+      .from('learning_notes')
+      .select('id, text')
+      .eq('log_date', dStr)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+
+    listEl.innerHTML = '';
+    if (data && data.length > 0) {
+      data.forEach(note => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'todo-item'; 
+        itemEl.style.justifyContent = 'space-between';
+        itemEl.style.alignItems = 'center';
+        
+        const textSpan = document.createElement('span');
+        textSpan.className = 'todo-text';
+        textSpan.textContent = note.text;
+        textSpan.style.flex = '1';
+        textSpan.style.wordBreak = 'break-all';
+        textSpan.style.marginRight = '8px';
+        
+        const delBtn = document.createElement('button');
+        delBtn.style.background = 'none';
+        delBtn.style.border = 'none';
+        delBtn.style.color = '#9CA3AF';
+        delBtn.style.cursor = 'pointer';
+        delBtn.style.fontSize = '16px';
+        delBtn.style.padding = '4px 8px';
+        delBtn.innerHTML = '🗑';
+        delBtn.onclick = () => deleteLearningNote(note.id);
+        
+        itemEl.appendChild(textSpan);
+        itemEl.appendChild(delBtn);
+        listEl.appendChild(itemEl);
+      });
+    }
+  } catch (e) {
+    console.error('오늘 배운 것 로드 오류:', e);
+    showToast('오늘 배운 것을 불러오는 중 오류가 발생했습니다.');
+  }
+}
+
+async function addLearningNote() {
+  const inputEl = document.getElementById('learningInput');
+  if (!inputEl) return;
+  const text = inputEl.value.trim();
+  if (!text) return;
+
+  const dStr = todayStr(currentDate);
+  
+  try {
+    const { error } = await sb
+      .from('learning_notes')
+      .insert({ log_date: dStr, text: text });
+      
+    if (error) throw error;
+    
+    inputEl.value = '';
+    loadLearningNotes();
+  } catch(e) {
+    console.error('오늘 배운 것 추가 오류:', e);
+    showToast('오늘 배운 것 추가 중 오류가 발생했습니다.');
+  }
+}
+
+async function deleteLearningNote(id) {
+  try {
+    const { error } = await sb
+      .from('learning_notes')
+      .delete()
+      .eq('id', id);
+      
+    if (error) throw error;
+    
+    loadLearningNotes();
+  } catch(e) {
+    console.error('오늘 배운 것 삭제 오류:', e);
+    showToast('오늘 배운 것 삭제 중 오류가 발생했습니다.');
   }
 }
 
