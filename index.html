@@ -2205,6 +2205,10 @@ body {
             </div>
           </div>
           <div class="gc-body">
+            <div style="display:flex; gap:10px; margin-bottom: 16px;">
+              <button id="toggle-weekday" class="btn-gc btn-primary" onclick="setRoutineDayType('weekday')" style="flex:1;">평일 (월~금)</button>
+              <button id="toggle-weekend" class="btn-gc btn-gray-light" onclick="setRoutineDayType('weekend')" style="flex:1;">주말 (토~일)</button>
+            </div>
             <div class="routine-cols">
               <div class="r-col">
                 <div class="r-col-head tc-morning"><span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M2 12h2"/><path d="m4.93 19.07 1.41-1.41"/><path d="M12 20v2"/><path d="m19.07 19.07-1.41-1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="m14 14-4-4"/><circle cx="12" cy="12" r="4"/></svg> 모닝루틴</span> <span class="r-col-cnt" id="cnt-morning">0/10</span></div>
@@ -3750,11 +3754,12 @@ async function removeGoalRoutine(id) {
 
 async function saveMonthlyGoalRoutines() {
   showLoading();
-  // 1. 기존 삭제
+  // 1. 기존 삭제 (현재 선택된 day_type만)
   const { error: delErr } = await sb.from('routines')
    .delete()
    .eq('month', goalsMonth)
-   .eq('year', goalsYear);
+   .eq('year', goalsYear)
+   .eq('day_type', currentRoutineDayType);
 
   if (delErr) {
     console.warn("Delete failing, probably column missing", delErr);
@@ -3771,7 +3776,8 @@ async function saveMonthlyGoalRoutines() {
     is_active: true,
     sort_order: r.sort_order,
     month: goalsMonth,
-    year: goalsYear
+    year: goalsYear,
+    day_type: currentRoutineDayType
   }));
 
   if (insertData.length > 0) {
@@ -3800,6 +3806,7 @@ async function copyLastMonthRoutines() {
     .eq('is_active', true)
     .eq('month', prevMonth)
     .eq('year', prevYear)
+    .eq('day_type', currentRoutineDayType)
     .order('sort_order');
     
   if(data && data.length > 0) {
@@ -3810,7 +3817,8 @@ async function copyLastMonthRoutines() {
       sort_order: r.sort_order,
       is_active: true,
       month: goalsMonth,
-      year: goalsYear
+      year: goalsYear,
+      day_type: currentRoutineDayType
     }));
     currentGoalRoutines = copied;
     renderGoalRoutines();
@@ -4083,11 +4091,25 @@ async function generateMonthlyResultAI(category) {
   }
 }
 
-async function loadGoalsData() {
-  updateGoalsNavUI();
-  await loadYearlyOneThings();
-  await loadMonthlyOneThings();
+let currentRoutineDayType = 'weekday';
 
+function setRoutineDayType(type) {
+  currentRoutineDayType = type;
+  const btnWeekday = document.getElementById('toggle-weekday');
+  const btnWeekend = document.getElementById('toggle-weekend');
+  if (btnWeekday && btnWeekend) {
+    if (type === 'weekday') {
+      btnWeekday.className = 'btn-gc btn-primary';
+      btnWeekend.className = 'btn-gc btn-gray-light';
+    } else {
+      btnWeekday.className = 'btn-gc btn-gray-light';
+      btnWeekend.className = 'btn-gc btn-primary';
+    }
+  }
+  loadGoalRoutines();
+}
+
+async function loadGoalRoutines() {
   let monthRoutines = [];
   try {
     const { data, error } = await sb
@@ -4096,6 +4118,7 @@ async function loadGoalsData() {
       .eq('is_active', true)
       .eq('month', goalsMonth)
       .eq('year', goalsYear)
+      .eq('day_type', currentRoutineDayType)
       .order('sort_order');
       
     if (error) {
@@ -4109,6 +4132,13 @@ async function loadGoalsData() {
     
   currentGoalRoutines = monthRoutines;
   renderGoalRoutines();
+}
+
+async function loadGoalsData() {
+  updateGoalsNavUI();
+  await loadYearlyOneThings();
+  await loadMonthlyOneThings();
+  await loadGoalRoutines();
 
   const yDataStr = localStorage.getItem(getPlannerGoalsKey());
   const yData = yDataStr ? JSON.parse(yDataStr) : {};
