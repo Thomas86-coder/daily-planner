@@ -2713,6 +2713,9 @@ async function loadData() {
     // 1) 루틴 정의 불러오기 (Supabase)
     const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
+    const dayOfWeek = currentDate.getDay();
+    const currentDayType = (dayOfWeek === 0 || dayOfWeek === 6) ? 'weekend' : 'weekday';
+    
     let routineList = [];
     try {
       const { data: routineData, error: routineErr } = await sb
@@ -2721,6 +2724,7 @@ async function loadData() {
         .eq('is_active', true)
         .eq('month', currentMonth)
         .eq('year', currentYear)
+        .eq('day_type', currentDayType)
         .order('sort_order');
       
       if (routineErr) {
