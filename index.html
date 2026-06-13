@@ -1115,7 +1115,7 @@ body {
   
   /* Routine Cols */
   .routine-cols { display: flex; gap: 20px; }
-  .routine-cols .r-col { flex: 1; }
+  .routine-cols .r-col { flex: 1; padding: 14px; background: #f8fafc; border-radius: 12px; border: 1px solid #f1f5f9; }
   .r-col-head { display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 13.5px; margin-bottom: 12px; }
   .r-col-head span:first-child { color: var(--text-primary); display:flex; align-items:center; gap:6px; }
   .r-col-head span:first-child svg { width: 15px; height: 15px;}
@@ -1124,8 +1124,29 @@ body {
   .tc-daytime { color: #06b6d4; }
   .tc-night { color: #6b21a8; }
   
-  .add-routine-dash { width: 100%; padding: 12px; border: 1.5px dashed #ab7cf6; border-radius: 8px; background: transparent; color: #ab7cf6; font-size: 13.5px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .add-routine-dash { width: 100%; padding: 12px; border: 1.5px dashed #ab7cf6; border-radius: 8px; background: transparent; color: #ab7cf6; font-size: 13.5px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
   .add-routine-dash:hover { background: rgba(171,124,246,0.05); }
+  
+  /* Monthly Goal Routine Items */
+  .monthly-r-item {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px; padding: 10px 12px;
+    border-radius: 8px; font-size: 13.5px; font-weight: 500;
+    color: #1e293b; background: white; border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  }
+  .monthly-r-item.morning { border-left: 3px solid #f59e0b; }
+  .monthly-r-item.daytime { border-left: 3px solid #06b6d4; }
+  .monthly-r-item.night   { border-left: 3px solid #6b21a8; }
+  
+  .monthly-r-del {
+    background: transparent; border: none; color: #cbd5e1; cursor: pointer; padding: 0 4px; transition: color 0.2s;
+  }
+  .monthly-r-del:hover { color: #ef4444; }
+  
+  #toggle-weekday.btn-gray-light, #toggle-weekend.btn-gray-light {
+    color: #475569; font-weight: 600;
+  }
   
   /* Year Goals */
   .yg-list { display: flex; flex-direction: column; gap: 16px; height: 100%; }
@@ -3716,9 +3737,9 @@ function renderGoalRoutines() {
     if(r.time_of_day && html[r.time_of_day] !== undefined) {
       if(r.is_active !== false) {
         cnt[r.time_of_day]++;
-        html[r.time_of_day] += `<div class="r-item" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; background:#f5f4fd; padding:6px 10px; border-radius:6px; font-size:13px; color:#5B5FC7;">
+        html[r.time_of_day] += `<div class="monthly-r-item ${r.time_of_day}">
           <span>${r.label}</span>
-          <button style="background:transparent; border:none; color:#aab2cf; cursor:pointer;" onclick="removeGoalRoutine('${r.id}')">✕</button>
+          <button class="monthly-r-del" onclick="removeGoalRoutine('${r.id}')">✕</button>
         </div>`;
       }
     }
