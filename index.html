@@ -3312,6 +3312,82 @@ async function generateLearningAnalysis() {
   btn.innerHTML = '📚 오늘 배운 내용 분석받기';
 }
 
+async function importRecentRoutinesToToday(btn) {
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth() + 1;
+  const currentScore = currentYear * 12 + currentMonth;
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = '⏳ 가져오는 중...';
+  }
+
+  try {
+    const { count } = await sb.from('routines')
+      .select('*', { count: 'exact', head: true })
+      .eq('year', currentYear)
+      .eq('month', currentMonth);
+
+    if (count > 0) {
+      showToast('이번 달 루틴이 이미 존재합니다.');
+      if (btn) { btn.disabled = false; btn.innerText = '📋 지난 루틴 가져오기'; }
+      return;
+    }
+
+    const { data: recentData } = await sb.from('routines')
+      .select('year, month')
+      .order('year', { ascending: false })
+      .order('month', { ascending: false });
+
+    let targetYear = null, targetMonth = null;
+    for (const r of (recentData || [])) {
+      const score = r.year * 12 + r.month;
+      if (score < currentScore) {
+        targetYear = r.year;
+        targetMonth = r.month;
+        break;
+      }
+    }
+
+    if (!targetYear || !targetMonth) {
+      showToast('가져올 지난 루틴이 없어요');
+      if (btn) { btn.disabled = false; btn.innerText = '📋 지난 루틴 가져오기'; }
+      return;
+    }
+
+    const { data: pastRoutines } = await sb.from('routines')
+      .select('label, time_of_day, sort_order, is_active, day_type')
+      .eq('year', targetYear)
+      .eq('month', targetMonth);
+
+    if (!pastRoutines || pastRoutines.length === 0) {
+      showToast('가져올 지난 루틴이 없어요');
+      if (btn) { btn.disabled = false; btn.innerText = '📋 지난 루틴 가져오기'; }
+      return;
+    }
+
+    const insertPayload = pastRoutines.map(r => ({
+      label: r.label,
+      time_of_day: r.time_of_day,
+      sort_order: r.sort_order,
+      is_active: r.is_active,
+      day_type: r.day_type || 'weekday',
+      year: currentYear,
+      month: currentMonth
+    }));
+
+    const { error } = await sb.from('routines').insert(insertPayload);
+    if (error) throw error;
+
+    showToast(`${targetMonth}월 루틴을 성공적으로 가져왔습니다! ✅`);
+    await loadData();
+  } catch (err) {
+    console.error('지난 루틴 가져오기 오류:', err);
+    showToast('루틴 복사 중 오류가 발생했습니다.');
+    if (btn) { btn.disabled = false; btn.innerText = '📋 지난 루틴 가져오기'; }
+  }
+}
+
 // ── 루틴 렌더링 ──
 function renderRoutines() {
   const all = [...routines.morning, ...routines.daytime, ...routines.night];
@@ -3327,9 +3403,14 @@ function renderRoutines() {
       emptyMsg.style = "text-align:center; padding:30px; color:#6b7280; font-size:14px; background:#f9fafb; border-radius:12px; border:1px dashed #d1d5db; margin-top:16px;";
       emptyMsg.innerHTML = `
         <div style="margin-bottom:12px">목표관리에서 이번 달 루틴을 등록해주세요</div>
-        <button onclick="navigate('goals')" style="padding:8px 16px; background:var(--gradient); color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
-          목표관리로 이동
-        </button>
+        <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
+          <button onclick="importRecentRoutinesToToday(this)" style="padding:8px 16px; background:#F3E8FF; color:#7E22CE; border:1px solid #D8B4FE; border-radius:8px; font-weight:600; cursor:pointer;">
+            📋 지난 루틴 가져오기
+          </button>
+          <button onclick="navigate('goals')" style="padding:8px 16px; background:var(--gradient); color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
+            목표관리로 이동
+          </button>
+        </div>
       `;
       if (sectionsWrap && sectionsWrap.parentNode) {
         sectionsWrap.parentNode.insertBefore(emptyMsg, sectionsWrap);
