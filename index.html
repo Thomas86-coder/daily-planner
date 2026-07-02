@@ -2232,7 +2232,7 @@ body {
               </div>
               <div>
                 <h3 class="gc-title">월간 데일리 루틴 <span class="chevron">▼</span></h3>
-                <p class="gc-desc">4월 매일 실천할 루틴</p>
+                <p class="gc-desc" id="routine-month-desc">4월 매일 실천할 루틴</p>
               </div>
             </div>
           </div>
@@ -2394,7 +2394,7 @@ body {
               </div>
               <div>
                 <h3 class="gc-title">월간 실천계획 <span class="chevron">▼</span></h3>
-                <p class="gc-desc">2026년 4월 실천 계획 & 결과</p>
+                <p class="gc-desc" id="plan-month-desc">2026년 4월 실천 계획 & 결과</p>
               </div>
             </div>
             <div class="gc-nav" onclick="event.stopPropagation()">
@@ -3867,6 +3867,12 @@ function updateGoalsNavUI() {
   if(yTxt) yTxt.textContent = `${goalsYear}년`;
   const mTxt = document.getElementById('gc-month-txt');
   if(mTxt) mTxt.textContent = `${goalsYear}년 ${goalsMonth}월`;
+  
+  const routineDesc = document.getElementById('routine-month-desc');
+  if(routineDesc) routineDesc.textContent = `${goalsMonth}월 매일 실천할 루틴`;
+  
+  const planDesc = document.getElementById('plan-month-desc');
+  if(planDesc) planDesc.textContent = `${goalsYear}년 ${goalsMonth}월 실천 계획 & 결과`;
 }
 
 function changeGoalsYear(delta) {
