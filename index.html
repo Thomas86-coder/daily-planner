@@ -4,6 +4,11 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>일정관리</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#7C3AED">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="인생관리시스템">
 <meta property="og:title" content="인생관리 - 할일, 루틴, 성찰을 한 곳에서">
 <meta property="og:description" content="매일 할일과 루틴을 기록하고, 주간/월간/연간 리포트와 AI 성찰로 개선하는 인생 관리 시스템">
 <link rel="preconnect" href="https://fonts.googleapis.com/">
@@ -7623,6 +7628,16 @@ function ch_updateStats(items) {
   document.getElementById('ch-stat-project').textContent = projCount;
   document.getElementById('ch-stat-total').textContent = items.length;
 }
+</script>
+<script>
+  // Service Worker 등록 (PWA 오프라인 지원)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch((err) => {
+        console.warn('Service Worker 등록 실패:', err);
+      });
+    });
+  }
 </script>
 </body>
 </html>
