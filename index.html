@@ -2973,6 +2973,7 @@ async function loadData() {
     const { data: ref } = await sb
       .from('reflections')
       .select('*')
+      .eq('user_id', currentUserId)
       .eq('log_date', date)
       .maybeSingle();
 
@@ -3351,6 +3352,7 @@ async function loadLearningAnalysis() {
     const { data, error } = await sb
       .from('learning_reviews')
       .select('content')
+      .eq('user_id', currentUserId)
       .eq('log_date', date)
       .maybeSingle();
 
@@ -3438,7 +3440,7 @@ async function generateLearningAnalysis() {
       try {
         const { error: upsertErr } = await sb
           .from('learning_reviews')
-          .upsert({ log_date: date, content: result }, { onConflict: 'log_date' });
+          .upsert({ log_date: date, content: result, user_id: currentUserId }, { onConflict: 'log_date,user_id' });
         if (upsertErr) throw upsertErr;
       } catch(e) {
         console.error('배운 내용 분석 저장 오류:', e);
@@ -3842,8 +3844,9 @@ async function saveReflection() {
     good_things: document.getElementById('ref2').value,
     regrets: document.getElementById('ref3').value,
     tomorrow_goal: document.getElementById('ref4').value,
-    updated_at: new Date().toISOString()
-  }, { onConflict: 'log_date' });
+    updated_at: new Date().toISOString(),
+    user_id: currentUserId
+  }, { onConflict: 'log_date,user_id' });
 
   btn.innerHTML = '<i data-lucide="save"></i> 성찰 저장하기';
   btn.disabled = false;
@@ -4954,6 +4957,7 @@ async function runAIAnalysis() {
     // 오늘 성찰 조회
     const { data: ref } = await sb
       .from('reflections').select('*')
+      .eq('user_id', currentUserId)
       .eq('log_date', date).maybeSingle();
 
     // 루틴 달성률 계산
@@ -5081,8 +5085,9 @@ async function runAIAnalysis() {
       await sb.from('reflections').upsert({
         log_date: date,
         ai_feedback: result,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'log_date' });
+        updated_at: new Date().toISOString(),
+        user_id: currentUserId
+      }, { onConflict: 'log_date,user_id' });
     }
 
     // 결과 표시
@@ -5627,6 +5632,7 @@ async function generateWeeklyAIReview(weekStart, weekEnd) {
     const { data: reflections } = await sb
       .from('reflections')
       .select('*')
+      .eq('user_id', currentUserId)
       .gte('log_date', weekStart)
       .lte('log_date', weekEnd);
 
@@ -5782,7 +5788,7 @@ async function generateMonthlyAIReview(startStr, endStr) {
     const [{ data: todos }, { data: logs }, { data: reflects }] = await Promise.all([
       sb.from('todos').select('done').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
       sb.from('routine_logs').select('done').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
-      sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr)
+      sb.from('reflections').select('log_date').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr)
     ]);
 
     const totalTasks = todos?.length || 0;
@@ -5893,7 +5899,7 @@ async function generateYearlyAIReview(startStr, endStr) {
     const [{ data: todos }, { data: logs }, { data: reflects }] = await Promise.all([
       sb.from('todos').select('log_date,done').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
       sb.from('routine_logs').select('log_date,done').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
-      sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr)
+      sb.from('reflections').select('log_date').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr)
     ]);
 
     const targetYear = startStr.substring(0,4);
@@ -6028,7 +6034,7 @@ async function loadWeeklyPage() {
   const [{ data: todoData }, { data: routineData }, { data: reflectData }, { data: routinesData }, { data: savedReviewList }, { data: weeklyOneThingData }] = await Promise.all([
     sb.from('todos').select('*').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
     sb.from('routine_logs').select('*').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
-    sb.from('reflections').select('*').gte('log_date', startStr).lte('log_date', endStr).order('log_date', {ascending:false}),
+    sb.from('reflections').select('*').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr).order('log_date', {ascending:false}),
     sb.from('routines').select('*').eq('user_id', currentUserId).eq('year', currentYear).eq('month', currentMonth),
     sb.from('ai_reviews').select('content').eq('user_id', currentUserId).eq('type', 'weekly').eq('period', weekKey).order('created_at', { ascending: false }).limit(1),
     sb.from('weekly_one_things').select('*').eq('user_id', currentUserId).eq('week_key', weekKey).maybeSingle()
@@ -6285,7 +6291,7 @@ async function loadMonthlyPage() {
   const [{ data: todoData }, { data: routineData }, { data: reflectData }, { data: savedReview }] = await Promise.all([
     sb.from('todos').select('log_date,category,done').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
     sb.from('routine_logs').select('log_date,routine_id,done').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
-    sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr),
+    sb.from('reflections').select('log_date').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
     sb.from('ai_reviews').select('content').eq('user_id', currentUserId).eq('type', 'monthly').eq('period', monthKey).maybeSingle()
   ]);
 
@@ -6539,7 +6545,7 @@ async function loadYearlyPage() {
   const [{ data: todoData }, { data: routineData }, { data: reflectData }, { data: savedReview }] = await Promise.all([
     sb.from('todos').select('log_date,done').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
     sb.from('routine_logs').select('log_date,done').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
-    sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr),
+    sb.from('reflections').select('log_date').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
     sb.from('ai_reviews').select('content').eq('user_id', currentUserId).eq('type', 'yearly').eq('period', yearKey).maybeSingle()
   ]);
 
@@ -6789,8 +6795,8 @@ async function loadProjectsData() {
 
   if (!sb) return;
   try {
-    const { data: pData, error: pErr } = await sb.from('projects').select('*').order('created_at', { ascending: false });
-    const { data: tData, error: tErr } = await sb.from('project_todos').select('*').order('created_at', { ascending: true });
+    const { data: pData, error: pErr } = await sb.from('projects').select('*').eq('user_id', currentUserId).order('created_at', { ascending: false });
+    const { data: tData, error: tErr } = await sb.from('project_todos').select('*').eq('user_id', currentUserId).order('created_at', { ascending: true });
     
     if(pErr) throw pErr;
     if(tErr) throw tErr;
@@ -6832,7 +6838,7 @@ async function saveNewProject() {
   if (!name) { showToast('프로젝트 이름을 입력하세요'); return; }
   
   try {
-    const { data, error } = await sb.from('projects').insert([{ name, category: cat, status: 'active' }]).select();
+    const { data, error } = await sb.from('projects').insert([{ name, category: cat, status: 'active', user_id: currentUserId }]).select();
     if (error) throw error;
     showToast('프로젝트가 추가되었습니다');
     closeProjectModal();
@@ -6877,7 +6883,7 @@ async function addProjectTodoItem(pId) {
   if (!text) return;
   
   try {
-    await sb.from('project_todos').insert([{ project_id: pId, text, done: false }]);
+    await sb.from('project_todos').insert([{ project_id: pId, text, done: false, user_id: currentUserId }]);
     inputEl.value = '';
     await loadProjectsData();
     checkProjectCompletion(pId);
@@ -7221,6 +7227,7 @@ function renderProjects() {
       const { data, error } = await sb
         .from('recurring_tasks')
         .select('id, category, text, cycle, start_date, end_date, created_at')
+        .eq('user_id', currentUserId)
         .order('created_at', { ascending: false });
         
       console.log('반복업무 목록 조회:', data, error);
@@ -7325,7 +7332,8 @@ function renderProjects() {
           text: text,
           cycle: cycle,
           start_date: start,
-          end_date: end ? end : null
+          end_date: end ? end : null,
+          user_id: currentUserId
         }).select();
         data = res.data;
         error = res.error;
@@ -7383,7 +7391,8 @@ function renderProjects() {
       // 3. recurring_tasks 전체 조회 (활성 상태)
       const { data: tasks, error } = await sb
         .from('recurring_tasks')
-        .select('*');
+        .select('*')
+        .eq('user_id', currentUserId);
 
       if (error) {
         console.error('자동 등록: 반복업무 조회 실패', error);
@@ -7503,9 +7512,10 @@ function renderProjects() {
       
       const { data: exist } = await sb.from('todos')
         .select('id')
+        .eq('user_id', currentUserId)
         .eq('log_date', dstr)
         .eq('text', task.text);
-      
+
       if (exist && exist.length > 0) {
         showToast('이미 오늘 등록되어 있습니다', true);
         return;
@@ -7719,6 +7729,7 @@ async function ch_searchCompleted() {
   if (type === 'all' || type === 'project') {
     let q = sb.from('project_todos')
       .select('id, text, done, completed_at, projects(name, category)')
+      .eq('user_id', currentUserId)
       .eq('done', true);
     
     if (startDateStr) q = q.gte('completed_at', startDateStr + 'T00:00:00');
