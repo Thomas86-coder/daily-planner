@@ -6988,17 +6988,17 @@ async function pushTodoToToday(tText, projCat, btnId) {
   
   // 중복체크
   const { data: exist } = await sb.from('todos').select('id')
-    .eq('user_id', 'mock-user')
+    .eq('user_id', currentUserId)
     .eq('log_date', dstr)
     .eq('text', tText)
     .single();
-    
+
   if (exist) {
     showToast('이미 오늘 할일에 등록되어 있습니다');
     return;
   }
-  
-  const insertData = { user_id: 'mock-user', log_date: dstr, text: tText, icon: '', is_done: false, category: mappedCat };
+
+  const insertData = { user_id: currentUserId, log_date: dstr, text: tText, icon: '', is_done: false, category: mappedCat };
   await sb.from('todos').insert([insertData]);
   showToast('오늘 할일에 추가되었습니다!');
   
@@ -7030,9 +7030,9 @@ async function pushAllIncompleteToToday(pId) {
   let added = 0;
   for (const t of incomplete) {
     const { data: exist } = await sb.from('todos').select('id')
-      .eq('user_id', 'mock-user').eq('log_date', dstr).eq('text', t.text).single();
+      .eq('user_id', currentUserId).eq('log_date', dstr).eq('text', t.text).single();
     if (!exist) {
-      await sb.from('todos').insert([{ user_id: 'mock-user', log_date: dstr, text: t.text, icon: '', is_done: false, category: mappedCat }]);
+      await sb.from('todos').insert([{ user_id: currentUserId, log_date: dstr, text: t.text, icon: '', is_done: false, category: mappedCat }]);
       added++;
     }
   }
@@ -7433,6 +7433,7 @@ function renderProjects() {
         const { data: exist } = await sb
           .from('todos')
           .select('id')
+          .eq('user_id', currentUserId)
           .eq('log_date', today)
           .eq('text', task.text)
           .limit(1);
@@ -7689,8 +7690,9 @@ async function ch_searchCompleted() {
   if (type === 'all' || type === 'todo') {
     let q = sb.from('todos')
       .select('id, text, category, log_date, completed_at, done')
+      .eq('user_id', currentUserId)
       .eq('done', true);
-    
+
     if (startDateStr) q = q.gte('log_date', startDateStr);
     if (endDateStr) q = q.lte('log_date', endDateStr);
     if (category !== 'all') q = q.eq('category', category.toLowerCase());
