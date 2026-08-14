@@ -2779,6 +2779,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── AUTH ──
 function showApp(user) {
+  window.currentUserId = user.id;
   document.getElementById('auth-screen').classList.remove('visible');
   document.getElementById('app-wrapper').style.display = '';
   document.getElementById('user-email-display').textContent = user.email;
@@ -2909,6 +2910,7 @@ async function loadData() {
       const { data: routineData, error: routineErr } = await sb
         .from('routines')
         .select('*')
+        .eq('user_id', currentUserId)
         .eq('is_active', true)
         .eq('month', currentMonth)
         .eq('year', currentYear)
@@ -2928,6 +2930,7 @@ async function loadData() {
     const { data: logs } = await sb
       .from('routine_logs')
       .select('*')
+      .eq('user_id', currentUserId)
       .eq('log_date', date);
 
     // 루틴 상태 합치기
@@ -2949,6 +2952,7 @@ async function loadData() {
     const { data: todoList } = await sb
       .from('todos')
       .select('*')
+      .eq('user_id', currentUserId)
       .eq('log_date', date)
       .order('created_at');
 
@@ -3043,8 +3047,8 @@ async function loadTodayOneThing() {
 
   try {
     const [ { data: yearlyData }, { data: monthlyData } ] = await Promise.all([
-      sb.from('one_things').select('*').eq('scope', 'yearly').eq('year', thisYear).eq('month', 0),
-      sb.from('one_things').select('*').eq('scope', 'monthly').eq('year', currentYearForMonth).eq('month', currentMonth)
+      sb.from('one_things').select('*').eq('user_id', currentUserId).eq('scope', 'yearly').eq('year', thisYear).eq('month', 0),
+      sb.from('one_things').select('*').eq('user_id', currentUserId).eq('scope', 'monthly').eq('year', currentYearForMonth).eq('month', currentMonth)
     ]);
     
     const categories = ['work', 'job', 'growth', 'personal'];
@@ -3113,6 +3117,7 @@ async function loadWeeklyOneThing() {
     const { data, error } = await sb
       .from('weekly_one_things')
       .select('text, done')
+      .eq('user_id', currentUserId)
       .eq('week_key', weekKey)
       .maybeSingle();
       
@@ -3146,7 +3151,8 @@ async function saveWeeklyOneThing() {
   const payload = {
     week_key: weekKey,
     text: text,
-    done: done
+    done: done,
+    user_id: currentUserId
   };
 
   try {
@@ -3180,6 +3186,7 @@ async function loadDailyOneThing() {
     const { data, error } = await sb
       .from('daily_one_things')
       .select('text, done')
+      .eq('user_id', currentUserId)
       .eq('log_date', dStr)
       .maybeSingle();
       
@@ -3210,7 +3217,8 @@ async function saveDailyOneThing() {
   const payload = {
     log_date: dStr,
     text: text,
-    done: done
+    done: done,
+    user_id: currentUserId
   };
   console.log('one_thing upsert payload:', payload);
 
@@ -3237,6 +3245,7 @@ async function loadLearningNotes() {
     const { data, error } = await sb
       .from('learning_notes')
       .select('id, text')
+      .eq('user_id', currentUserId)
       .eq('log_date', dStr)
       .order('created_at', { ascending: true });
 
@@ -3294,7 +3303,7 @@ async function addLearningNote() {
   try {
     const { error } = await sb
       .from('learning_notes')
-      .insert({ log_date: dStr, text: text });
+      .insert({ log_date: dStr, text: text, user_id: currentUserId });
       
     if (error) throw error;
     
@@ -3386,6 +3395,7 @@ async function generateLearningAnalysis() {
     const { data: lnData, error: lnErr } = await sb
       .from('learning_notes')
       .select('text')
+      .eq('user_id', currentUserId)
       .eq('log_date', date)
       .order('created_at', { ascending: true });
 
@@ -3479,6 +3489,7 @@ async function importRecentRoutinesToToday(btn) {
   try {
     const { count } = await sb.from('routines')
       .select('*', { count: 'exact', head: true })
+      .eq('user_id', currentUserId)
       .eq('year', currentYear)
       .eq('month', currentMonth);
 
@@ -3490,6 +3501,7 @@ async function importRecentRoutinesToToday(btn) {
 
     const { data: recentData } = await sb.from('routines')
       .select('year, month')
+      .eq('user_id', currentUserId)
       .order('year', { ascending: false })
       .order('month', { ascending: false });
 
@@ -3511,6 +3523,7 @@ async function importRecentRoutinesToToday(btn) {
 
     const { data: pastRoutines } = await sb.from('routines')
       .select('label, time_of_day, sort_order, is_active, day_type')
+      .eq('user_id', currentUserId)
       .eq('year', targetYear)
       .eq('month', targetMonth);
 
@@ -3527,7 +3540,8 @@ async function importRecentRoutinesToToday(btn) {
       is_active: r.is_active,
       day_type: r.day_type || 'weekday',
       year: currentYear,
-      month: currentMonth
+      month: currentMonth,
+      user_id: currentUserId
     }));
 
     const { error } = await sb.from('routines').insert(insertPayload);
@@ -3616,7 +3630,8 @@ async function toggleRoutine(type, id) {
   await sb.from('routine_logs').upsert({
     routine_id: id,
     log_date: todayStr(),
-    done: r.done
+    done: r.done,
+    user_id: currentUserId
   }, { onConflict: 'routine_id,log_date' });
 }
 
@@ -3715,7 +3730,8 @@ async function addTodo() {
     category: currentCat,
     text,
     log_date: todayStr(),
-    done: false
+    done: false,
+    user_id: currentUserId
   }).select().single();
 
   input.disabled = false;
@@ -3844,6 +3860,7 @@ async function checkCarryover() {
   const { data } = await sb
     .from('todos')
     .select('*')
+    .eq('user_id', currentUserId)
     .eq('log_date', yStr)
     .eq('done', false);
 
@@ -4100,6 +4117,7 @@ async function saveMonthlyGoalRoutines() {
   // 1. 기존 삭제 (현재 선택된 day_type만)
   const { error: delErr } = await sb.from('routines')
    .delete()
+   .eq('user_id', currentUserId)
    .eq('month', goalsMonth)
    .eq('year', goalsYear)
    .eq('day_type', currentRoutineDayType);
@@ -4120,7 +4138,8 @@ async function saveMonthlyGoalRoutines() {
     sort_order: r.sort_order,
     month: goalsMonth,
     year: goalsYear,
-    day_type: currentRoutineDayType
+    day_type: currentRoutineDayType,
+    user_id: currentUserId
   }));
 
   if (insertData.length > 0) {
@@ -4146,6 +4165,7 @@ async function copyLastMonthRoutines() {
   
   const { data } = await sb.from('routines')
     .select('*')
+    .eq('user_id', currentUserId)
     .eq('is_active', true)
     .eq('month', prevMonth)
     .eq('year', prevYear)
@@ -4183,6 +4203,7 @@ async function loadYearlyOneThings() {
     const { data, error } = await sb
       .from('one_things')
       .select('*')
+      .eq('user_id', currentUserId)
       .eq('scope', 'yearly')
       .eq('year', year)
       .eq('month', 0);
@@ -4230,7 +4251,8 @@ async function saveYearlyOneThing(category) {
         year: year,
         month: 0,
         text: text,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        user_id: currentUserId
       }, {
         onConflict: 'scope, category, year, month'
       });
@@ -4261,6 +4283,7 @@ async function loadMonthlyOneThings() {
     const { data, error } = await sb
       .from('one_things')
       .select('*')
+      .eq('user_id', currentUserId)
       .eq('scope', 'monthly')
       .eq('year', goalsYear)
       .eq('month', goalsMonth);
@@ -4311,7 +4334,8 @@ async function saveMonthlyOneThing(category) {
         year: goalsYear,
         month: goalsMonth,
         text: text,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        user_id: currentUserId
       }, {
         onConflict: 'scope, category, year, month'
       });
@@ -4353,7 +4377,8 @@ async function saveMonthlyOneThingResult(category) {
         year: goalsYear,
         month: goalsMonth,
         result: resultText,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        user_id: currentUserId
       }, {
         onConflict: 'scope, category, year, month'
       });
@@ -4393,6 +4418,7 @@ async function generateMonthlyResultAI(category) {
     const { data: todos, error: todosErr } = await sb
       .from('todos')
       .select('text, done')
+      .eq('user_id', currentUserId)
       .eq('category', category)
       .gte('log_date', startStr)
       .lte('log_date', endStr);
@@ -4458,6 +4484,7 @@ async function loadGoalRoutines() {
     const { data, error } = await sb
       .from('routines')
       .select('*')
+      .eq('user_id', currentUserId)
       .eq('is_active', true)
       .eq('month', goalsMonth)
       .eq('year', goalsYear)
@@ -4917,7 +4944,7 @@ async function runAIAnalysis() {
 
     // 오늘 할일 조회
     const { data: todoList } = await sb
-      .from('todos').select('*').eq('log_date', date);
+      .from('todos').select('*').eq('user_id', currentUserId).eq('log_date', date);
 
     // 오늘 성찰 조회
     const { data: ref } = await sb
@@ -5548,6 +5575,7 @@ async function generateWeeklyAIReview(weekStart, weekEnd) {
     const { data: todos } = await sb
       .from('todos')
       .select('*')
+      .eq('user_id', currentUserId)
       .gte('log_date', weekStart)
       .lte('log_date', weekEnd);
 
@@ -5567,6 +5595,7 @@ async function generateWeeklyAIReview(weekStart, weekEnd) {
     const { data: logs } = await sb
       .from('routine_logs')
       .select('*')
+      .eq('user_id', currentUserId)
       .gte('log_date', weekStart)
       .lte('log_date', weekEnd);
 
@@ -5575,6 +5604,7 @@ async function generateWeeklyAIReview(weekStart, weekEnd) {
     const { data: routines } = await sb
       .from('routines')
       .select('id, label, title, name')
+      .eq('user_id', currentUserId)
       .eq('year', currentYear)
       .eq('month', currentMonth);
 
@@ -5611,6 +5641,7 @@ async function generateWeeklyAIReview(weekStart, weekEnd) {
       const { data: otData, error: otErr } = await sb
         .from('daily_one_things')
         .select('log_date, text, done')
+        .eq('user_id', currentUserId)
         .gte('log_date', weekStart)
         .lte('log_date', weekEnd);
 
@@ -5697,6 +5728,7 @@ ${reflectionSummary}
     const { data: existingList, error: selErr } = await sb
       .from('ai_reviews')
       .select('id')
+      .eq('user_id', currentUserId)
       .eq('type', 'weekly')
       .eq('period', weekKey)
       .order('created_at', { ascending: false })
@@ -5721,7 +5753,7 @@ ${reflectionSummary}
       const { error } = await sb.from('ai_reviews').update({ content: formatted }).eq('id', existing.id);
       if (error) console.error("Weekly AI Update Error:", error);
     } else {
-      const { error } = await sb.from('ai_reviews').insert({ type: 'weekly', period: weekKey, content: formatted });
+      const { error } = await sb.from('ai_reviews').insert({ type: 'weekly', period: weekKey, content: formatted, user_id: currentUserId });
       if (error) console.error("Weekly AI Insert Error:", error);
     }
 
@@ -5743,8 +5775,8 @@ async function generateMonthlyAIReview(startStr, endStr) {
 
   try {
     const [{ data: todos }, { data: logs }, { data: reflects }] = await Promise.all([
-      sb.from('todos').select('done').gte('log_date', startStr).lte('log_date', endStr),
-      sb.from('routine_logs').select('done').gte('log_date', startStr).lte('log_date', endStr),
+      sb.from('todos').select('done').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
+      sb.from('routine_logs').select('done').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
       sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr)
     ]);
 
@@ -5813,7 +5845,7 @@ async function generateMonthlyAIReview(startStr, endStr) {
     btn.disabled = false;
 
     const monthKey = getMonthKey(startStr);
-    const { data: existing, error: selErr } = await sb.from('ai_reviews').select('id').eq('type', 'monthly').eq('period', monthKey).maybeSingle();
+    const { data: existing, error: selErr } = await sb.from('ai_reviews').select('id').eq('user_id', currentUserId).eq('type', 'monthly').eq('period', monthKey).maybeSingle();
     
     if (selErr && selErr.code === 'PGRST205') {
       console.error("ai_reviews 테이블이 없습니다. 아래 SQL을 Supabase에서 실행해주세요:\n" + `CREATE TABLE ai_reviews (
@@ -5832,7 +5864,7 @@ async function generateMonthlyAIReview(startStr, endStr) {
       const { error } = await sb.from('ai_reviews').update({ content: formatted }).eq('id', existing.id);
       if (error) console.error("Monthly AI Update Error:", error);
     } else {
-      const { error } = await sb.from('ai_reviews').insert({ type: 'monthly', period: monthKey, content: formatted });
+      const { error } = await sb.from('ai_reviews').insert({ type: 'monthly', period: monthKey, content: formatted, user_id: currentUserId });
       if (error) console.error("Monthly AI Insert Error:", error);
     }
 
@@ -5854,8 +5886,8 @@ async function generateYearlyAIReview(startStr, endStr) {
 
   try {
     const [{ data: todos }, { data: logs }, { data: reflects }] = await Promise.all([
-      sb.from('todos').select('log_date,done').gte('log_date', startStr).lte('log_date', endStr),
-      sb.from('routine_logs').select('log_date,done').gte('log_date', startStr).lte('log_date', endStr),
+      sb.from('todos').select('log_date,done').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
+      sb.from('routine_logs').select('log_date,done').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
       sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr)
     ]);
 
@@ -5935,7 +5967,7 @@ async function generateYearlyAIReview(startStr, endStr) {
     btn.disabled = false;
 
     const yearKey = getYearKey(startStr);
-    const { data: existing, error: selErr } = await sb.from('ai_reviews').select('id').eq('type', 'yearly').eq('period', yearKey).maybeSingle();
+    const { data: existing, error: selErr } = await sb.from('ai_reviews').select('id').eq('user_id', currentUserId).eq('type', 'yearly').eq('period', yearKey).maybeSingle();
     
     if (selErr && selErr.code === 'PGRST205') {
       console.error("ai_reviews 테이블이 없습니다. 아래 SQL을 Supabase에서 실행해주세요:\n" + `CREATE TABLE ai_reviews (
@@ -5954,7 +5986,7 @@ async function generateYearlyAIReview(startStr, endStr) {
       const { error } = await sb.from('ai_reviews').update({ content: formatted }).eq('id', existing.id);
       if (error) console.error("Yearly AI Update Error:", error);
     } else {
-      const { error } = await sb.from('ai_reviews').insert({ type: 'yearly', period: yearKey, content: formatted });
+      const { error } = await sb.from('ai_reviews').insert({ type: 'yearly', period: yearKey, content: formatted, user_id: currentUserId });
       if (error) console.error("Yearly AI Insert Error:", error);
     }
 
@@ -5989,12 +6021,12 @@ async function loadWeeklyPage() {
   const currentMonth = monday.getMonth() + 1;
   const weekKey = getISOWeekKey(startStr);
   const [{ data: todoData }, { data: routineData }, { data: reflectData }, { data: routinesData }, { data: savedReviewList }, { data: weeklyOneThingData }] = await Promise.all([
-    sb.from('todos').select('*').gte('log_date', startStr).lte('log_date', endStr),
-    sb.from('routine_logs').select('*').gte('log_date', startStr).lte('log_date', endStr),
+    sb.from('todos').select('*').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
+    sb.from('routine_logs').select('*').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
     sb.from('reflections').select('*').gte('log_date', startStr).lte('log_date', endStr).order('log_date', {ascending:false}),
-    sb.from('routines').select('*').eq('year', currentYear).eq('month', currentMonth),
-    sb.from('ai_reviews').select('content').eq('type', 'weekly').eq('period', weekKey).order('created_at', { ascending: false }).limit(1),
-    sb.from('weekly_one_things').select('*').eq('week_key', weekKey).maybeSingle()
+    sb.from('routines').select('*').eq('user_id', currentUserId).eq('year', currentYear).eq('month', currentMonth),
+    sb.from('ai_reviews').select('content').eq('user_id', currentUserId).eq('type', 'weekly').eq('period', weekKey).order('created_at', { ascending: false }).limit(1),
+    sb.from('weekly_one_things').select('*').eq('user_id', currentUserId).eq('week_key', weekKey).maybeSingle()
   ]);
 
   const savedReview = savedReviewList && savedReviewList.length > 0 ? savedReviewList[0] : null;
@@ -6246,10 +6278,10 @@ async function loadMonthlyPage() {
 
   const monthKey = getMonthKey(startStr);
   const [{ data: todoData }, { data: routineData }, { data: reflectData }, { data: savedReview }] = await Promise.all([
-    sb.from('todos').select('log_date,category,done').gte('log_date', startStr).lte('log_date', endStr),
-    sb.from('routine_logs').select('log_date,routine_id,done').gte('log_date', startStr).lte('log_date', endStr),
+    sb.from('todos').select('log_date,category,done').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
+    sb.from('routine_logs').select('log_date,routine_id,done').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
     sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr),
-    sb.from('ai_reviews').select('content').eq('type', 'monthly').eq('period', monthKey).maybeSingle()
+    sb.from('ai_reviews').select('content').eq('user_id', currentUserId).eq('type', 'monthly').eq('period', monthKey).maybeSingle()
   ]);
 
   const todos = todoData || [];
@@ -6500,10 +6532,10 @@ async function loadYearlyPage() {
 
   const yearKey = getYearKey(startStr);
   const [{ data: todoData }, { data: routineData }, { data: reflectData }, { data: savedReview }] = await Promise.all([
-    sb.from('todos').select('log_date,done').gte('log_date', startStr).lte('log_date', endStr),
-    sb.from('routine_logs').select('log_date,done').gte('log_date', startStr).lte('log_date', endStr),
+    sb.from('todos').select('log_date,done').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
+    sb.from('routine_logs').select('log_date,done').eq('user_id', currentUserId).gte('log_date', startStr).lte('log_date', endStr),
     sb.from('reflections').select('log_date').gte('log_date', startStr).lte('log_date', endStr),
-    sb.from('ai_reviews').select('content').eq('type', 'yearly').eq('period', yearKey).maybeSingle()
+    sb.from('ai_reviews').select('content').eq('user_id', currentUserId).eq('type', 'yearly').eq('period', yearKey).maybeSingle()
   ]);
 
   const todos = todoData || [];
