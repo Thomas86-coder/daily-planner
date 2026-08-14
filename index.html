@@ -1527,9 +1527,89 @@ body {
 #projectModal .btn-cancel { background: #f3f4f6; color: #4b5563; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
 #projectModal .btn-save { background: #8b5cf6; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
 
+/* ── AUTH SCREEN ── */
+#auth-screen {
+  display: none; position: fixed; inset: 0; z-index: 9999;
+  background: linear-gradient(135deg, #f0f0f8 0%, #e8e8f8 100%);
+  align-items: center; justify-content: center;
+}
+#auth-screen.visible { display: flex; }
+.auth-card {
+  background: white; border-radius: 20px; padding: 40px 36px;
+  width: 100%; max-width: 400px;
+  box-shadow: 0 10px 40px rgba(91,95,199,0.15);
+  display: flex; flex-direction: column; gap: 20px;
+}
+.auth-logo {
+  text-align: center; display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+}
+.auth-logo .logo-icon {
+  width: 56px; height: 56px;
+  background: linear-gradient(135deg, #5B5FC7, #8B7AB8);
+  border-radius: 16px; display: flex; align-items: center; justify-content: center;
+}
+.auth-logo h1 { font-size: 22px; font-weight: 700; color: #1f2937; margin: 0; }
+.auth-logo p  { font-size: 13px; color: #6b7280; margin: 0; }
+.auth-form { display: flex; flex-direction: column; gap: 14px; }
+.auth-field { display: flex; flex-direction: column; gap: 6px; }
+.auth-field label { font-size: 13px; font-weight: 600; color: #374151; }
+.auth-field input {
+  border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 11px 14px;
+  font-size: 14px; outline: none; transition: border-color 0.2s; font-family: inherit;
+}
+.auth-field input:focus { border-color: #5B5FC7; }
+.auth-btn-primary {
+  background: linear-gradient(135deg, #5B5FC7, #8B7AB8); color: white;
+  border: none; border-radius: 10px; padding: 13px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: opacity 0.2s; font-family: inherit;
+}
+.auth-btn-primary:hover { opacity: 0.9; }
+.auth-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.auth-btn-secondary {
+  background: #f3f4f6; color: #4b5563; border: none; border-radius: 10px;
+  padding: 11px; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background 0.2s; font-family: inherit;
+}
+.auth-btn-secondary:hover { background: #e5e7eb; }
+.auth-msg {
+  border-radius: 8px; padding: 10px 12px; font-size: 13px; display: none;
+}
+.auth-msg.error { display: block; background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
+.auth-msg.success { display: block; background: #f0fdf4; border: 1px solid #86efac; color: #16a34a; }
+.auth-divider { text-align: center; font-size: 12px; color: #9ca3af; }
+
 </style>
 </head>
 <body>
+
+<!-- ── AUTH SCREEN ── -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/></svg>
+      </div>
+      <h1>인생관리시스템</h1>
+      <p>매일의 루틴과 할일을 기록하세요</p>
+    </div>
+    <div class="auth-msg" id="auth-msg"></div>
+    <div class="auth-form">
+      <div class="auth-field">
+        <label for="auth-email">이메일</label>
+        <input type="email" id="auth-email" placeholder="이메일 입력" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label for="auth-password">비밀번호</label>
+        <input type="password" id="auth-password" placeholder="비밀번호 입력" autocomplete="current-password">
+      </div>
+      <button class="auth-btn-primary" id="auth-login-btn" onclick="authLogin()">로그인</button>
+      <div class="auth-divider">계정이 없으신가요?</div>
+      <button class="auth-btn-secondary" id="auth-signup-btn" onclick="authSignup()">회원가입</button>
+    </div>
+  </div>
+</div>
 
 <!-- 모바일 하단 탭바 -->
 <nav class="mob-tabbar" style="display:none;position:fixed;bottom:0;left:0;right:0;height:60px;background:var(--card);border-top:1px solid var(--border);z-index:200;">
@@ -1714,7 +1794,7 @@ body {
   <div class="loading-text">데이터 불러오는 중...</div>
 </div>
 
-<div class="app-wrapper">
+<div class="app-wrapper" id="app-wrapper" style="display:none;">
   <!-- TOP HEADER -->
   <header class="top-header">
     <div class="full-brand">
@@ -1724,9 +1804,9 @@ body {
     <div class="top-user">
       <div class="user-badge">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        정재현
+        <span id="user-email-display">-</span>
       </div>
-      <button class="logout-btn">로그아웃</button>
+      <button class="logout-btn" id="logout-btn" onclick="authLogout()">로그아웃</button>
     </div>
   </header>
 
@@ -2696,6 +2776,75 @@ delete from routines;
 -- );
 */
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── AUTH ──
+function showApp(user) {
+  document.getElementById('auth-screen').classList.remove('visible');
+  document.getElementById('app-wrapper').style.display = '';
+  document.getElementById('user-email-display').textContent = user.email;
+}
+
+function showAuth() {
+  document.getElementById('auth-screen').classList.add('visible');
+  document.getElementById('app-wrapper').style.display = 'none';
+}
+
+function authShowMsg(text, type) {
+  const el = document.getElementById('auth-msg');
+  el.textContent = text;
+  el.className = 'auth-msg ' + type;
+}
+
+async function authLogin() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const btn = document.getElementById('auth-login-btn');
+  document.getElementById('auth-msg').className = 'auth-msg';
+  btn.disabled = true; btn.textContent = '로그인 중...';
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) {
+    const msg = error.message === 'Invalid login credentials'
+      ? '이메일 또는 비밀번호가 잘못되었습니다.' : error.message;
+    authShowMsg(msg, 'error');
+  }
+  btn.disabled = false; btn.textContent = '로그인';
+}
+
+async function authSignup() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const btn = document.getElementById('auth-signup-btn');
+  document.getElementById('auth-msg').className = 'auth-msg';
+  btn.disabled = true; btn.textContent = '가입 중...';
+  const { error } = await sb.auth.signUp({ email, password });
+  if (error) {
+    authShowMsg(error.message, 'error');
+  } else {
+    authShowMsg('가입 완료! 이메일을 확인하거나 바로 로그인해 보세요.', 'success');
+  }
+  btn.disabled = false; btn.textContent = '회원가입';
+}
+
+async function authLogout() {
+  await sb.auth.signOut();
+}
+
+// Enter 키로 로그인
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && document.getElementById('auth-screen').classList.contains('visible')) {
+    authLogin();
+  }
+});
+
+// 인증 상태 변화 감지 (로그인/로그아웃 자동 처리)
+sb.auth.onAuthStateChange((_event, session) => {
+  if (session?.user) { showApp(session.user); } else { showAuth(); }
+});
+
+// 페이지 로드 시 기존 세션 확인
+sb.auth.getSession().then(({ data: { session } }) => {
+  if (session?.user) { showApp(session.user); } else { showAuth(); }
+});
 
 // ── 상수 ──
 const DAYS = ['일','월','화','수','목','금','토'];
