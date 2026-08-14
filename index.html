@@ -2889,6 +2889,7 @@ function hideLoading() { document.getElementById('loadingOverlay').classList.add
 
 // ── 데이터 전체 로드 ──
 async function loadData() {
+  if (!currentUserId) return;
   showLoading();
   const date = todayStr();
 
@@ -7451,7 +7452,8 @@ function renderProjects() {
             category: categoryValue,
             done: false,
             log_date: today,
-            completed_at: null
+            completed_at: null,
+            user_id: currentUserId
           });
 
         if (!insertError) {
@@ -7511,7 +7513,8 @@ function renderProjects() {
         text: task.text,
         category: categoryValue,
         log_date: dstr,
-        done: false
+        done: false,
+        user_id: currentUserId
       };
       
       const { data, error } = await sb.from('todos').insert(insertData).select();
@@ -7571,7 +7574,8 @@ window.copyTask = async function(id) {
     text: found.text + ' (복사본)',
     log_date: todayStr(),
     done: false,
-    icon: found.icon
+    icon: found.icon,
+    user_id: currentUserId
   });
   if (error) {
     showToast('복사 중 오류가 발생했습니다.');
