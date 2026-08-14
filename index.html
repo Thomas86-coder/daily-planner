@@ -2779,10 +2779,13 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── AUTH ──
 function showApp(user) {
+  const prevId = window.currentUserId;
   window.currentUserId = user.id;
   document.getElementById('auth-screen').classList.remove('visible');
   document.getElementById('app-wrapper').style.display = '';
   document.getElementById('user-email-display').textContent = user.email;
+  // 첫 로그인이거나 계정 전환 시 데이터 로드 (getSession + onAuthStateChange 이중 호출 방지)
+  if (prevId !== user.id) loadData();
 }
 
 function showAuth() {
