@@ -2789,6 +2789,7 @@ function showApp(user) {
 }
 
 function showAuth() {
+  window.currentUserId = null;
   document.getElementById('auth-screen').classList.add('visible');
   document.getElementById('app-wrapper').style.display = 'none';
 }
