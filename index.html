@@ -22,7 +22,7 @@
   --primary-dark: #4A4DAF;
   --purple: #9284BE;
   --gradient: linear-gradient(135deg, #5B5FC7 0%, #8B7AB8 100%);
-  --bg: #f0f0f8;
+  --bg: #F0F2F5;
   --bg-card: #ffffff;
   --bg-hover: #f8f8ff;
   --text-primary: #1f2937;
@@ -44,6 +44,12 @@
   --night: #6B7EE0;
   --success: #10b981;
   --nav-width: 220px;
+  --accent-purple: #7F77DD;
+  --accent-purple-bg: #EEEDFE;
+  --accent-purple-dark: #3C3489;
+  --accent-purple-border: #C4B8F8;
+  --page-bg: #F0F2F5;
+  --card-border: #f0f0f0;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -57,14 +63,19 @@ body {
 }
 
 /* ── LAYOUT ── */
-.app-wrapper { 
-  display: flex; 
+.app-wrapper {
+  display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #f4f4f5;
+  background: var(--page-bg);
 }
 
 /* ── TOP HEADER ── */
+.header-strip {
+  background: #ffffff;
+  border-bottom: 1px solid var(--card-border);
+  width: 100%;
+}
 .top-header {
   display: flex;
   justify-content: space-between;
@@ -72,7 +83,7 @@ body {
   max-width: 1100px;
   width: 100%;
   margin: 0 auto;
-  padding: 20px 24px;
+  padding: 14px 24px;
 }
 .full-brand {
   display: flex; align-items: center; gap: 8px;
@@ -84,28 +95,30 @@ body {
 }
 .user-badge {
   display: flex; align-items: center; gap: 8px;
-  background: white; padding: 6px 14px; border-radius: 20px;
-  font-size: 13px; font-weight: 600; color: var(--text-primary);
+  background: white; padding: 5px 12px; border-radius: 6px;
+  border: 1px solid var(--card-border);
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
 }
-.user-badge svg { width: 16px; height: 16px; }
+.user-badge svg { width: 14px; height: 14px; color: #9ca3af; }
 .logout-btn {
-  background: #e5e7eb; border: none; padding: 6px 14px; border-radius: 8px;
-  font-size: 12px; font-weight: 600; color: var(--text-secondary); cursor: pointer;
+  background: white; border: 1px solid var(--card-border); padding: 5px 12px; border-radius: 6px;
+  font-size: 12px; font-weight: 500; color: var(--text-secondary); cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
 }
-.logout-btn:hover { background: #d1d5db; }
+.logout-btn:hover { border-color: #d1d5db; color: var(--text-primary); }
 
 /* ── MAIN NAV CONTAINER ── */
 .main-nav-container {
   max-width: 1100px;
   width: 100%;
-  margin: 0 auto 30px;
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
+  margin: 0 auto 20px;
+  background: var(--page-bg);
+  border-radius: 0;
+  padding: 16px 24px;
   display: grid;
   grid-template-columns: 1.1fr 1fr 1.1fr;
-  gap: 16px;
-  box-shadow: var(--shadow-sm);
+  gap: 12px;
+  box-shadow: none;
 }
 
 .nav-card {
@@ -113,12 +126,13 @@ body {
   padding: 16px;
   display: flex; flex-direction: column; gap: 12px;
 }
-.nav-card.plan { background: #f5f3fa; border: 1px solid #e0d4f5; }
-.nav-card.execute { background: #eef2ff; border: 1px solid #d0dcfb; }
-.nav-card.review { background: #ecfdf5; border: 1px solid #a7f3d0; }
+.nav-card.plan   { background: #ffffff; border: 1px solid var(--card-border); }
+.nav-card.execute { background: #ffffff; border: 1px solid var(--card-border); }
+.nav-card.review  { background: #ffffff; border: 1px solid var(--card-border); }
 
 .nav-card-title {
-  font-size: 12px; font-weight: 700; color: #6b7280; text-align: center;
+  font-size: 11px; font-weight: 600; color: #adb5bd; text-align: center;
+  letter-spacing: 0.04em; text-transform: uppercase;
 }
 
 .nav-card-buttons {
@@ -131,8 +145,8 @@ body {
   display: flex; align-items: center; gap: 6px; cursor: pointer;
   transition: all 0.2s;
 }
-.nav-btn:hover { border-color: var(--primary); color: var(--primary); }
-.nav-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+.nav-btn:hover { border-color: var(--accent-purple); color: var(--accent-purple); }
+.nav-btn.active { background: var(--accent-purple); color: white; border-color: var(--accent-purple); }
 .nav-btn.active svg { stroke: white; }
 
 /* ── CENTER AREA ── */
@@ -225,16 +239,16 @@ body {
 }
 
 .today-btn {
-  padding: 6px 14px;
-  background: var(--gradient);
+  padding: 6px 16px;
+  background: var(--accent-purple);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s;
-  box-shadow: 0 2px 8px rgba(91,95,199,0.3);
+  box-shadow: 0 2px 8px rgba(127,119,221,0.3);
 }
 .today-btn:hover { opacity: 0.88; }
 
@@ -253,31 +267,45 @@ body {
   transition: box-shadow 0.2s;
 }
 .card:hover { box-shadow: var(--shadow-lg); }
-.card.routine-card { border: 1px solid #10b981; background: #ebfcf1; box-shadow: none; }
-.card.routine-card:hover { box-shadow: var(--shadow-sm); }
-.card.todo-card { border: 1px solid #6366f1; background: #eef2ff; box-shadow: none; }
-.card.todo-card:hover { box-shadow: var(--shadow-sm); }
-.card.reflection-card { border: 1px solid #a855f7; background: #fdfaef; background: #f3e8fc; box-shadow: none;}
-.card.reflection-card:hover { box-shadow: var(--shadow-sm); }
+.card.routine-card {
+  border: 1px solid var(--card-border); background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03); border-radius: 8px;
+}
+.card.routine-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+.card.todo-card {
+  border: 1px solid var(--card-border); background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03); border-radius: 8px;
+}
+.card.todo-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+.card.reflection-card {
+  border: 1px solid var(--card-border); background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03); border-radius: 8px;
+}
+.card.reflection-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+/* 배운 것 카드도 동일 */
+#learning-notes-section.card {
+  border: 1px solid var(--card-border); background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03); border-radius: 8px;
+}
 
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 18px 12px;
-  border-bottom: 1px solid var(--border-light);
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--card-border);
 }
 
 .card-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
 }
 
-.card-title svg { width: 16px; height: 16px; }
+.card-title svg { width: 16px; height: 16px; color: #9ca3af; }
 
 .card-body { padding: 14px 18px; }
 
@@ -310,19 +338,21 @@ body {
   transition: background 0.15s;
   border: 1px solid transparent;
 }
-.check-item:hover { background: var(--bg-hover); border-color: var(--border-light); }
-.check-item.done .item-label { text-decoration: line-through; color: var(--text-muted); }
+.check-item { background: #f9fafb; }
+.check-item:hover { background: var(--accent-purple-bg); border-color: var(--accent-purple-border); }
+.check-item.done { background: var(--accent-purple-bg); }
+.check-item.done .item-label { text-decoration: line-through; color: var(--text-muted); opacity: 0.65; }
 
 .custom-cb {
   width: 18px; height: 18px;
-  border: 2px solid var(--border);
-  border-radius: 5px;
+  border: 2px solid #d1d5db;
+  border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   transition: all 0.18s;
   cursor: pointer;
 }
-.custom-cb.checked { background: var(--gradient); border-color: transparent; }
+.custom-cb.checked { background: var(--accent-purple); border-color: var(--accent-purple); }
 .custom-cb.checked svg { display: block; }
 .custom-cb svg { display: none; width: 11px; height: 11px; color: white; stroke-width: 3; }
 
@@ -338,7 +368,7 @@ body {
 .progress-bar-fill {
   height: 100%;
   border-radius: 2px;
-  background: var(--gradient);
+  background: var(--accent-purple);
   transition: width 0.4s ease;
 }
 
@@ -382,8 +412,9 @@ body {
   transition: background 0.15s;
   border: 1px solid transparent;
 }
-.todo-item:hover { background: var(--bg-hover); border-color: var(--border-light); }
-.todo-item.done .todo-text { text-decoration: line-through; color: var(--text-muted); }
+.todo-item:hover { background: var(--accent-purple-bg); border-color: var(--accent-purple-border); }
+.todo-item.done { background: var(--accent-purple-bg); }
+.todo-item.done .todo-text { text-decoration: line-through; color: var(--text-muted); opacity: 0.65; }
 
 .todo-text { font-size: 13.5px; font-weight: 500; color: var(--text-primary); flex: 1; }
 .todo-delete {
@@ -413,15 +444,15 @@ body {
   transition: border-color 0.15s;
   outline: none;
 }
-.add-todo-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91,95,199,0.1); }
+.add-todo-input:focus { border-color: var(--accent-purple); box-shadow: 0 0 0 3px rgba(127,119,221,0.12); }
 
 .add-btn {
-  width: 32px; height: 32px;
-  background: var(--gradient);
-  border: none; border-radius: 8px; cursor: pointer;
+  width: 36px; height: 36px;
+  background: var(--accent-purple);
+  border: none; border-radius: 50%; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   color: white; transition: opacity 0.15s;
-  box-shadow: 0 2px 6px rgba(91,95,199,0.3);
+  box-shadow: 0 2px 6px rgba(127,119,221,0.3);
   flex-shrink: 0;
 }
 .add-btn:hover { opacity: 0.85; }
@@ -464,15 +495,15 @@ body {
   outline: none; transition: border-color 0.15s;
   line-height: 1.55;
 }
-.reflection-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91,95,199,0.08); }
+.reflection-textarea:focus { border-color: var(--accent-purple); box-shadow: 0 0 0 3px rgba(127,119,221,0.1); }
 
 .save-btn {
   width: 100%; padding: 10px;
-  background: var(--gradient);
+  background: var(--accent-purple);
   color: white; border: none;
-  border-radius: 10px; font-size: 14px; font-weight: 600;
+  border-radius: 20px; font-size: 14px; font-weight: 600;
   cursor: pointer; transition: opacity 0.15s;
-  box-shadow: 0 3px 10px rgba(91,95,199,0.3);
+  box-shadow: 0 3px 10px rgba(127,119,221,0.3);
   font-family: inherit;
   display: flex; align-items: center; justify-content: center; gap: 6px;
   margin-top: 14px;
@@ -660,39 +691,51 @@ body {
 
   /* 사이드바 등 숨김 */
   .sidebar, .mob-tabbar { display: none !important; }
-  
-  /* 네비게이션: 상단 탭바를 하단 고정 탭바로 변경 */
+
+  /* ── 모바일 하단 탭바: 가로 스크롤 8탭 ── */
   .main-nav-container {
     position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important;
-    height: 60px !important; background: white !important;
-    border-top: 1px solid #e5e7eb !important;
-    z-index: 100 !important;
-    margin: 0 !important; padding: 0 !important; border-radius: 0 !important; box-shadow: none !important;
-    display: flex !important; justify-content: space-around !important; align-items: center !important;
+    height: 58px !important; background: white !important;
+    border-top: 1px solid #e5e7eb !important; z-index: 100 !important;
+    margin: 0 !important; padding: 0 4px !important; border-radius: 0 !important; box-shadow: none !important;
+    display: flex !important; flex-direction: row !important; align-items: stretch !important;
+    overflow-x: auto !important; overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
     grid-template-columns: none !important;
   }
-  
-  /* 탭 그룹 3개(계획/실행/리뷰)를 아이콘+텍스트로 표시 */
+  .main-nav-container::-webkit-scrollbar { display: none !important; }
+
+  /* nav-card를 가로 스크롤 안에서 단순 flex 컨테이너로 평탄화 */
   .nav-card {
-    flex: 1; height: 100%; padding: 0 !important; margin: 0 !important;
-    background: transparent !important; border: none !important;
-    display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important;
-    position: relative; overflow: hidden;
+    display: contents !important; /* 자식 버튼이 직접 flex row에 들어가도록 */
   }
-  .nav-card-title {
-    font-size: 10px !important; color: #6b7280; font-weight: 600;
-    margin: 0 !important; line-height: 1.2; text-align: center;
+  .nav-card-title { display: none !important; }
+
+  /* 개별 버튼이 탭 아이템 역할 */
+  .nav-btn {
+    flex: 0 0 auto !important;
+    min-width: 64px !important; max-width: 80px !important;
+    height: 100% !important; margin: 0 !important;
+    padding: 6px 4px 4px !important; border: none !important;
+    background: transparent !important; border-radius: 0 !important;
+    display: flex !important; flex-direction: column !important;
+    align-items: center !important; justify-content: center !important;
+    gap: 3px !important; font-size: 10px !important; font-weight: 600 !important;
+    color: #6b7280 !important; white-space: nowrap !important; cursor: pointer !important;
+    border-bottom: 3px solid transparent !important; box-sizing: border-box !important;
   }
-  .nav-card.plan .nav-card-title::before { content: "📋"; font-size: 18px; display: block; margin-bottom: 2px; }
-  .nav-card.execute .nav-card-title::before { content: "🔥"; font-size: 18px; display: block; margin-bottom: 2px; }
-  .nav-card.review .nav-card-title::before { content: "📊"; font-size: 18px; display: block; margin-bottom: 2px; }
-  
-  /* 기존 네비 버튼들을 투명하게 덮어 터치 가능하게 구성 */
+  .nav-btn svg { width: 20px !important; height: 20px !important; flex-shrink: 0 !important; }
+  .nav-btn.active {
+    color: #7c3aed !important; border-bottom-color: #7c3aed !important;
+    background: transparent !important;
+  }
+  .nav-btn.active svg { stroke: #7c3aed !important; }
+
+  /* nav-card-buttons는 display:contents일 때 불필요하지만 안전하게 처리 */
   .nav-card-buttons {
-    position: absolute !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-    display: flex !important; opacity: 0 !important; padding: 0 !important; gap: 0 !important;
+    display: contents !important;
   }
-  .nav-btn { flex: 1; height: 100%; margin: 0; padding: 0; border: none; }
 
   /* 전체 레이아웃 (카드) */
   .app-wrapper { flex-direction: column; }
@@ -704,6 +747,8 @@ body {
   }
 
   .card { border-radius: 12px !important; padding: 0 !important; margin-bottom: 10px; }
+  /* 오늘 탭 카드는 8px 유지 */
+  .card.routine-card, .card.todo-card, .card.reflection-card, #learning-notes-section.card { border-radius: 8px !important; }
   .card-header, .card-body { padding: 12px !important; }
   .content-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
   .routine-card, .todo-card, .reflection-card { grid-column: 1 !important; }
@@ -790,13 +835,9 @@ body {
   .card-header, .card-body, .pr-content-area, .rc-card, .main-content { padding: 10px !important; }
   .main-content { padding-bottom: 70px !important; }
   
-  /* 탭 버튼 텍스트: 숨기고 아이콘만 표시 */
-  .nav-card-title { font-size: 0 !important; color: transparent !important; }
-  .nav-card.plan .nav-card-title::before,
-  .nav-card.execute .nav-card-title::before,
-  .nav-card.review .nav-card-title::before {
-    font-size: 20px !important; color: initial; margin: auto !important;
-  }
+  /* 320px 이하: 탭 버튼 텍스트 숨기고 아이콘만 표시 */
+  .nav-btn { min-width: 48px !important; max-width: 56px !important; font-size: 0 !important; padding: 8px 4px !important; }
+  .nav-btn svg { width: 22px !important; height: 22px !important; }
 }
 
 /* 폈을 때 - 361px ~ 673px */
@@ -1647,9 +1688,9 @@ body {
 
 /* 오늘의 루틴 3열 레이아웃 */
 .routine-card {
-  background: linear-gradient(135deg, #e8fdf5, #d1fae5) !important;
-  border: 1px solid #a7f3d0 !important;
-  border-radius: 16px !important;
+  background: #ffffff !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 8px !important;
   padding: 20px !important;
 }
 .routine-header-bold {
@@ -1691,24 +1732,34 @@ body {
   gap: 10px !important;
   padding: 7px 8px !important;
   border-radius: 8px !important;
-  background: white !important;
+  background: #f9fafb !important;
   margin-bottom: 4px !important;
   cursor: pointer !important;
-  border: none !important;
+  border: 1px solid transparent !important;
+  transition: background 0.15s !important;
+}
+.routine-card .check-item:hover {
+  background: var(--accent-purple-bg) !important;
+  border-color: var(--accent-purple-border) !important;
 }
 .routine-card .custom-cb {
   width: 18px !important;
   height: 18px !important;
   min-width: 18px !important;
-  border-radius: 4px !important;
+  border-radius: 50% !important;
+  border: 2px solid #d1d5db !important;
+}
+.routine-card .check-item.done {
+  background: var(--accent-purple-bg) !important;
 }
 .routine-card .check-item.done .custom-cb {
-  background: linear-gradient(135deg, #5B5FC7, #8B7AB8) !important;
-  border-color: transparent !important;
+  background: var(--accent-purple) !important;
+  border-color: var(--accent-purple) !important;
 }
 .routine-card .check-item.done .item-label {
   text-decoration: line-through !important;
   color: #9ca3af !important;
+  opacity: 0.65;
 }
 .routine-empty-items {
   text-align: center;
@@ -1726,8 +1777,8 @@ body {
 }
 .sub-toggle-custom-btn {
   background: white;
-  border: 1px solid #c4b5fd;
-  color: #8b5cf6;
+  border: 1px solid var(--accent-purple-border);
+  color: var(--accent-purple);
   height: 36px;
   border-radius: 20px;
   padding: 6px 20px;
@@ -1742,11 +1793,11 @@ body {
   transition: all 0.2s;
 }
 .sub-toggle-custom-btn:active, .sub-toggle-custom-btn:focus, .sub-toggle-custom-btn.active {
-  background: #8b5cf6 !important;
+  background: var(--accent-purple) !important;
   color: white !important;
 }
 .sub-toggle-custom-btn:hover {
-  background: #ede9fe;
+  background: var(--accent-purple-bg);
 }
 
 /* 날짜 표시 영역 디자인 */
@@ -1759,7 +1810,7 @@ body {
 }
 .date-nav-custom-btn {
   background: white;
-  border: 1px solid #c4b5fd;
+  border: 1px solid var(--accent-purple-border);
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -1767,19 +1818,19 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #8b5cf6;
+  color: var(--accent-purple);
   transition: all 0.2s;
 }
 .date-nav-custom-btn:hover {
-  background: #ede9fe;
+  background: var(--accent-purple-bg);
 }
 .center-date-custom {
-  background: linear-gradient(135deg, #5B5FC7, #8B7AB8);
+  background: var(--accent-purple);
   color: white;
   font-weight: 700;
   border-radius: 20px;
-  padding: 8px 20px;
-  box-shadow: 0 4px 12px rgba(91,95,199,0.3);
+  padding: 8px 24px;
+  box-shadow: 0 4px 12px rgba(127,119,221,0.3);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1795,7 +1846,8 @@ body {
 </div>
 
 <div class="app-wrapper" id="app-wrapper" style="display:none;">
-  <!-- TOP HEADER -->
+  <!-- TOP HEADER STRIP -->
+  <div class="header-strip">
   <header class="top-header">
     <div class="full-brand">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg>
@@ -1809,6 +1861,7 @@ body {
       <button class="logout-btn" id="logout-btn" onclick="authLogout()">로그아웃</button>
     </div>
   </header>
+  </div><!-- /header-strip -->
 
   <!-- MAIN NAV CONTAINER -->
   <div class="main-nav-container">
@@ -1905,91 +1958,21 @@ body {
               <div class="routine-section-title morning">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="sunrise" aria-hidden="true" style="width:13px;height:13px;color:var(--morning)" class="lucide lucide-sunrise"><path d="M12 2v8"></path><path d="m4.93 10.93 1.41 1.41"></path><path d="M2 18h2"></path><path d="M20 18h2"></path><path d="m19.07 10.93-1.41 1.41"></path><path d="M22 22H2"></path><path d="m8 6 4-4 4 4"></path><path d="M16 18a4 4 0 0 0-8 0"></path></svg> 모닝 루틴
               </div>
-              <div id="morningList">
-      <div class="check-item " onclick="toggleRoutine(&#39;morning&#39;,&#39;eb9d2d2b-8c12-436a-abcf-29e7fe8a39c9&#39;)">
-        <div class="custom-cb ">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        </div>
-        <span class="item-label">기상 후 물 한 잔 마시기</span>
-      </div>
-    
-      <div class="check-item " onclick="toggleRoutine(&#39;morning&#39;,&#39;0ff02213-91db-46b2-9ec0-8a09c05b76ec&#39;)">
-        <div class="custom-cb ">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        </div>
-        <span class="item-label">10분 스트레칭</span>
-      </div>
-    
-      <div class="check-item " onclick="toggleRoutine(&#39;morning&#39;,&#39;018f0c09-357f-4674-b6bc-db8aa456239f&#39;)">
-        <div class="custom-cb ">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        </div>
-        <span class="item-label">오늘 할일 계획 정리</span>
-      </div>
-    
-      <div class="check-item " onclick="toggleRoutine(&#39;morning&#39;,&#39;7c35d46f-a653-41c4-bdbf-c81c39034d33&#39;)">
-        <div class="custom-cb ">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        </div>
-        <span class="item-label">출근길에 영어공부</span>
-      </div>
-    </div>
+              <div id="morningList"></div>
               <div class="progress-bar-wrap"><div class="progress-bar-fill" id="morningProgress" style="width:0%"></div></div>
             </div>
             <div>
               <div class="routine-section-title daytime">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="sun" aria-hidden="true" style="width:13px;height:13px;color:var(--daytime)" class="lucide lucide-sun"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg> 데이타임 루틴
               </div>
-              <div id="daytimeList">
-      <div class="check-item " onclick="toggleRoutine(&#39;daytime&#39;,&#39;b0ea37af-9d67-48af-9954-7792a71fd5e9&#39;)">
-        <div class="custom-cb ">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        </div>
-        <span class="item-label">30분 독서</span>
-      </div>
-    
-      <div class="check-item " onclick="toggleRoutine(&#39;daytime&#39;,&#39;7b9d3081-2c37-4152-a9b1-0ec3a1fc5c26&#39;)">
-        <div class="custom-cb ">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        </div>
-        <span class="item-label">점심 산책 20분</span>
-      </div>
-    
-      <div class="check-item " onclick="toggleRoutine(&#39;daytime&#39;,&#39;0c876ef5-4b83-4f39-a737-1b0d0c69dedb&#39;)">
-        <div class="custom-cb ">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        </div>
-        <span class="item-label">인박스 제로 점검</span>
-      </div>
-    </div>
+              <div id="daytimeList"></div>
               <div class="progress-bar-wrap"><div class="progress-bar-fill" id="daytimeProgress" style="width:0%"></div></div>
             </div>
             <div>
               <div class="routine-section-title night">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="moon" aria-hidden="true" style="width:13px;height:13px;color:var(--night)" class="lucide lucide-moon"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"></path></svg> 나이트 루틴
               </div>
-              <div id="nightList">
-      <div class="check-item " onclick="toggleRoutine(&#39;night&#39;,&#39;22d31664-4d6f-473f-8c99-672878a85dcc&#39;)">
-        <div class="custom-cb ">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        </div>
-        <span class="item-label">오늘 하루 성찰 작성</span>
-      </div>
-    
-      <div class="check-item " onclick="toggleRoutine(&#39;night&#39;,&#39;1649bb79-905e-4e35-834b-348e99c8b09a&#39;)">
-        <div class="custom-cb ">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        </div>
-        <span class="item-label">내일 할일 작성</span>
-      </div>
-    
-      <div class="check-item " onclick="toggleRoutine(&#39;night&#39;,&#39;65b39547-277f-4f1c-8971-275315a3daf0&#39;)">
-        <div class="custom-cb ">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        </div>
-        <span class="item-label">23시 이전 취침 준비</span>
-      </div>
-    </div>
+              <div id="nightList"></div>
               <div class="progress-bar-wrap"><div class="progress-bar-fill" id="nightProgress" style="width:0%"></div></div>
             </div>
           </div>
@@ -2020,7 +2003,7 @@ body {
               🎯 이번 주 원씽
             </div>
             <div style="display: flex; align-items: flex-start; gap: 8px; background: white; padding: 12px 16px; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-              <input type="checkbox" id="weekly-onething-check" style="width: 20px; height: 20px; cursor: pointer; accent-color: #8b5cf6; margin-top: 2px;" onchange="saveWeeklyOneThing()">
+              <input type="checkbox" id="weekly-onething-check" style="width: 20px; height: 20px; cursor: pointer; accent-color: #7F77DD; margin-top: 2px;" onchange="saveWeeklyOneThing()">
               <textarea id="weekly-onething-input" rows="1" placeholder="이번 주 반드시 끝낼 단 하나" style="flex: 1; width: 100%; min-width: 0; border: none; outline: none; font-size: 15px; color: #333; resize: none; overflow: hidden; line-height: 1.5; font-family: inherit; background: transparent; padding: 0;" oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';" onblur="saveWeeklyOneThing()" onkeydown="handleWeeklyOneThingKeydown(event)"></textarea>
             </div>
           </div>
@@ -2032,7 +2015,7 @@ body {
               ⭐ 오늘의 원씽
             </div>
             <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 12px 16px; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-              <input type="checkbox" id="daily-onething-check" style="width: 20px; height: 20px; cursor: pointer; accent-color: #8b5cf6;" onchange="saveDailyOneThing()">
+              <input type="checkbox" id="daily-onething-check" style="width: 20px; height: 20px; cursor: pointer; accent-color: #7F77DD;" onchange="saveDailyOneThing()">
               <input type="text" id="daily-onething-input" placeholder="오늘 반드시 끝낼 단 하나" style="flex: 1; border: none; outline: none; font-size: 15px; color: #333;" onblur="saveDailyOneThing()">
             </div>
           </div>
@@ -2805,11 +2788,17 @@ async function authLogin() {
   const password = document.getElementById('auth-password').value;
   const btn = document.getElementById('auth-login-btn');
   document.getElementById('auth-msg').className = 'auth-msg';
+
+  // 클라이언트 검증
+  if (!email) { authShowMsg('이메일을 입력해주세요.', 'error'); return; }
+  if (!password) { authShowMsg('비밀번호를 입력해주세요.', 'error'); return; }
+
   btn.disabled = true; btn.textContent = '로그인 중...';
   const { error } = await sb.auth.signInWithPassword({ email, password });
   if (error) {
-    const msg = error.message === 'Invalid login credentials'
-      ? '이메일 또는 비밀번호가 잘못되었습니다.' : error.message;
+    const msg = error.message === 'Invalid login credentials' || error.message.includes('invalid_credentials')
+      ? '이메일 또는 비밀번호가 잘못되었습니다.'
+      : '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
     authShowMsg(msg, 'error');
   }
   btn.disabled = false; btn.textContent = '로그인';
@@ -2820,10 +2809,23 @@ async function authSignup() {
   const password = document.getElementById('auth-password').value;
   const btn = document.getElementById('auth-signup-btn');
   document.getElementById('auth-msg').className = 'auth-msg';
+
+  // 클라이언트 검증
+  if (!email) { authShowMsg('이메일을 입력해주세요.', 'error'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { authShowMsg('올바른 이메일 형식을 입력해주세요.', 'error'); return; }
+  if (!password) { authShowMsg('비밀번호를 입력해주세요.', 'error'); return; }
+  if (password.length < 6) { authShowMsg('비밀번호는 6자 이상이어야 합니다.', 'error'); return; }
+
   btn.disabled = true; btn.textContent = '가입 중...';
   const { error } = await sb.auth.signUp({ email, password });
   if (error) {
-    authShowMsg(error.message, 'error');
+    // 백엔드 에러 원문 숨기고 사용자 친화적 메시지로 변환
+    const msg = error.message.includes('already registered') || error.message.includes('User already registered')
+      ? '이미 가입된 이메일입니다. 로그인해주세요.'
+      : error.message.includes('Anonymous') || error.message.includes('disabled')
+      ? '현재 회원가입을 사용할 수 없습니다. 관리자에게 문의해주세요.'
+      : '회원가입 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+    authShowMsg(msg, 'error');
   } else {
     authShowMsg('가입 완료! 이메일을 확인하거나 바로 로그인해 보세요.', 'success');
   }
@@ -3164,9 +3166,12 @@ async function saveWeeklyOneThing() {
   try {
     const { error } = await sb
       .from('weekly_one_things')
-      .upsert(payload, { onConflict: 'week_key' });
-      
-    if (error) throw error;
+      .upsert(payload, { onConflict: 'user_id,week_key' });
+
+    if (error) {
+      console.error('주간 원씽 upsert error:', error.code, error.message, error.details, error.hint);
+      throw error;
+    }
   } catch(e) {
     console.error('이번 주 원씽 저장 오류:', e);
     showToast('이번 주 원씽 저장 오류: ' + (e?.message || '알 수 없는 오류'));
@@ -3231,12 +3236,14 @@ async function saveDailyOneThing() {
   try {
     const { error } = await sb
       .from('daily_one_things')
-      .upsert(payload, { onConflict: 'log_date' });
-      
-    if (error) throw error;
+      .upsert(payload, { onConflict: 'user_id,log_date' });
+
+    if (error) {
+      console.error('오늘 원씽 upsert error:', error.code, error.message, error.details, error.hint);
+      throw error;
+    }
   } catch(e) {
     console.error('오늘의 원씽 저장 오류:', e);
-    console.error('code:', e?.code, 'message:', e?.message, 'details:', e?.details, 'hint:', e?.hint);
     showToast('오늘의 원씽 저장 오류: ' + (e?.message || '알 수 없는 오류'));
   }
 }
@@ -4096,12 +4103,39 @@ function renderGoalRoutines() {
   });
 }
 
-async function addGoalRoutine(timeOfDay) {
-  const label = prompt('새로운 루틴을 입력하세요:');
-  if(!label) return;
+function addGoalRoutine(timeOfDay) {
+  const listId = `ro-list-${timeOfDay}`;
+  const listEl = document.getElementById(listId);
+  if (!listEl) return;
+
+  // 이미 입력 중인 인라인 폼이 있으면 중복 생성 방지
+  if (listEl.querySelector('.inline-add-form')) return;
+
+  const form = document.createElement('div');
+  form.className = 'inline-add-form';
+  form.style = 'display:flex;gap:6px;margin-top:8px;';
+  form.innerHTML = `
+    <input type="text" placeholder="루틴 입력 후 Enter"
+      style="flex:1;padding:8px 10px;border:1.5px solid #ab7cf6;border-radius:8px;font-size:13px;outline:none;font-family:inherit;"
+      onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();_confirmAddRoutine(this,'${timeOfDay}');}
+                 if(event.key==='Escape'){this.parentNode.remove();}"
+      autofocus>
+    <button onclick="_confirmAddRoutine(this.previousElementSibling,'${timeOfDay}')"
+      style="padding:7px 12px;background:#ab7cf6;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap;">추가</button>
+    <button onclick="this.parentNode.remove()"
+      style="padding:7px 10px;background:#f3f4f6;color:#4b5563;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕</button>
+  `;
+  listEl.appendChild(form);
+  form.querySelector('input').focus();
+}
+
+function _confirmAddRoutine(inputEl, timeOfDay) {
+  const label = inputEl.value.trim();
+  if (!label) { inputEl.focus(); return; }
+  inputEl.closest('.inline-add-form').remove();
   currentGoalRoutines.push({
     id: crypto.randomUUID(),
-    label: label.trim(),
+    label: label,
     time_of_day: timeOfDay,
     sort_order: currentGoalRoutines.filter(x => x.time_of_day === timeOfDay).length + 1,
     is_active: true,
@@ -4262,11 +4296,14 @@ async function saveYearlyOneThing(category) {
         updated_at: new Date().toISOString(),
         user_id: currentUserId
       }, {
-        onConflict: 'scope, category, year, month'
+        onConflict: 'user_id,scope,category,year,month'
       });
-      
-    if (error) throw error;
-    
+
+    if (error) {
+      console.error('연간 원씽 upsert error:', error.code, error.message, error.details, error.hint);
+      throw error;
+    }
+
     btn.textContent = '저장됨 ✓';
     setTimeout(() => {
       btn.textContent = originalText;
@@ -4345,17 +4382,20 @@ async function saveMonthlyOneThing(category) {
         updated_at: new Date().toISOString(),
         user_id: currentUserId
       }, {
-        onConflict: 'scope, category, year, month'
+        onConflict: 'user_id,scope,category,year,month'
       });
-      
-    if (error) throw error;
-    
+
+    if (error) {
+      console.error('월간 원씽 upsert error:', error.code, error.message, error.details, error.hint);
+      throw error;
+    }
+
     btn.textContent = '저장됨 ✓';
     setTimeout(() => {
       btn.textContent = originalText;
       btn.disabled = false;
     }, 2000);
-    
+
   } catch (err) {
     console.error('월간 원씽 저장 실패:', err);
     btn.textContent = '실패';
@@ -4388,17 +4428,20 @@ async function saveMonthlyOneThingResult(category) {
         updated_at: new Date().toISOString(),
         user_id: currentUserId
       }, {
-        onConflict: 'scope, category, year, month'
+        onConflict: 'user_id,scope,category,year,month'
       });
-      
-    if (error) throw error;
-    
+
+    if (error) {
+      console.error('월간 결과 upsert error:', error.code, error.message, error.details, error.hint);
+      throw error;
+    }
+
     btn.textContent = '저장됨 ✓';
     setTimeout(() => {
       btn.textContent = originalText;
       btn.disabled = false;
     }, 2000);
-    
+
   } catch (err) {
     console.error('월간 결과 저장 실패:', err);
     btn.textContent = '실패';
