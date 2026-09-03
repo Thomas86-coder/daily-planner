@@ -1621,6 +1621,104 @@ body {
 .auth-msg.success { display: block; background: #f0fdf4; border: 1px solid #86efac; color: #16a34a; }
 .auth-divider { text-align: center; font-size: 12px; color: #9ca3af; }
 
+/* ─────────── 2단계 디자인 시스템 통일 ─────────── */
+/* 버튼 3종류 공통 클래스 */
+.btn-ds-primary {
+  background: #7C3AED !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 10px 20px !important;
+  height: 40px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  font-family: inherit !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  transition: opacity 0.2s !important;
+}
+.btn-ds-primary:hover { opacity: 0.85 !important; }
+.btn-ds-primary:disabled { opacity: 0.5 !important; cursor: not-allowed !important; }
+.btn-ds-secondary {
+  background: transparent !important;
+  color: #374151 !important;
+  border: 1px solid #E5E7EB !important;
+  border-radius: 8px !important;
+  padding: 10px 20px !important;
+  height: 40px !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  cursor: pointer !important;
+  font-family: inherit !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+}
+.btn-ds-secondary:hover { background: #F9FAFB !important; }
+
+/* 순환구조 프리필 버튼 (3단계 학습→실천→성찰) */
+.cycle-prefill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #F5F3FF;
+  color: #7C3AED;
+  border: 1px solid #DDD6FE;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+  margin-top: 12px;
+}
+.cycle-prefill-btn:hover { background: #EDE9FE; }
+
+/* 어제 다짐 배너 */
+.pledge-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #92400E;
+}
+.pledge-banner-text { flex: 1; line-height: 1.5; }
+.pledge-banner-accept {
+  background: #F59E0B;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pledge-banner-dismiss {
+  background: transparent;
+  border: none;
+  color: #92400E;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0 2px;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+.pledge-banner-dismiss:hover { opacity: 1; }
+
 </style>
 </head>
 <body>
@@ -1992,11 +2090,18 @@ body {
           </div>
         </div>
         <div class="card-body">
+          <!-- 어제 다짐 배너 (3단계 Feature 2) -->
+          <div id="pledge-banner" class="pledge-banner" style="display:none;">
+            <span class="pledge-banner-text" id="pledge-banner-text"></span>
+            <button class="pledge-banner-accept" onclick="acceptPledge()">원씽으로 가져오기</button>
+            <button class="pledge-banner-dismiss" onclick="dismissPledge()" title="닫기">✕</button>
+          </div>
+
           <!-- 신규: 오늘의 원씽 (읽기 전용) -->
           <div id="today-onething-section" style="margin-bottom: 20px; display: none;">
             <!-- JS로 동적 렌더링 -->
           </div>
-          
+
           <!-- 신규: 이번 주 원씽 -->
           <div id="weekly-onething-section" style="margin-bottom: 24px;">
             <div style="font-weight: 700; margin-bottom: 12px; font-size: 15px; display: flex; align-items: center; gap: 6px;">
@@ -2079,6 +2184,10 @@ body {
                 padding:16px; border:1px solid #e5e7eb;
               ">
             </div>
+            <!-- 3단계 Feature 1: 학습→원씽 프리필 버튼 -->
+            <button id="learning-to-onething-btn" class="cycle-prefill-btn" style="display:none; width:100%; justify-content:center;" onclick="prefillOneThingFromLearning()">
+              🎯 이걸 다음 원씽으로 등록
+            </button>
           </div>
         </div>
       </div>
@@ -2144,6 +2253,10 @@ body {
                 padding:16px; border:1px solid #e5e7eb;
               ">
             </div>
+            <!-- 3단계 Feature 4: AI 분석→원씽 프리필 버튼 -->
+            <button id="ai-to-onething-btn" class="cycle-prefill-btn" style="display:none; width:100%; justify-content:center;" onclick="prefillOneThingFromDailyAI()">
+              🎯 이 카테고리로 원씽 만들기
+            </button>
           </div>
         </div>
       </div>
@@ -3029,6 +3142,7 @@ async function loadData() {
     await loadLearningNotes();
     await loadLearningAnalysis();
     renderTodos();
+    checkPledgeBanner(); // 3단계 Feature 2: 어제 다짐 배너
 
     // 5) 어제 미완료 체크 (오늘 날짜일 때만)
     const now = new Date(); now.setHours(0,0,0,0);
@@ -3078,8 +3192,10 @@ async function loadTodayOneThing() {
     let rowsHtml = '';
     categories.forEach((cat, idx) => {
       const details = getCatDetails(cat);
-      const yText = yearlyMap[cat] && yearlyMap[cat].trim() !== '' ? yearlyMap[cat] : '<span style="color:#cbd5e1;">—</span>';
-      const mText = monthlyMap[cat] && monthlyMap[cat].trim() !== '' ? monthlyMap[cat] : '<span style="color:#cbd5e1;">—</span>';
+      // 3단계 Feature 3: 빈값이면 "목표관리에서 설정하기" 버튼 노출
+      const goalsBtn = '<button onclick="navigate(\'goals\')" style="background:#F5F3FF;color:#7C3AED;border:1px solid #DDD6FE;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">목표관리에서 설정하기</button>';
+      const yText = yearlyMap[cat] && yearlyMap[cat].trim() !== '' ? yearlyMap[cat] : goalsBtn;
+      const mText = monthlyMap[cat] && monthlyMap[cat].trim() !== '' ? monthlyMap[cat] : goalsBtn;
       const borderStyle = idx === categories.length - 1 ? '' : 'border-bottom:1px dashed #e2e8f0;';
       
       rowsHtml += `
@@ -3385,9 +3501,14 @@ async function loadLearningAnalysis() {
 
       contentDiv.innerHTML = formattedText;
       resultDiv.style.display = 'block';
+      // 3단계 Feature 1: 저장된 결과 로드 시 원씽 등록 버튼 표시
+      const ltBtn = document.getElementById('learning-to-onething-btn');
+      if (ltBtn) ltBtn.style.display = 'flex';
     } else {
       contentDiv.innerHTML = '';
       resultDiv.style.display = 'none';
+      const ltBtn = document.getElementById('learning-to-onething-btn');
+      if (ltBtn) ltBtn.style.display = 'none';
     }
   } catch(e) {
     console.error('배운 내용 분석 로드 오류:', e);
@@ -3478,6 +3599,9 @@ async function generateLearningAnalysis() {
 
       contentDiv.innerHTML = formattedText;
       resultDiv.style.display = 'block';
+      // 3단계 Feature 1: 원씽 등록 버튼 표시
+      const ltBtn = document.getElementById('learning-to-onething-btn');
+      if (ltBtn) ltBtn.style.display = 'flex';
     }
 
     showToast('배운 내용 분석 완료! 🤖');
@@ -3863,6 +3987,14 @@ async function saveReflection() {
     showToast('저장 중 오류가 발생했어요 😢');
   } else {
     showToast('성찰이 저장되었습니다 📝');
+    // 3단계 Feature 2: 내일을 위한 다짐을 localStorage에 저장
+    const tomorrowGoal = document.getElementById('ref4').value.trim();
+    if (tomorrowGoal) {
+      const tomorrow = new Date(currentDate);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = todayStr(tomorrow);
+      localStorage.setItem('pledge_for_' + tomorrowStr, tomorrowGoal);
+    }
   }
 }
 
@@ -5143,6 +5275,9 @@ async function runAIAnalysis() {
       contentDiv.innerHTML = ''; // 먼저 비우기
       contentDiv.innerHTML = formattedText; // 그 다음 삽입
       resultDiv.style.display = 'block';
+      // 3단계 Feature 4: 원씽 만들기 버튼 표시
+      const atBtn = document.getElementById('ai-to-onething-btn');
+      if (atBtn) atBtn.style.display = 'flex';
     }
 
     showToast('AI 분석 완료! 🤖');
@@ -5172,6 +5307,119 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
 } else {
   init();
+}
+
+// ─────────────────────────────────────────────────────
+// 3단계 학습→실천→성찰 순환구조 기능 함수
+// ─────────────────────────────────────────────────────
+
+// Feature 1: "오늘 배운 것" AI 결과 → 원씽 프리필
+function prefillOneThingFromLearning() {
+  const contentDiv = document.getElementById('learningAiContent');
+  if (!contentDiv) return;
+  const text = contentDiv.innerText || contentDiv.textContent || '';
+  // 🎯 섹션 추출 시도
+  const match = text.match(/🎯[^\n]*\n([^\n📚🤔➕]+)/);
+  let prefill = match ? match[1].trim() : '';
+  if (!prefill) {
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 5 && !l.startsWith('📚') && !l.startsWith('🤔') && !l.startsWith('➕') && !l.startsWith('🎯'));
+    prefill = lines[lines.length - 1] || text.substring(0, 80).trim();
+  }
+  if (!prefill) return;
+  const dailyInput = document.getElementById('daily-onething-input');
+  if (dailyInput) {
+    dailyInput.value = prefill;
+    dailyInput.focus();
+    dailyInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    showToast('오늘의 원씽 입력창에 채워졌어요 ✏️ — 저장은 직접 눌러주세요!');
+  }
+}
+
+// Feature 2: 어제 다짐 배너 체크/수락/닫기
+function checkPledgeBanner() {
+  const todayKey = todayStr(currentDate);
+  const pledgeKey = 'pledge_for_' + todayKey;
+  const pledgeText = localStorage.getItem(pledgeKey);
+  const bannerEl = document.getElementById('pledge-banner');
+  const textEl = document.getElementById('pledge-banner-text');
+  if (!bannerEl || !textEl) return;
+  if (pledgeText) {
+    textEl.innerHTML = '<strong>어제 다짐:</strong> ' + pledgeText.replace(/</g, '&lt;').replace(/>/g, '&gt;') + ' — 오늘의 원씽으로 가져올까요?';
+    bannerEl.style.display = 'flex';
+  } else {
+    bannerEl.style.display = 'none';
+  }
+}
+
+function acceptPledge() {
+  const todayKey = todayStr(currentDate);
+  const pledgeKey = 'pledge_for_' + todayKey;
+  const pledgeText = localStorage.getItem(pledgeKey);
+  if (!pledgeText) return;
+  const dailyInput = document.getElementById('daily-onething-input');
+  if (dailyInput) {
+    dailyInput.value = pledgeText;
+    dailyInput.focus();
+    dailyInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    showToast('오늘의 원씽에 채워졌어요 ✏️ — 저장은 직접 눌러주세요!');
+  }
+  const bannerEl = document.getElementById('pledge-banner');
+  if (bannerEl) bannerEl.style.display = 'none';
+  localStorage.removeItem(pledgeKey);
+}
+
+function dismissPledge() {
+  const todayKey = todayStr(currentDate);
+  localStorage.removeItem('pledge_for_' + todayKey);
+  const bannerEl = document.getElementById('pledge-banner');
+  if (bannerEl) bannerEl.style.display = 'none';
+}
+
+// Feature 4: AI 하루 분석 결과 → 현재 카테고리로 원씽 프리필
+function prefillOneThingFromDailyAI() {
+  const contentDiv = document.getElementById('aiContent');
+  if (!contentDiv) return;
+  const text = contentDiv.innerText || contentDiv.textContent || '';
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 5);
+  const lastLine = lines[lines.length - 1] || lines[0] || text.substring(0, 80).trim();
+  const catLabels = { work: 'Work', job: 'Job', growth: 'Growth', personal: 'Personal' };
+  const catLabel = catLabels[currentCat] || currentCat;
+  const prefill = '[' + catLabel + '] ' + lastLine;
+  const dailyInput = document.getElementById('daily-onething-input');
+  if (dailyInput) {
+    dailyInput.value = prefill;
+    dailyInput.focus();
+    dailyInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    showToast(catLabel + ' 원씽 입력창에 채워졌어요 ✏️ — 저장은 직접 눌러주세요!');
+  }
+}
+
+// Feature 5: 주간 AI "다음 주 1순위" → 이번 주 원씽 프리필
+function prefillWeeklyOneThingFromAI(aiText) {
+  let prefill = '';
+  // "다음 주 1순위" 섹션 이후 텍스트 추출
+  const match = aiText.match(/다음 주 1순위[^\n]*\n([\s\S]+?)(?:\n\n|---|\n🎯|\n📊|\n✅|\n⚠️|$)/i);
+  if (match) {
+    prefill = match[1].trim().replace(/^[\s\-\*•]+/, '').trim();
+  }
+  if (!prefill) {
+    const lines = aiText.split('\n').map(l => l.trim()).filter(l => l.length > 5 && !l.startsWith('🔥') && !l.startsWith('📊') && !l.startsWith('✅') && !l.startsWith('⚠️') && !l.startsWith('🎯'));
+    prefill = lines[lines.length - 1] || '';
+  }
+  if (!prefill) return;
+  // 오늘 탭으로 이동 후 weekly-onething-input 채우기
+  navigate('today');
+  setTimeout(() => {
+    const weeklyInput = document.getElementById('weekly-onething-input');
+    if (weeklyInput) {
+      weeklyInput.value = prefill;
+      weeklyInput.style.height = 'auto';
+      weeklyInput.style.height = weeklyInput.scrollHeight + 'px';
+      weeklyInput.focus();
+      weeklyInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      showToast('이번 주 원씽 입력창에 채워졌어요 ✏️ — 저장은 직접 눌러주세요!');
+    }
+  }, 350);
 }
 
 </script>
@@ -5772,6 +6020,14 @@ ${reflectionSummary}
         ${formatted}
       </div>
     `;
+    // 3단계 Feature 5: "이번 주 원씽에 반영" 버튼 추가
+    const weeklyPrefillBtn = document.createElement('button');
+    weeklyPrefillBtn.className = 'cycle-prefill-btn';
+    weeklyPrefillBtn.style.width = '100%';
+    weeklyPrefillBtn.style.justifyContent = 'center';
+    weeklyPrefillBtn.innerHTML = '🎯 다음 주 1순위를 원씽에 반영';
+    weeklyPrefillBtn.onclick = () => prefillWeeklyOneThingFromAI(text);
+    resultArea.appendChild(weeklyPrefillBtn);
     btn.innerHTML = '🔄 다시 생성하기';
     btn.disabled = false;
 
