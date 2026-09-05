@@ -1046,6 +1046,16 @@ body {
   .recurring-btn { background: none; border: none; padding: 4px; border-radius: 4px; cursor: pointer; color: var(--text-muted); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
   .recurring-btn:hover { background: rgba(0,0,0,0.05); color: var(--text); }
   .recurring-btn.delete:hover { color: #ef4444; background: #fee2e2; }
+  .rt-day-chip {
+    width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid #D1D5DB;
+    background: #F3F4F6; color: #6B7280; font-size: 13px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    font-family: inherit; padding: 0;
+  }
+  .rt-day-chip.selected {
+    background: #7C3AED; color: #fff; border-color: #7C3AED;
+  }
   .add-routine-box { display: flex; gap: 8px; margin-top: 12px; padding: 0 4px; }
   .add-routine-input { flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s; background: var(--bg); color: var(--text); }
   .add-routine-input:focus { border-color: var(--primary); }
@@ -2735,13 +2745,22 @@ body {
 
           <div class="rc-field">
             <label class="modal-label">반복 주기</label>
-            <select id="rt-cycle-input" class="modal-input">
+            <select id="rt-cycle-input" class="modal-input" onchange="onCycleChange(this.value)">
               <option value="매일 (월~일)">매일(월~일)</option>
               <option value="매주 (월~금)">주중(월~금)</option>
               <option value="주말 (토~일)">주말</option>
-              <option value="주 1회">매주</option>
+              <option value="요일 선택">요일 선택</option>
               <option value="월 1회">매월</option>
             </select>
+          </div>
+          <div id="rt-day-chips" style="display:none; flex-wrap:wrap; gap:8px; margin-top:4px; margin-bottom:2px;">
+            <button type="button" class="rt-day-chip" data-day="mon" onclick="toggleDayChip(this)">월</button>
+            <button type="button" class="rt-day-chip" data-day="tue" onclick="toggleDayChip(this)">화</button>
+            <button type="button" class="rt-day-chip" data-day="wed" onclick="toggleDayChip(this)">수</button>
+            <button type="button" class="rt-day-chip" data-day="thu" onclick="toggleDayChip(this)">목</button>
+            <button type="button" class="rt-day-chip" data-day="fri" onclick="toggleDayChip(this)">금</button>
+            <button type="button" class="rt-day-chip" data-day="sat" onclick="toggleDayChip(this)">토</button>
+            <button type="button" class="rt-day-chip" data-day="sun" onclick="toggleDayChip(this)">일</button>
           </div>
           
           <div class="rc-field">
@@ -7474,14 +7493,50 @@ function renderProjects() {
   let allRecurringTasks = [];
   let editingTaskId = null;
 
+  // 요일 칩 토글 표시/숨김
+  function onCycleChange(val) {
+    const chips = document.getElementById('rt-day-chips');
+    if (!chips) return;
+    chips.style.display = val === '요일 선택' ? 'flex' : 'none';
+  }
+
+  // 요일 칩 선택/해제
+  function toggleDayChip(btn) {
+    btn.classList.toggle('selected');
+  }
+
+  // 현재 선택된 요일 코드 배열 반환 (['mon','thu'] 등)
+  function getSelectedDays() {
+    const chips = document.querySelectorAll('#rt-day-chips .rt-day-chip.selected');
+    return Array.from(chips).map(c => c.dataset.day);
+  }
+
+  // 요일 칩 초기화 (모두 해제)
+  function resetDayChips() {
+    document.querySelectorAll('#rt-day-chips .rt-day-chip').forEach(c => c.classList.remove('selected'));
+  }
+
+  // 요일 코드 → 칩 선택 상태 복원
+  function restoreDayChips(days) {
+    resetDayChips();
+    if (!days || !days.length) return;
+    document.querySelectorAll('#rt-day-chips .rt-day-chip').forEach(c => {
+      if (days.includes(c.dataset.day)) c.classList.add('selected');
+    });
+  }
+
   function openRecurringModal() {
     editingTaskId = null;
     const textInput = document.getElementById('rt-text-input');
     const startInput = document.getElementById('rt-start-input');
     const endInput = document.getElementById('rt-end-input');
+    const cycleInput = document.getElementById('rt-cycle-input');
     if(textInput) textInput.value = '';
     if(startInput) startInput.value = new Date().toISOString().split('T')[0];
     if(endInput) endInput.value = '';
+    if(cycleInput) cycleInput.value = '매일 (월~일)';
+    resetDayChips();
+    onCycleChange('매일 (월~일)');
     const modal = document.getElementById('recurring-modal');
     const titleEl = modal ? modal.querySelector('.modal-header-custom h3') : null;
     if(titleEl) titleEl.textContent = '반복업무 추가';
@@ -7507,14 +7562,27 @@ function renderProjects() {
     
     if(catInput) catInput.value = task.category || 'Work';
     if(textInput) textInput.value = task.text || '';
-    if(cycleInput) cycleInput.value = task.cycle || '매일 (월~일)';
     if(startInput) startInput.value = task.start_date || '';
     if(endInput) endInput.value = task.end_date || '';
-    
+
+    // weekly:mon,thu 형식이면 "요일 선택" + 칩 복원
+    if (cycleInput) {
+      if (task.cycle && task.cycle.startsWith('weekly:')) {
+        cycleInput.value = '요일 선택';
+        const days = task.cycle.slice(7).split(',').filter(Boolean);
+        restoreDayChips(days);
+        onCycleChange('요일 선택');
+      } else {
+        cycleInput.value = task.cycle || '매일 (월~일)';
+        resetDayChips();
+        onCycleChange(cycleInput.value);
+      }
+    }
+
     const modal = document.getElementById('recurring-modal');
     const titleEl = modal ? modal.querySelector('.modal-header-custom h3') : null;
     if(titleEl) titleEl.textContent = '반복업무 수정';
-    
+
     if(modal) modal.style.display = 'flex';
   }
 
@@ -7559,10 +7627,21 @@ function renderProjects() {
       return;
     }
 
+    const DAY_KO = { mon:'월', tue:'화', wed:'수', thu:'목', fri:'금', sat:'토', sun:'일' };
+    const DAY_ORDER = ['mon','tue','wed','thu','fri','sat','sun'];
+
     allRecurringTasks.forEach(t => {
       const startStr = t.start_date || '지정안됨';
       const endStr = t.end_date || '계속';
-      
+
+      // cycle 표시 텍스트 변환
+      let cycleDisplay = t.cycle;
+      if (t.cycle && t.cycle.startsWith('weekly:')) {
+        const days = t.cycle.slice(7).split(',').filter(Boolean);
+        const sorted = DAY_ORDER.filter(d => days.includes(d)).map(d => DAY_KO[d]);
+        cycleDisplay = '매주 ' + sorted.join('·');
+      }
+
       const cat = (t.category || 'work').toLowerCase();
       const style = CATEGORY_STYLES[cat] || CATEGORY_STYLES.work;
       
@@ -7585,7 +7664,7 @@ function renderProjects() {
         <div class="rc-divider"></div>
         <div class="rc-details">
           <span>
-            🔄 ${t.cycle}
+            🔄 ${cycleDisplay}
           </span>
           <span>
             📅 ${startStr} ~ ${endStr}
@@ -7602,13 +7681,24 @@ function renderProjects() {
   async function saveRecurringTask() {
     const cat = document.getElementById('rt-cat-input').value;
     const text = document.getElementById('rt-text-input').value.trim();
-    const cycle = document.getElementById('rt-cycle-input').value;
+    const rawCycle = document.getElementById('rt-cycle-input').value;
     const start = document.getElementById('rt-start-input').value;
     const end = document.getElementById('rt-end-input').value;
-    
+
     if(!text || !start) {
       showToast('할일 내용과 시작일을 모두 입력하세요.', true);
       return;
+    }
+
+    // 요일 선택 시 최소 1개 필요
+    let cycle = rawCycle;
+    if (rawCycle === '요일 선택') {
+      const selectedDays = getSelectedDays();
+      if (!selectedDays.length) {
+        showToast('요일을 하나 이상 선택해주세요.', true);
+        return;
+      }
+      cycle = 'weekly:' + selectedDays.join(',');
     }
     
     try {
@@ -7735,8 +7825,15 @@ function renderProjects() {
             if (startDay === todayDateNum) shouldRun = true;
             break;
           }
-          default:
-            shouldRun = false;
+          default: {
+            // 'weekly:mon,thu' 형식 처리
+            if (task.cycle && task.cycle.startsWith('weekly:')) {
+              const DOW_CODE = ['sun','mon','tue','wed','thu','fri','sat'];
+              const days = task.cycle.slice(7).split(',').filter(Boolean);
+              if (days.includes(DOW_CODE[todayDayOfWeek])) shouldRun = true;
+            }
+            break;
+          }
         }
 
         if (!shouldRun) continue;
