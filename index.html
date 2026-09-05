@@ -1136,7 +1136,8 @@ body {
   }
 
   /* GOALS 리뉴얼 */
-  .goals-layout-ver { display: flex; flex-direction: column; gap: 24px; margin-top: 16px; }
+  /* 삼쩜삼 원칙: 섹션 간 상단 여백 32px */
+  .goals-layout-ver { display: flex; flex-direction: column; gap: 32px; margin-top: 0; }
   .gc-card { border-radius: 12px; border: 1px solid; overflow: hidden; transition: all 0.3s; }
   .gc-card.collapsed .gc-body { display: none; }
   .gc-card.collapsed .chevron { transform: rotate(-90deg); }
@@ -2270,17 +2271,28 @@ body {
             ✨ 오늘 하루 분석받기
           </button>
           <div id="aiResult" style="display:none; margin-top:16px;">
-            <div
-              id="aiContent"
-              style="
-                font-size:14px; line-height:1.9;
-                color:#1f2937; white-space:pre-wrap;
-                background:#f8f8ff; border-radius:10px;
-                padding:16px; border:1px solid #e5e7eb;
-              ">
+            <!-- 핵심 한 줄 진단: 상단에 크게 (삼쩜삼 원칙) -->
+            <div id="ai-summary"></div>
+            <!-- 상세 분석: 접이식 아코디언 -->
+            <div class="ai-detail-accordion">
+              <button type="button" class="ai-detail-toggle" onclick="toggleAIDetail(this)">
+                <span>📋 상세 분석 보기</span>
+                <span class="ai-detail-chevron">▼</span>
+              </button>
+              <div class="ai-detail-body">
+                <div
+                  id="aiContent"
+                  style="
+                    font-size:14px; line-height:1.9;
+                    color:#1f2937; white-space:pre-wrap;
+                    background:#f8f8ff; border-radius:10px;
+                    padding:16px; border:1px solid #e5e7eb;
+                  ">
+                </div>
+              </div>
             </div>
             <!-- 3단계 Feature 4: AI 분석→원씽 프리필 버튼 -->
-            <button id="ai-to-onething-btn" class="cycle-prefill-btn" style="display:none; width:100%; justify-content:center;" onclick="prefillOneThingFromDailyAI()">
+            <button id="ai-to-onething-btn" class="cycle-prefill-btn" style="display:none; width:100%; justify-content:center; margin-top:10px;" onclick="prefillOneThingFromDailyAI()">
               🎯 이 카테고리로 원씽 만들기
             </button>
           </div>
@@ -2293,7 +2305,7 @@ body {
     <!-- RECURRING PAGE REPLACED BY MODAL -->
 
     <!-- WEEKLY PAGE -->
-    <div id="page-weekly" style="display:none;padding:20px 28px;">
+    <div id="page-weekly" style="display:none;padding:20px;">
       <div class="review-header">
         <button class="review-nav-btn" onclick="weeklyOffset--; loadWeeklyPage()">&#8249;</button>
         <div style="flex:1;text-align:center">
@@ -2305,7 +2317,7 @@ body {
       <div id="weekly-body"><div class="rv-spinner">데이터 불러오는 중...</div></div>
     </div>
     <!-- MONTHLY PAGE -->
-    <div id="page-monthly" style="display:none;padding:20px 28px;">
+    <div id="page-monthly" style="display:none;padding:20px;">
       <div class="review-header">
         <button class="review-nav-btn" onclick="monthlyOffset--; loadMonthlyPage()">&#8249;</button>
         <div style="flex:1;text-align:center">
@@ -2317,7 +2329,7 @@ body {
       <div id="monthly-body"><div class="rv-spinner">데이터 불러오는 중...</div></div>
     </div>
     <!-- YEARLY PAGE -->
-    <div id="page-yearly" style="display:none;padding:20px 28px;">
+    <div id="page-yearly" style="display:none;padding:20px;">
       <div class="review-header">
         <button class="review-nav-btn" onclick="yearlyOffset--; loadYearlyPage()">&#8249;</button>
         <div style="flex:1;text-align:center">
@@ -2389,14 +2401,14 @@ body {
       </div>
     </div>
 
-    <div id="page-goals" style="display:none;padding:20px 28px;">
+    <div id="page-goals" style="display:none;padding:20px;">
       <div class="review-header" style="margin-bottom: 8px;">
         <h2>목표 관리</h2>
         <p style="margin-top:4px;">연간 목표 및 월간 실천계획을 관리합니다.</p>
       </div>
 
       <!-- 신규: 연간 원씽 섹션 -->
-      <div id="yearly-onething-section" style="margin-bottom: 24px;">
+      <div id="yearly-onething-section" style="margin-bottom: 32px; margin-top: 20px;">
         <h3 style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px; font-size: 18px;">
           <span id="onething-year-label">년 연간 원씽</span>
         </h3>
@@ -2533,8 +2545,8 @@ body {
           </div>
         </div>
 
-        <!-- 신규: 월간 원씽 섹션 -->
-        <div id="monthly-onething-section" style="margin-bottom: 24px;">
+        <!-- 신규: 월간 원씽 섹션 (삼쩜삼 원칙: 섹션 구분은 여백으로) -->
+        <div id="monthly-onething-section" style="margin-bottom: 0;">
           <h3 style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 18px;">
             <span><span id="onething-month-label">년 월 월간 원씽</span></span>
             <button id="monthly-onething-ai-btn" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; text-shadow: 0 1px 1px rgba(0,0,0,0.2); box-shadow: 0 2px 6px rgba(139,92,246,0.3);" onclick="getMonthlyOneThingSuggest()">✨ AI로 이번 달 원씽 제안받기</button>
@@ -3161,25 +3173,14 @@ async function loadData() {
       document.getElementById('ref3').value = ref.regrets || '';
       document.getElementById('ref4').value = ref.tomorrow_goal || '';
 
-      // AI 분석 결과 복원
-      const resultDiv = document.getElementById('aiResult');
-      const contentDiv = document.getElementById('aiContent');
+      // AI 분석 결과 복원 (헬퍼 사용: 핵심 상단 + 상세 아코디언)
       const btn = document.getElementById('aiBtn');
       if (ref.ai_feedback) {
-        if (resultDiv && contentDiv) {
-          const formattedText = ref.ai_feedback
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\n/g, '<br>');
-          contentDiv.innerHTML = '';
-          contentDiv.innerHTML = formattedText;
-          resultDiv.style.display = 'block';
-        }
+        renderAIResult(ref.ai_feedback);
         if (btn) btn.innerHTML = '✨ 오늘 하루 분석받기 (재분석)';
       } else {
-        if (resultDiv && contentDiv) {
-          contentDiv.textContent = '';
-          resultDiv.style.display = 'none';
-        }
+        const resultDiv = document.getElementById('aiResult');
+        if (resultDiv) resultDiv.style.display = 'none';
         if (btn) btn.innerHTML = '✨ 오늘 하루 분석받기';
       }
     } else {
@@ -5205,6 +5206,40 @@ function autoResizeTa(ta) {
 }
 
 // ── AI 하루 분석 ──
+// ── AI 결과 렌더링 헬퍼 (삼쩜삼 원칙: 핵심 상단 크게 + 상세 아코디언) ──
+function renderAIResult(text) {
+  const summaryDiv = document.getElementById('ai-summary');
+  const contentDiv = document.getElementById('aiContent');
+  const resultDiv  = document.getElementById('aiResult');
+  if (!resultDiv) return;
+
+  // 첫 번째 섹션 (🔥 오늘의 한 줄 진단) 추출
+  // 두 번째 이모지 섹션(📊)이 나오기 전까지를 요약으로 사용
+  const detailStart = text.search(/\n📊/);
+  const summaryRaw  = detailStart > 0 ? text.substring(0, detailStart).trim() : text.split('\n')[0];
+  const detailRaw   = detailStart > 0 ? text.substring(detailStart).trim()    : text;
+
+  const toHtml = (s) => s
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+
+  if (summaryDiv) summaryDiv.innerHTML = toHtml(summaryRaw);
+  if (contentDiv) contentDiv.innerHTML = toHtml(detailRaw);
+
+  resultDiv.style.display = 'block';
+
+  // 원씽 연결 버튼 표시
+  const atBtn = document.getElementById('ai-to-onething-btn');
+  if (atBtn) atBtn.style.display = 'flex';
+}
+
+// 상세 분석 아코디언 토글
+function toggleAIDetail(btn) {
+  btn.classList.toggle('open');
+  const body = btn.nextElementSibling;
+  body.classList.toggle('open');
+}
+
 async function runAIAnalysis() {
   const btn = document.getElementById('aiBtn');
   if (!btn) return;
@@ -5354,20 +5389,8 @@ async function runAIAnalysis() {
       }, { onConflict: 'log_date,user_id' });
     }
 
-    // 결과 표시
-    const resultDiv = document.getElementById('aiResult');
-    const contentDiv = document.getElementById('aiContent');
-    if (resultDiv && contentDiv) {
-      const formattedText = result
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\n/g, '<br>');
-      contentDiv.innerHTML = ''; // 먼저 비우기
-      contentDiv.innerHTML = formattedText; // 그 다음 삽입
-      resultDiv.style.display = 'block';
-      // 3단계 Feature 4: 원씽 만들기 버튼 표시
-      const atBtn = document.getElementById('ai-to-onething-btn');
-      if (atBtn) atBtn.style.display = 'flex';
-    }
+    // 결과 표시 (헬퍼 사용: 핵심 상단 + 상세 아코디언)
+    renderAIResult(result);
 
     showToast('AI 분석 완료! 🤖');
     
@@ -5679,7 +5702,7 @@ function prefillWeeklyOneThingFromAI(aiText) {
 .onething-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: 12px; /* 삼쩜삼 원칙: 카드 간격 12px */
 }
 .onething-box {
   background: #ffffff;
@@ -5751,6 +5774,37 @@ function prefillWeeklyOneThingFromAI(aiText) {
   transition: background 0.15s;
 }
 .btn-ai:hover { background: #6D28D9; }
+
+/* ── AI 요약 카드 (삼쩜삼 원칙: 수치/핵심 문구를 상단에 크게) ── */
+#ai-summary {
+  background: var(--ai-bg);          /* #F5F3FF 보라 tint */
+  border: 1.5px solid #DDD6FE;       /* 기존 --accent-purple-border */
+  border-left: 4px solid var(--primary); /* #7C3AED 포인트 1곳 */
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
+
+/* ── AI 상세 아코디언 ── */
+.ai-detail-accordion { margin-top: 8px; }
+.ai-detail-toggle {
+  width: 100%; background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 9px 14px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+  display: flex; align-items: center; justify-content: space-between;
+  color: var(--text-secondary); transition: background 0.15s;
+}
+.ai-detail-toggle:hover { background: var(--bg-hover); color: var(--primary); }
+.ai-detail-chevron { font-size: 11px; transition: transform 0.2s; display: inline-block; }
+.ai-detail-toggle.open .ai-detail-chevron { transform: rotate(180deg); }
+.ai-detail-body { display: none; padding-top: 8px; }
+.ai-detail-body.open { display: block; }
 
 /* ── 월말 결과 아코디언 ── */
 .result-accordion { border-top: 1px solid #f3f4f6; margin-top: 4px; }
