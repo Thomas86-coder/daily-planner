@@ -17,39 +17,52 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root {
-  --primary: #5B5FC7;
-  --primary-light: #7B7FE0;
-  --primary-dark: #4A4DAF;
+  --primary: #7C3AED;
+  --primary-light: #9F67FA;
+  --primary-dark: #6D28D9;
   --purple: #9284BE;
-  --gradient: linear-gradient(135deg, #5B5FC7 0%, #8B7AB8 100%);
-  --bg: #F0F2F5;
+  --gradient: linear-gradient(135deg, #7C3AED 0%, #9F67FA 100%);
+  --bg: #F5F5F7;
   --bg-card: #ffffff;
-  --bg-hover: #f8f8ff;
+  --bg-hover: #f5f3ff;
   --text-primary: #1f2937;
   --text-secondary: #6b7280;
   --text-muted: #9ca3af;
   --border: #e5e7eb;
   --border-light: #f3f4f6;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow: 0 4px 12px rgba(91,95,199,0.10), 0 1px 3px rgba(0,0,0,0.06);
-  --shadow-lg: 0 10px 30px rgba(91,95,199,0.15);
-  --radius: 14px;
+  --shadow: 0 4px 12px rgba(124,58,237,0.08), 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 30px rgba(124,58,237,0.12);
+  --radius: 12px;
   --radius-sm: 8px;
   --work: #F59E42;
   --job: #3B82F6;
-  --growth: #9B8CD9;
+  --growth: #10b981;
   --personal: #E66BA4;
   --morning: #F59E42;
-  --daytime: #5B5FC7;
+  --daytime: #7C3AED;
   --night: #6B7EE0;
   --success: #10b981;
   --nav-width: 220px;
-  --accent-purple: #7F77DD;
-  --accent-purple-bg: #EEEDFE;
-  --accent-purple-dark: #3C3489;
-  --accent-purple-border: #C4B8F8;
-  --page-bg: #F0F2F5;
-  --card-border: #f0f0f0;
+  --accent-purple: #7C3AED;
+  --accent-purple-bg: #F5F3FF;
+  --accent-purple-dark: #6D28D9;
+  --accent-purple-border: #DDD6FE;
+  --page-bg: #F5F5F7;
+  --card-border: #e5e7eb;
+  /* Ant Design 기반 토큰 */
+  --btn-height: 32px;
+  --btn-height-lg: 40px;
+  --btn-radius: 6px;
+  --card-padding: 20px;
+  --card-radius: 12px;
+  /* 카테고리 태그 색상 */
+  --tag-work-bg: #DBEAFE; --tag-work-color: #1D4ED8;
+  --tag-job-bg: #FEF3C7;  --tag-job-color: #92400E;
+  --tag-growth-bg: #D1FAE5; --tag-growth-color: #065F46;
+  --tag-personal-bg: #FEE2E2; --tag-personal-color: #991B1B;
+  /* AI 결과 영역 */
+  --ai-bg: #F5F3FF; --ai-border: #7C3AED;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -924,20 +937,20 @@ body {
     gap: 20px;
   }
   .rc-card {
-    background: #fef8e7;
-    border: 1px solid #fde68a;
-    border-radius: 16px;
-    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 18px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
     position: relative;
-    box-shadow: 0 4px 12px rgba(253, 224, 71, 0.1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     transition: transform 0.2s, box-shadow 0.2s;
   }
   .rc-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(253, 224, 71, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(124,58,237,0.10);
   }
   .rc-header {
     display: flex;
@@ -945,17 +958,17 @@ body {
     align-items: center;
   }
   .rc-icon-box {
-    background: #f59e0b;
-    border-radius: 12px;
-    width: 46px;
-    height: 46px;
+    background: #7C3AED;
+    border-radius: 10px;
+    width: 42px;
+    height: 42px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 18px;
     color: white;
     flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
+    box-shadow: 0 2px 6px rgba(124,58,237,0.25);
   }
   .rc-info {
     flex: 1;
@@ -966,34 +979,31 @@ body {
   }
   .rc-info h3 {
     margin: 0;
-    font-size: 15.5px;
+    font-size: 15px;
     color: #1f2937;
     font-weight: 700;
   }
   .rc-badge {
-    background: #f59e0b;
-    color: white;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 20px;
+    display: inline-flex; align-items: center;
+    font-size: 11px; font-weight: 700;
+    padding: 2px 8px; border-radius: 99px;
     align-self: flex-start;
   }
   .rc-delete {
     position: absolute;
-    top: 20px;
-    right: 16px;
+    top: 14px;
+    right: 14px;
     background: none;
     border: none;
-    color: #9ca3af;
+    color: #d1d5db;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 16px;
     padding: 4px;
     transition: all 0.2s;
   }
   .rc-delete:hover { color: #ef4444; transform: scale(1.15); }
   .rc-divider {
-    border-bottom: 2px dashed #fde68a;
+    border-bottom: 1px solid #f3f4f6;
     margin: 2px 0;
   }
   .rc-details {
@@ -1007,24 +1017,24 @@ body {
   .rc-details span { display: flex; align-items: center; gap: 8px; font-weight: 500; }
   .rc-action-btn {
     width: 100%;
-    background: var(--gradient, linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%));
+    background: #7C3AED;
     color: white;
     border: none;
-    padding: 12px;
-    border-radius: 10px;
+    padding: 10px;
+    border-radius: var(--btn-radius);
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: opacity 0.2s, box-shadow 0.2s;
-    box-shadow: 0 4px 10px rgba(139, 92, 246, 0.25);
+    transition: background 0.15s, box-shadow 0.15s;
+    box-shadow: 0 2px 6px rgba(124,58,237,0.20);
   }
   .rc-action-btn:hover {
-    opacity: 0.9;
-    box-shadow: 0 6px 14px rgba(139, 92, 246, 0.35);
+    background: #6D28D9;
+    box-shadow: 0 4px 10px rgba(124,58,237,0.30);
   }
   .rt-badge {
     background: #ede9fe;
@@ -1146,28 +1156,34 @@ body {
   
   .gc-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; padding-top: 20px; border-top: 1px dashed rgba(0,0,0,0.1); }
   
-  .btn-gc { padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s; white-space: nowrap; }
-  .btn-gc:hover { opacity: 0.85; }
+  .btn-gc { padding: 0 20px; height: var(--btn-height-lg); border-radius: var(--btn-radius); font-weight: 600; font-size: 14px; cursor: pointer; border: none; display: flex; align-items: center; gap: 6px; transition: all 0.15s; white-space: nowrap; }
+  .btn-gc:hover { opacity: 0.88; }
   .btn-gc svg { width: 16px; height: 16px; }
-  .btn-gray { background: #e5e7eb; color: #374151; }
-  .btn-gray-light { background: #f3f4f6; color: #4b5563; }
+  /* Secondary ghost 스타일 */
+  .btn-gray { background: transparent; color: #374151; border: 1.5px solid #e5e7eb; }
+  .btn-gray:hover { border-color: #7C3AED; color: #7C3AED; }
+  .btn-gray-light { background: #f5f3ff; color: #7C3AED; border: 1.5px solid #DDD6FE; }
+  .btn-gray-light:hover { background: #ede9fe; }
   
-  /* Themes */
-  .theme-purple { background: #f9f0ff; border-color: #d8b4e2; }
-  .theme-purple .gc-icon { background: #ab7cf6; }
-  .theme-purple .btn-primary { background: #ab7cf6; color: white; }
-  .theme-purple .gc-body { border-top-color: #eaddf3; }
-  
-  .theme-indigo { background: #f4f0ff; border-color: #c0b0ed; }
-  .theme-indigo .gc-icon { background: #8b5cf6; }
-  .theme-indigo .btn-primary { background: #8b5cf6; color: white; }
-  .theme-indigo .btn-sub { background: #c5abf9; color: white; }
-  .theme-indigo .gc-body { border-top-color: #ded5f7; }
-  
-  .theme-mint { background: #eefbf7; border-color: #73d8c1; }
-  .theme-mint .gc-icon { background: #1eb589; }
-  .theme-mint .btn-primary { background: #1eb589; color: white; }
-  .theme-mint .gc-body { border-top-color: #aaeadd; }
+  /* Themes — 카드 배경 흰색 통일, 아이콘만 색상 유지 */
+  .theme-purple, .theme-indigo, .theme-mint {
+    background: #ffffff;
+    border-color: #e5e7eb;
+  }
+  .theme-purple .gc-icon  { background: #7C3AED; }
+  .theme-indigo .gc-icon  { background: #7C3AED; }
+  .theme-mint .gc-icon    { background: #7C3AED; }
+
+  /* 모든 테마의 btn-primary → 보라색 통일 */
+  .theme-purple .btn-primary,
+  .theme-indigo .btn-primary,
+  .theme-mint .btn-primary  { background: #7C3AED; color: white; }
+  .theme-indigo .btn-sub    { background: #DDD6FE; color: #4C1D95; }
+
+  /* gc-body 구분선 */
+  .theme-purple .gc-body,
+  .theme-indigo .gc-body,
+  .theme-mint .gc-body      { border-top-color: #e5e7eb; }
   
   /* Routine Cols */
   .routine-cols { display: flex; gap: 20px; }
@@ -1304,7 +1320,7 @@ body {
   border: 1px solid #e5e7eb;
 }
 .tab-btn.active.tab-active {
-  background: #3b82f6;
+  background: #7C3AED;
   color: white;
 }
 .tab-btn.active.tab-completed {
@@ -1425,7 +1441,7 @@ body {
   color: #6b7280;
 }
 .tab-btn.active.tab-active {
-  background: #3b82f6;
+  background: #7C3AED;
   color: white;
 }
 .tab-btn.active.tab-completed {
@@ -2523,18 +2539,25 @@ body {
             <span><span id="onething-month-label">년 월 월간 원씽</span></span>
             <button id="monthly-onething-ai-btn" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; text-shadow: 0 1px 1px rgba(0,0,0,0.2); box-shadow: 0 2px 6px rgba(139,92,246,0.3);" onclick="getMonthlyOneThingSuggest()">✨ AI로 이번 달 원씽 제안받기</button>
           </h3>
-          <div id="ai-monthly-onething-notice" style="display: none; background: #fef9c3; color: #92400e; padding: 10px; border-radius: 8px; font-weight: 600; margin-bottom: 12px; font-size: 13.5px; text-align: center;">💡 AI가 제안한 내용이에요. 확인 후 각각 '저장' 버튼을 누르세요!</div>
+          <div id="ai-monthly-onething-notice" class="monthly-ai-notice">💡 AI가 제안한 내용이에요. 확인 후 각각 '저장' 버튼을 누르세요!</div>
           <div class="onething-grid">
             <!-- Work -->
             <div class="onething-box work">
               <div class="onething-label">💼 Work (업무)</div>
               <input type="text" id="onething-input-m-work" class="onething-input" placeholder="업무 카테고리 원씽을 입력하세요">
               <button id="onething-save-m-work" class="onething-save-btn" onclick="saveMonthlyOneThing('work')">저장</button>
-              <div class="onething-label" style="margin-top: 8px; font-size: 13px; color: #555;">🏆 월말 결과</div>
-              <textarea id="onething-result-m-work" class="onething-input" placeholder="월말 결과를 입력하세요" rows="6" style="resize: vertical;"></textarea>
-              <div style="display: flex; gap: 6px;">
-                <button id="onething-save-result-m-work" class="onething-save-btn" style="flex:1;" onclick="saveMonthlyOneThingResult('work')">저장</button>
-                <button id="onething-ai-m-work" class="onething-save-btn" style="flex:1; background: linear-gradient(135deg, #9F7AEA 0%, #D6BCFA 100%); color: #4A154B; border: none; text-shadow: 0 1px 1px rgba(255,255,255,0.4);" onclick="generateMonthlyResultAI('work')">✨ AI 생성</button>
+              <div class="result-accordion">
+                <button type="button" class="result-accordion-header" onclick="toggleResultAccordion(this)">
+                  <span class="result-label">🏆 월말 결과</span>
+                  <span class="result-chevron">▼</span>
+                </button>
+                <div class="result-accordion-body">
+                  <textarea id="onething-result-m-work" class="onething-result-ta" placeholder="월말 결과를 입력하세요" oninput="autoResizeTa(this)"></textarea>
+                  <div style="display: flex; gap: 6px; margin-top: 6px;">
+                    <button id="onething-save-result-m-work" class="onething-save-btn" style="flex:1;" onclick="saveMonthlyOneThingResult('work')">저장</button>
+                    <button id="onething-ai-m-work" class="btn-ai" style="flex:1;" onclick="generateMonthlyResultAI('work')">✨ AI 생성</button>
+                  </div>
+                </div>
               </div>
             </div>
             <!-- Job -->
@@ -2542,11 +2565,18 @@ body {
               <div class="onething-label">📋 Job (직무)</div>
               <input type="text" id="onething-input-m-job" class="onething-input" placeholder="직무 카테고리 원씽을 입력하세요">
               <button id="onething-save-m-job" class="onething-save-btn" onclick="saveMonthlyOneThing('job')">저장</button>
-              <div class="onething-label" style="margin-top: 8px; font-size: 13px; color: #555;">🏆 월말 결과</div>
-              <textarea id="onething-result-m-job" class="onething-input" placeholder="월말 결과를 입력하세요" rows="6" style="resize: vertical;"></textarea>
-              <div style="display: flex; gap: 6px;">
-                <button id="onething-save-result-m-job" class="onething-save-btn" style="flex:1;" onclick="saveMonthlyOneThingResult('job')">저장</button>
-                <button id="onething-ai-m-job" class="onething-save-btn" style="flex:1; background: linear-gradient(135deg, #9F7AEA 0%, #D6BCFA 100%); color: #4A154B; border: none; text-shadow: 0 1px 1px rgba(255,255,255,0.4);" onclick="generateMonthlyResultAI('job')">✨ AI 생성</button>
+              <div class="result-accordion">
+                <button type="button" class="result-accordion-header" onclick="toggleResultAccordion(this)">
+                  <span class="result-label">🏆 월말 결과</span>
+                  <span class="result-chevron">▼</span>
+                </button>
+                <div class="result-accordion-body">
+                  <textarea id="onething-result-m-job" class="onething-result-ta" placeholder="월말 결과를 입력하세요" oninput="autoResizeTa(this)"></textarea>
+                  <div style="display: flex; gap: 6px; margin-top: 6px;">
+                    <button id="onething-save-result-m-job" class="onething-save-btn" style="flex:1;" onclick="saveMonthlyOneThingResult('job')">저장</button>
+                    <button id="onething-ai-m-job" class="btn-ai" style="flex:1;" onclick="generateMonthlyResultAI('job')">✨ AI 생성</button>
+                  </div>
+                </div>
               </div>
             </div>
             <!-- Growth -->
@@ -2554,11 +2584,18 @@ body {
               <div class="onething-label">🌱 Growth (성장)</div>
               <input type="text" id="onething-input-m-growth" class="onething-input" placeholder="성장 카테고리 원씽을 입력하세요">
               <button id="onething-save-m-growth" class="onething-save-btn" onclick="saveMonthlyOneThing('growth')">저장</button>
-              <div class="onething-label" style="margin-top: 8px; font-size: 13px; color: #555;">🏆 월말 결과</div>
-              <textarea id="onething-result-m-growth" class="onething-input" placeholder="월말 결과를 입력하세요" rows="6" style="resize: vertical;"></textarea>
-              <div style="display: flex; gap: 6px;">
-                <button id="onething-save-result-m-growth" class="onething-save-btn" style="flex:1;" onclick="saveMonthlyOneThingResult('growth')">저장</button>
-                <button id="onething-ai-m-growth" class="onething-save-btn" style="flex:1; background: linear-gradient(135deg, #9F7AEA 0%, #D6BCFA 100%); color: #4A154B; border: none; text-shadow: 0 1px 1px rgba(255,255,255,0.4);" onclick="generateMonthlyResultAI('growth')">✨ AI 생성</button>
+              <div class="result-accordion">
+                <button type="button" class="result-accordion-header" onclick="toggleResultAccordion(this)">
+                  <span class="result-label">🏆 월말 결과</span>
+                  <span class="result-chevron">▼</span>
+                </button>
+                <div class="result-accordion-body">
+                  <textarea id="onething-result-m-growth" class="onething-result-ta" placeholder="월말 결과를 입력하세요" oninput="autoResizeTa(this)"></textarea>
+                  <div style="display: flex; gap: 6px; margin-top: 6px;">
+                    <button id="onething-save-result-m-growth" class="onething-save-btn" style="flex:1;" onclick="saveMonthlyOneThingResult('growth')">저장</button>
+                    <button id="onething-ai-m-growth" class="btn-ai" style="flex:1;" onclick="generateMonthlyResultAI('growth')">✨ AI 생성</button>
+                  </div>
+                </div>
               </div>
             </div>
             <!-- Personal -->
@@ -2566,11 +2603,18 @@ body {
               <div class="onething-label">💜 Personal (개인)</div>
               <input type="text" id="onething-input-m-personal" class="onething-input" placeholder="개인 카테고리 원씽을 입력하세요">
               <button id="onething-save-m-personal" class="onething-save-btn" onclick="saveMonthlyOneThing('personal')">저장</button>
-              <div class="onething-label" style="margin-top: 8px; font-size: 13px; color: #555;">🏆 월말 결과</div>
-              <textarea id="onething-result-m-personal" class="onething-input" placeholder="월말 결과를 입력하세요" rows="6" style="resize: vertical;"></textarea>
-              <div style="display: flex; gap: 6px;">
-                <button id="onething-save-result-m-personal" class="onething-save-btn" style="flex:1;" onclick="saveMonthlyOneThingResult('personal')">저장</button>
-                <button id="onething-ai-m-personal" class="onething-save-btn" style="flex:1; background: linear-gradient(135deg, #9F7AEA 0%, #D6BCFA 100%); color: #4A154B; border: none; text-shadow: 0 1px 1px rgba(255,255,255,0.4);" onclick="generateMonthlyResultAI('personal')">✨ AI 생성</button>
+              <div class="result-accordion">
+                <button type="button" class="result-accordion-header" onclick="toggleResultAccordion(this)">
+                  <span class="result-label">🏆 월말 결과</span>
+                  <span class="result-chevron">▼</span>
+                </button>
+                <div class="result-accordion-body">
+                  <textarea id="onething-result-m-personal" class="onething-result-ta" placeholder="월말 결과를 입력하세요" oninput="autoResizeTa(this)"></textarea>
+                  <div style="display: flex; gap: 6px; margin-top: 6px;">
+                    <button id="onething-save-result-m-personal" class="onething-save-btn" style="flex:1;" onclick="saveMonthlyOneThingResult('personal')">저장</button>
+                    <button id="onething-ai-m-personal" class="btn-ai" style="flex:1;" onclick="generateMonthlyResultAI('personal')">✨ AI 생성</button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -3798,10 +3842,10 @@ function renderTodos() {
   if (!container) return;
 
   const categories = [
-    { key: 'work', label: 'Work', icon: '🗂', bg: '#fff7ed', border: '#fed7aa', color: '#f59e0b' },
-    { key: 'job', label: 'Job', icon: '📋', bg: '#f0f9ff', border: '#bae6fd', color: '#06b6d4' },
-    { key: 'growth', label: 'Growth', icon: '🌱', bg: '#f0fdf4', border: '#bbf7d0', color: '#10b981' },
-    { key: 'personal', label: 'Personal', icon: '💜', bg: '#fdf4ff', border: '#f5d0fe', color: '#ec4899' }
+    { key: 'work',     label: 'Work',     icon: '💼', bg: '#ffffff', border: '#93C5FD', color: '#1D4ED8', tagBg: '#DBEAFE', tagColor: '#1D4ED8' },
+    { key: 'job',      label: 'Job',      icon: '📋', bg: '#ffffff', border: '#FCD34D', color: '#92400E', tagBg: '#FEF3C7', tagColor: '#92400E' },
+    { key: 'growth',   label: 'Growth',   icon: '🌱', bg: '#ffffff', border: '#6EE7B7', color: '#065F46', tagBg: '#D1FAE5', tagColor: '#065F46' },
+    { key: 'personal', label: 'Personal', icon: '💜', bg: '#ffffff', border: '#FCA5A5', color: '#991B1B', tagBg: '#FEE2E2', tagColor: '#991B1B' }
   ];
 
   let html = '';
@@ -3817,14 +3861,15 @@ function renderTodos() {
 
     html += `
       <div id="group-${cat.key}" style="
-        background:${cat.bg};
-        border:1px solid ${cat.border};
+        background:#ffffff;
+        border:1px solid #e5e7eb;
+        border-top:3px solid ${cat.border};
         border-radius:12px;
         padding:14px 16px;
         margin-bottom:12px;
       ">
-        <div style="font-weight:700; color:${cat.color}; font-size:14px; margin-bottom:10px;">
-          ${cat.icon} ${cat.label}
+        <div style="margin-bottom:10px;">
+          <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700;background:${cat.tagBg};color:${cat.tagColor};">${cat.icon} ${cat.label}</span>
         </div>
         ${list.map(t => `
           <div style="
@@ -4503,7 +4548,16 @@ async function loadMonthlyOneThings() {
         const el = document.getElementById(`onething-input-m-${item.category}`);
         const elRes = document.getElementById(`onething-result-m-${item.category}`);
         if (el) el.value = item.text || '';
-        if (elRes) elRes.value = item.result || '';
+        if (elRes) {
+          elRes.value = item.result || '';
+          // 결과 값이 있으면 아코디언 자동 펼치기
+          if (item.result) {
+            const body = elRes.closest('.result-accordion-body');
+            const header = body && body.previousElementSibling;
+            if (body) { body.classList.add('open'); autoResizeTa(elRes); }
+            if (header) header.classList.add('open');
+          }
+        }
       });
     }
   } catch (err) {
@@ -5134,6 +5188,22 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2800);
 }
 
+/* ── 월말 결과 아코디언 토글 ── */
+function toggleResultAccordion(btn) {
+  btn.classList.toggle('open');
+  const body = btn.nextElementSibling;
+  body.classList.toggle('open');
+  if (body.classList.contains('open')) {
+    const ta = body.querySelector('textarea');
+    if (ta) autoResizeTa(ta);
+  }
+}
+/* ── textarea auto-height ── */
+function autoResizeTa(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 'px';
+}
+
 // ── AI 하루 분석 ──
 async function runAIAnalysis() {
   const btn = document.getElementById('aiBtn');
@@ -5612,48 +5682,107 @@ function prefillWeeklyOneThingFromAI(aiText) {
   gap: 16px;
 }
 .onething-box {
-  background: linear-gradient(135deg, #FFFAF0 0%, #FFF5E1 100%);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  transition: box-shadow 0.2s;
 }
-.onething-box.work { border: 2px solid #FB923C; }
-.onething-box.job { border: 2px solid #60A5FA; }
-.onething-box.growth { border: 2px solid #4ADE80; }
-.onething-box.personal { border: 2px solid #F472B6; }
+.onething-box:hover { box-shadow: 0 2px 8px rgba(124,58,237,0.08); }
+/* 카테고리는 상단 3px 보더라인으로만 구분 */
+.onething-box.work  { border-top: 3px solid #93C5FD; }
+.onething-box.job   { border-top: 3px solid #FCD34D; }
+.onething-box.growth { border-top: 3px solid #6EE7B7; }
+.onething-box.personal { border-top: 3px solid #FCA5A5; }
 
-.onething-label { font-weight: 700; font-size: 14px; }
-.onething-box.work .onething-label { color: #F97316; }
-.onething-box.job .onething-label { color: #3B82F6; }
-.onething-box.growth .onething-label { color: #22C55E; }
-.onething-box.personal .onething-label { color: #EC4899; }
+/* 카테고리 라벨: pill 태그 스타일 */
+.onething-label {
+  font-weight: 700; font-size: 13px;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 99px;
+}
+.onething-box.work .onething-label     { background: var(--tag-work-bg);     color: var(--tag-work-color); }
+.onething-box.job .onething-label      { background: var(--tag-job-bg);      color: var(--tag-job-color); }
+.onething-box.growth .onething-label   { background: var(--tag-growth-bg);   color: var(--tag-growth-color); }
+.onething-box.personal .onething-label { background: var(--tag-personal-bg); color: var(--tag-personal-color); }
 
 .onething-input {
-  border: 1px solid rgba(0,0,0,0.1);
-  border-radius: 8px;
-  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--btn-radius);
+  padding: 9px 12px;
   font-size: 14px;
   width: 100%;
-  background: rgba(255,255,255,0.7);
+  background: #fafafa;
   box-sizing: border-box;
+  transition: border-color 0.2s;
 }
+.onething-input:focus { border-color: #7C3AED; outline: none; background: #fff; }
+
+/* 저장 버튼: ghost Secondary */
 .onething-save-btn {
-  background: #333;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 8px;
+  background: transparent;
+  color: #7C3AED;
+  border: 1.5px solid #7C3AED;
+  border-radius: var(--btn-radius);
+  padding: 6px 14px;
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   align-self: flex-end;
-  transition: all 0.2s;
+  height: var(--btn-height);
+  transition: all 0.15s;
 }
-.onething-save-btn:hover { background: #000; }
+.onething-save-btn:hover { background: #7C3AED; color: #fff; }
 
 @media (max-width: 768px) {
   .onething-grid { grid-template-columns: 1fr; }
+}
+
+/* ── AI 생성 버튼 공통 스타일 ── */
+.btn-ai {
+  background: #7C3AED; color: #fff;
+  border: none; border-radius: var(--btn-radius);
+  padding: 6px 14px; font-size: 13px; font-weight: 600;
+  cursor: pointer; height: var(--btn-height);
+  display: inline-flex; align-items: center; gap: 5px;
+  transition: background 0.15s;
+}
+.btn-ai:hover { background: #6D28D9; }
+
+/* ── 월말 결과 아코디언 ── */
+.result-accordion { border-top: 1px solid #f3f4f6; margin-top: 4px; }
+.result-accordion-header {
+  width: 100%; background: none; border: none; padding: 10px 0 6px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; font-family: inherit;
+}
+.result-accordion-header .result-label {
+  font-size: 13px; font-weight: 700; color: #6b7280;
+  display: flex; align-items: center; gap: 6px;
+}
+.result-accordion-header .result-chevron { font-size: 11px; color: #9ca3af; transition: transform 0.2s; }
+.result-accordion-header.open .result-chevron { transform: rotate(180deg); }
+.result-accordion-body { display: none; padding-top: 4px; }
+.result-accordion-body.open { display: block; }
+/* auto-height textarea */
+.onething-result-ta {
+  width: 100%; min-height: 72px;
+  border: 1px solid #e5e7eb; border-radius: var(--btn-radius);
+  padding: 9px 12px; font-size: 13.5px; line-height: 1.6;
+  font-family: inherit; resize: none; overflow: hidden;
+  background: #fafafa; box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.onething-result-ta:focus { border-color: #7C3AED; outline: none; background: #fff; }
+/* 월간 AI 알림 배너 */
+.monthly-ai-notice {
+  background: var(--ai-bg); color: #4C1D95;
+  border: 1px solid var(--ai-border); border-radius: 8px;
+  padding: 10px 14px; font-size: 13px; font-weight: 600;
+  margin-bottom: 12px; display: none;
 }
 </style>
 
@@ -6035,7 +6164,8 @@ ${reflectionSummary}
       .replace(/\n/g, '<br>');
 
     resultArea.innerHTML = `
-      <div style="line-height:1.9;font-size:15px;color:#333;padding:8px 0;">
+      <div style="line-height:1.9;font-size:14.5px;color:#1f2937;padding:16px;background:#F5F3FF;border-radius:8px;border-left:3px solid #7C3AED;">
+        <div style="font-size:11px;font-weight:700;color:#7C3AED;margin-bottom:8px;display:flex;align-items:center;gap:4px;">✦ AI 생성</div>
         ${formatted}
       </div>
     `;
@@ -6166,7 +6296,8 @@ async function generateMonthlyAIReview(startStr, endStr) {
       .replace(/\n/g, '<br>');
 
     resultArea.innerHTML = `
-      <div style="line-height:1.9;font-size:15px;color:#333;padding:8px 0;">
+      <div style="line-height:1.9;font-size:14.5px;color:#1f2937;padding:16px;background:#F5F3FF;border-radius:8px;border-left:3px solid #7C3AED;">
+        <div style="font-size:11px;font-weight:700;color:#7C3AED;margin-bottom:8px;display:flex;align-items:center;gap:4px;">✦ AI 생성</div>
         ${formatted}
       </div>
     `;
@@ -6288,7 +6419,8 @@ async function generateYearlyAIReview(startStr, endStr) {
       .replace(/\n/g, '<br>');
 
     resultArea.innerHTML = `
-      <div style="line-height:1.9;font-size:15px;color:#333;padding:8px 0;">
+      <div style="line-height:1.9;font-size:14.5px;color:#1f2937;padding:16px;background:#F5F3FF;border-radius:8px;border-left:3px solid #7C3AED;">
+        <div style="font-size:11px;font-weight:700;color:#7C3AED;margin-bottom:8px;display:flex;align-items:center;gap:4px;">✦ AI 생성</div>
         ${formatted}
       </div>
     `;
@@ -6435,7 +6567,7 @@ async function loadWeeklyPage() {
   </div>
 
   <!-- 섹션 1: 주간 지표 -->
-  <div style="background:#F8F9FF; border:1.5px solid #C7D2FE; border-radius:16px; padding:24px; margin-bottom:24px;">
+  <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:24px; margin-bottom:24px;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
       <div style="width:36px; height:36px; border-radius:50%; background:#EDE9FE; display:flex; align-items:center; justify-content:center; font-size:18px;">📊</div>
       <h3 style="margin:0; font-size:18px; font-weight:bold; color:#111827;">주간 지표</h3>
@@ -6485,14 +6617,12 @@ async function loadWeeklyPage() {
         const d = items.filter(t=>t.done).length;
         const tot = items.length;
         const r = tot > 0 ? Math.round(d / tot * 100) : 0;
-        let cColor = '#FDE68A'; let cBg = '#FEF3C7';
-        if (cat === 'job') { cColor = '#DBEAFE'; cBg = '#EFF6FF'; }
-        else if (cat === 'growth') { cColor = '#D1FAE5'; cBg = '#ECFDF5'; }
-        else if (cat === 'personal') { cColor = '#FCE7F3'; cBg = '#FDF2F8'; }
-        
-        return `<div style="background:${cBg}; border:1px solid ${cColor}; border-radius:8px; padding:12px;">
-          <div style="font-size:12px; font-weight:bold; color:#4B5563; text-transform:capitalize; margin-bottom:4px;">${CAT_LABEL[cat] || cat}</div>
-          <div style="font-size:16px; font-weight:bold; color:#111827; margin-bottom:2px;">${r}%</div>
+        const catBorderMap  = { work:'#93C5FD', job:'#FCD34D', growth:'#6EE7B7', personal:'#FCA5A5' };
+        const catTagBg      = { work:'#DBEAFE', job:'#FEF3C7', growth:'#D1FAE5', personal:'#FEE2E2' };
+        const catTagColor   = { work:'#1D4ED8', job:'#92400E', growth:'#065F46', personal:'#991B1B' };
+        return `<div style="background:#fff; border:1px solid #e5e7eb; border-top:3px solid ${catBorderMap[cat]||'#e5e7eb'}; border-radius:8px; padding:12px;">
+          <div style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:${catTagBg[cat]||'#f3f4f6'};color:${catTagColor[cat]||'#374151'};margin-bottom:6px;">${CAT_LABEL[cat] || cat}</div>
+          <div style="font-size:18px; font-weight:bold; color:#111827; margin-bottom:2px;">${r}%</div>
           <div style="font-size:11px; color:#6B7280;">${d} / ${tot} 완료</div>
         </div>`;
       }).join('')}
@@ -6500,7 +6630,7 @@ async function loadWeeklyPage() {
   </div>
 
   <!-- 섹션 2: 주간 분석 -->
-  <div style="background:#FFF5F5; border:1.5px solid #FFD0D0; border-radius:16px; padding:24px; margin-bottom:24px;">
+  <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:24px; margin-bottom:24px;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
       <div style="width:36px; height:36px; border-radius:50%; background:#FEE2E2; display:flex; align-items:center; justify-content:center; font-size:18px;">💡</div>
       <h3 style="margin:0; font-size:18px; font-weight:bold; color:#111827;">주간 분석</h3>
@@ -6698,7 +6828,7 @@ async function loadMonthlyPage() {
 
   const html = `
   <!-- 섹션 1: 월간 지표 -->
-  <div style="background:#F8F9FF; border:1.5px solid #C7D2FE; border-radius:16px; padding:24px; margin-bottom:24px;">
+  <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:24px; margin-bottom:24px;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
       <div style="width:36px; height:36px; border-radius:50%; background:#EDE9FE; display:flex; align-items:center; justify-content:center; font-size:18px;">📊</div>
       <h3 style="margin:0; font-size:18px; font-weight:bold; color:#111827;">월간 지표</h3>
@@ -6748,14 +6878,12 @@ async function loadMonthlyPage() {
         const d = items.filter(t=>t.done).length;
         const tot = items.length;
         const r = tot > 0 ? Math.round(d / tot * 100) : 0;
-        let cColor = '#FDE68A'; let cBg = '#FEF3C7';
-        if (cat === 'job') { cColor = '#DBEAFE'; cBg = '#EFF6FF'; }
-        else if (cat === 'growth') { cColor = '#D1FAE5'; cBg = '#ECFDF5'; }
-        else if (cat === 'personal') { cColor = '#FCE7F3'; cBg = '#FDF2F8'; }
-        
-        return `<div style="background:${cBg}; border:1px solid ${cColor}; border-radius:8px; padding:12px;">
-          <div style="font-size:12px; font-weight:bold; color:#4B5563; text-transform:capitalize; margin-bottom:4px;">${CAT_LABEL[cat] || cat}</div>
-          <div style="font-size:16px; font-weight:bold; color:#111827; margin-bottom:2px;">${r}%</div>
+        const catBorderMap  = { work:'#93C5FD', job:'#FCD34D', growth:'#6EE7B7', personal:'#FCA5A5' };
+        const catTagBg      = { work:'#DBEAFE', job:'#FEF3C7', growth:'#D1FAE5', personal:'#FEE2E2' };
+        const catTagColor   = { work:'#1D4ED8', job:'#92400E', growth:'#065F46', personal:'#991B1B' };
+        return `<div style="background:#fff; border:1px solid #e5e7eb; border-top:3px solid ${catBorderMap[cat]||'#e5e7eb'}; border-radius:8px; padding:12px;">
+          <div style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:${catTagBg[cat]||'#f3f4f6'};color:${catTagColor[cat]||'#374151'};margin-bottom:6px;">${CAT_LABEL[cat] || cat}</div>
+          <div style="font-size:18px; font-weight:bold; color:#111827; margin-bottom:2px;">${r}%</div>
           <div style="font-size:11px; color:#6B7280;">${d} / ${tot} 완료</div>
         </div>`;
       }).join('')}
@@ -6763,7 +6891,7 @@ async function loadMonthlyPage() {
   </div>
 
   <!-- 섹션 2: 월간 분석 -->
-  <div style="background:#FFF5F5; border:1.5px solid #FFD0D0; border-radius:16px; padding:24px; margin-bottom:24px;">
+  <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:24px; margin-bottom:24px;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
       <div style="width:36px; height:36px; border-radius:50%; background:#FEE2E2; display:flex; align-items:center; justify-content:center; font-size:18px;">💡</div>
       <h3 style="margin:0; font-size:18px; font-weight:bold; color:#111827;">월간 분석</h3>
@@ -6927,7 +7055,7 @@ async function loadYearlyPage() {
 
   const html = `
   <!-- 섹션 1: 연간 지표 -->
-  <div style="background:#F8F9FF; border:1.5px solid #C7D2FE; border-radius:16px; padding:24px; margin-bottom:24px;">
+  <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:24px; margin-bottom:24px;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
       <div style="width:36px; height:36px; border-radius:50%; background:#EDE9FE; display:flex; align-items:center; justify-content:center; font-size:18px;">📊</div>
       <h3 style="margin:0; font-size:18px; font-weight:bold; color:#111827;">${targetYear}년 연간 지표</h3>
@@ -6977,14 +7105,12 @@ async function loadYearlyPage() {
         const d = items.filter(t=>t.done).length;
         const tot = items.length;
         const r = tot > 0 ? Math.round(d / tot * 100) : 0;
-        let cColor = '#FDE68A'; let cBg = '#FEF3C7';
-        if (cat === 'job') { cColor = '#DBEAFE'; cBg = '#EFF6FF'; }
-        else if (cat === 'growth') { cColor = '#D1FAE5'; cBg = '#ECFDF5'; }
-        else if (cat === 'personal') { cColor = '#FCE7F3'; cBg = '#FDF2F8'; }
-        
-        return `<div style="background:${cBg}; border:1px solid ${cColor}; border-radius:8px; padding:12px;">
-          <div style="font-size:12px; font-weight:bold; color:#4B5563; text-transform:capitalize; margin-bottom:4px;">${CAT_LABEL[cat] || cat}</div>
-          <div style="font-size:16px; font-weight:bold; color:#111827; margin-bottom:2px;">${r}%</div>
+        const catBorderMap  = { work:'#93C5FD', job:'#FCD34D', growth:'#6EE7B7', personal:'#FCA5A5' };
+        const catTagBg      = { work:'#DBEAFE', job:'#FEF3C7', growth:'#D1FAE5', personal:'#FEE2E2' };
+        const catTagColor   = { work:'#1D4ED8', job:'#92400E', growth:'#065F46', personal:'#991B1B' };
+        return `<div style="background:#fff; border:1px solid #e5e7eb; border-top:3px solid ${catBorderMap[cat]||'#e5e7eb'}; border-radius:8px; padding:12px;">
+          <div style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:${catTagBg[cat]||'#f3f4f6'};color:${catTagColor[cat]||'#374151'};margin-bottom:6px;">${CAT_LABEL[cat] || cat}</div>
+          <div style="font-size:18px; font-weight:bold; color:#111827; margin-bottom:2px;">${r}%</div>
           <div style="font-size:11px; color:#6B7280;">${d} / ${tot} 완료</div>
         </div>`;
       }).join('')}
@@ -6992,7 +7118,7 @@ async function loadYearlyPage() {
   </div>
 
   <!-- 섹션 2: 연간 분석 -->
-  <div style="background:#FFF5F5; border:1.5px solid #FFD0D0; border-radius:16px; padding:24px; margin-bottom:24px;">
+  <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:24px; margin-bottom:24px;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
       <div style="width:36px; height:36px; border-radius:50%; background:#FEE2E2; display:flex; align-items:center; justify-content:center; font-size:18px;">💡</div>
       <h3 style="margin:0; font-size:18px; font-weight:bold; color:#111827;">${targetYear}년 연간 분석</h3>
@@ -7611,10 +7737,10 @@ function renderProjects() {
   }
 
   const CATEGORY_STYLES = {
-    work: { bg: '#FFF7ED', border: '#FB923C', icon: '💼', iconBg: '#F97316' },
-    job: { bg: '#EFF6FF', border: '#60A5FA', icon: '📋', iconBg: '#3B82F6' },
-    growth: { bg: '#F0FDF4', border: '#4ADE80', icon: '🌱', iconBg: '#22C55E' },
-    personal: { bg: '#FDF2F8', border: '#F472B6', icon: '💜', iconBg: '#EC4899' }
+    work:     { bg: '#ffffff', border: '#93C5FD', icon: '💼', iconBg: '#7C3AED', tagBg: '#DBEAFE', tagColor: '#1D4ED8' },
+    job:      { bg: '#ffffff', border: '#FCD34D', icon: '📋', iconBg: '#7C3AED', tagBg: '#FEF3C7', tagColor: '#92400E' },
+    growth:   { bg: '#ffffff', border: '#6EE7B7', icon: '🌱', iconBg: '#7C3AED', tagBg: '#D1FAE5', tagColor: '#065F46' },
+    personal: { bg: '#ffffff', border: '#FCA5A5', icon: '💜', iconBg: '#7C3AED', tagBg: '#FEE2E2', tagColor: '#991B1B' }
   };
 
   function renderRecurringTasks() {
@@ -7647,28 +7773,26 @@ function renderProjects() {
       
       const div = document.createElement('div');
       div.className = 'rc-card';
-      div.style.background = style.bg;
-      div.style.borderColor = style.border;
+      div.style.background = '#ffffff';
+      div.style.borderColor = '#e5e7eb';
+      div.style.borderTopColor = style.border;
+      div.style.borderTopWidth = '3px';
       div.innerHTML = `
-        <div style="position: absolute; top: 16px; right: 12px; display: flex; gap: 4px;">
-          <button onclick="editRecurringTask('${t.id}')" style="background: none; border: none; cursor: pointer; font-size: 16px; padding: 4px; opacity: 0.7; transition: all 0.2s;" onmouseover="this.style.opacity='1'; this.style.transform='scale(1.15)'" onmouseout="this.style.opacity='0.7'; this.style.transform='scale(1)'">✏️</button>
+        <div style="position: absolute; top: 12px; right: 12px; display: flex; gap: 4px;">
+          <button onclick="editRecurringTask('${t.id}')" style="background: none; border: none; cursor: pointer; font-size: 15px; padding: 4px; opacity: 0.5; transition: all 0.2s;" onmouseover="this.style.opacity='1'; this.style.transform='scale(1.15)'" onmouseout="this.style.opacity='0.5'; this.style.transform='scale(1)'">✏️</button>
           <button class="rc-delete" style="position: static; margin: 0; top: auto; right: auto;" onclick="deleteRecurringTask('${t.id}')">✕</button>
         </div>
         <div class="rc-header">
-          <div class="rc-icon-box" style="background: ${style.iconBg};">${style.icon}</div>
+          <div class="rc-icon-box" style="background: #7C3AED;">${style.icon}</div>
           <div class="rc-info">
-            <h3>${t.text}</h3>
-            <span class="rc-badge">${t.category}</span>
+            <h3 style="margin-bottom:4px;">${t.text}</h3>
+            <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:${style.tagBg};color:${style.tagColor};">${t.category}</span>
           </div>
         </div>
         <div class="rc-divider"></div>
         <div class="rc-details">
-          <span>
-            🔄 ${cycleDisplay}
-          </span>
-          <span>
-            📅 ${startStr} ~ ${endStr}
-          </span>
+          <span>🔄 ${cycleDisplay}</span>
+          <span>📅 ${startStr} ~ ${endStr}</span>
         </div>
         <button class="rc-action-btn" onclick="addRecurringToToday('${t.id}')">
           📅 오늘 할일 등록하기
@@ -8184,8 +8308,14 @@ function ch_renderResults(items) {
   
   const DAY_KR = ['일','월','화','수','목','금','토'];
   const CAT_COLORS = {
-    work: '#FB923C', job: '#3B82F6', 
-    growth: '#22C55E', personal: '#EC4899'
+    work: '#93C5FD', job: '#FCD34D',
+    growth: '#6EE7B7', personal: '#FCA5A5'
+  };
+  const CAT_TAG = {
+    work: { bg: '#DBEAFE', color: '#1D4ED8' },
+    job:  { bg: '#FEF3C7', color: '#92400E' },
+    growth: { bg: '#D1FAE5', color: '#065F46' },
+    personal: { bg: '#FEE2E2', color: '#991B1B' }
   };
   
   let html = '';
@@ -8206,9 +8336,9 @@ function ch_renderResults(items) {
       html += `
         <div style="display:flex;align-items:center;padding:10px 16px;background:white;border-left:4px solid ${color};border-radius:6px;margin-bottom:6px;">
           <span style="margin-right:10px;">${icon}</span>
-          <span style="background:${color}20;color:${color};padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;margin-right:10px;">${cat.toUpperCase()}</span>
+          <span style="background:${(CAT_TAG[cat]||{bg:'#f3f4f6'}).bg};color:${(CAT_TAG[cat]||{color:'#374151'}).color};padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;margin-right:10px;">${cat.toUpperCase()}</span>
           <span style="flex:1;">${text}</span>
-          <span style="font-size:12px;background:#E8F5E9;color:#2E7D32;padding:2px 8px;border-radius:4px;">✓ ${d2.getMonth()+1}/${d2.getDate()}(${DAY_KR[d2.getDay()]}) 완료</span>
+          <span style="font-size:12px;background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:99px;">✓ ${d2.getMonth()+1}/${d2.getDate()}(${DAY_KR[d2.getDay()]}) 완료</span>
         </div>
       `;
     });
