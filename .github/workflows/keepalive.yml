@@ -1,7 +1,8 @@
 name: Supabase Keepalive
 
 # 옛 Supabase 프로젝트(daily-planner)가 비활동으로 자동 정지되는 것을 막기 위해
-# 3일마다 REST 루트에 요청을 보낸다. anon key는 index.html에 공개된 값이다.
+# 3일마다 실제 테이블에 가벼운 SELECT 요청을 보내 DB 활동을 발생시킨다.
+# anon key는 SUPABASE_ANON_KEY 시크릿으로 주입한다.
 on:
   schedule:
     - cron: '0 3 */3 * *'
@@ -11,8 +12,11 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase REST root
+      - name: Ping Supabase table
+        env:
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           curl -sS -o /dev/null -w "HTTP %{http_code}\n" \
-            -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4cWtwZ2tpdXpkdmtkaWVxeW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjI3OTAsImV4cCI6MjA5MDI5ODc5MH0.T6FT8YQKAPwIgPfKU1guaRx-izWvta7fM1nLMuzggZI" \
-            "https://qxqkpgkiuzdvkdieqynf.supabase.co/rest/v1/"
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            "https://qxqkpgkiuzdvkdieqynf.supabase.co/rest/v1/ai_reviews?select=id&limit=1"
