@@ -3353,15 +3353,45 @@ async function loadTodayOneThing() {
       }
     };
     
+    // 대표 원씽 선정: 이달 원씽 우선 → updated_at 최근 → 동률/누락 시 work>job>growth>personal
+    const priorityIdx = (cat) => { const i = categories.indexOf(cat); return i === -1 ? 999 : i; };
+    const pickRepresentative = (rows) => {
+      const valid = (rows || []).filter(d => d.text && d.text.trim() !== '');
+      if (valid.length === 0) return null;
+      valid.sort((a, b) => {
+        const ta = a.updated_at ? new Date(a.updated_at).getTime() : 0;
+        const tb = b.updated_at ? new Date(b.updated_at).getTime() : 0;
+        if (tb !== ta) return tb - ta;                        // 최근 수정 우선
+        return priorityIdx(a.category) - priorityIdx(b.category); // work>job>growth>personal
+      });
+      return valid[0];
+    };
+    let rep = pickRepresentative(monthlyData);
+    let repScopeLabel = '이번 달 방향';
+    if (!rep) { rep = pickRepresentative(yearlyData); repScopeLabel = '올해 방향'; }
+
+    // 접힌 상태 요약(읽기 전용 한 줄)
+    let summaryHtml;
+    if (rep) {
+      const repDetails = getCatDetails(rep.category);
+      summaryHtml = `
+        🎯 <span style="font-weight:700;">${repScopeLabel}:</span>
+        <span style="flex:1; min-width:0; color:#574E45; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${rep.text}</span>
+        <span style="flex:none; font-size:11px; font-weight:700; color:${repDetails.color};">${repDetails.label}</span>
+      `;
+    } else {
+      summaryHtml = `🎯 <span style="font-weight:700;">이번 달 방향:</span> <span style="flex:1; min-width:0; color:#9C9184;">이번 달 원씽이 아직 없어요 · 목표관리에서 설정</span>`;
+    }
+
+    // 펼친 상태: 기존 4카테고리 전체(읽기 전용), 빈 값은 "미설정" 표시
     let rowsHtml = '';
     categories.forEach((cat, idx) => {
       const details = getCatDetails(cat);
-      // 3단계 Feature 3: 빈값이면 "목표관리에서 설정하기" 버튼 노출
-      const goalsBtn = '<button onclick="navigate(\'goals\')" style="background:#E6EDF2;color:#23506B;border:1px solid #C9D6E0;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">목표관리에서 설정하기</button>';
-      const yText = yearlyMap[cat] && yearlyMap[cat].trim() !== '' ? yearlyMap[cat] : goalsBtn;
-      const mText = monthlyMap[cat] && monthlyMap[cat].trim() !== '' ? monthlyMap[cat] : goalsBtn;
+      const emptyText = '<span style="color:#9C9184;">미설정</span>';
+      const yText = yearlyMap[cat] && yearlyMap[cat].trim() !== '' ? yearlyMap[cat] : emptyText;
+      const mText = monthlyMap[cat] && monthlyMap[cat].trim() !== '' ? monthlyMap[cat] : emptyText;
       const borderStyle = idx === categories.length - 1 ? '' : 'border-bottom:1px dashed #E4DCCF;';
-      
+
       rowsHtml += `
         <div style="display:flex; flex-direction:column; margin-bottom:12px; padding-bottom:12px; ${borderStyle}">
           <div style="font-size:12.5px; font-weight:700; color:${details.color}; margin-bottom:6px;">${details.label}</div>
@@ -3378,17 +3408,24 @@ async function loadTodayOneThing() {
         </div>
       `;
     });
-    
+    // 하단 "목표관리로 이동" 링크 1개 (수정/저장은 목표관리 화면에서만)
+    rowsHtml += `
+      <div style="padding-top:2px; padding-bottom:12px; text-align:right;">
+        <a onclick="navigate('goals')" style="font-size:12px; font-weight:600; color:#23506B; cursor:pointer;">목표관리로 이동 →</a>
+      </div>
+    `;
+
     container.style.display = 'block';
     container.innerHTML = `
-      <div style="font-weight: 600; font-size: 13.5px; color: #7A6F62; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 4px 0;" onclick="const c = document.getElementById('context-onething-content'); const icon = document.getElementById('context-chevron'); if(c.style.display==='none'){c.style.display='block';icon.innerText='▴';}else{c.style.display='none';icon.innerText='▾';}">
-        🎯 연간·이달 원씽 <span id="context-chevron">▾</span>
+      <div style="font-weight: 600; font-size: 13.5px; color: #7A6F62; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 4px 0;" onclick="const c = document.getElementById('context-onething-content'); const icon = document.getElementById('context-chevron'); if(c.style.display==='none'){c.style.display='block';icon.innerText='▴';}else{c.style.display='none';icon.innerText='▾';}">
+        ${summaryHtml}
+        <span id="context-chevron" style="flex:none;">▾</span>
       </div>
       <div id="context-onething-content" style="display: none; margin-top: 8px; background: #F0EAE0; border-radius: 12px; padding: 14px 14px 2px 14px; border: 1px solid #E4DCCF;">
         ${rowsHtml}
       </div>
     `;
-    
+
   } catch (err) {
     console.error('loadTodayOneThing 에러:', err);
   }
