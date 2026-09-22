@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>일정관리</title>
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#7C3AED">
+<meta name="theme-color" content="#F8F4EC">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="인생관리시스템">
@@ -16,63 +16,117 @@
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
+/* ===== Paperlogy 폰트 (DESIGN_SPEC 0·1.4절, jsDelivr 자체호스팅 미러) ===== */
+@font-face{font-family:Paperlogy;font-weight:400;font-style:normal;font-display:swap;src:url(https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-4Regular.woff2) format("woff2")}
+@font-face{font-family:Paperlogy;font-weight:500;font-style:normal;font-display:swap;src:url(https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-5Medium.woff2) format("woff2")}
+@font-face{font-family:Paperlogy;font-weight:600;font-style:normal;font-display:swap;src:url(https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-6SemiBold.woff2) format("woff2")}
+@font-face{font-family:Paperlogy;font-weight:700;font-style:normal;font-display:swap;src:url(https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-7Bold.woff2) format("woff2")}
+@font-face{font-family:Paperlogy;font-weight:800;font-style:normal;font-display:swap;src:url(https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-8ExtraBold.woff2) format("woff2")}
+
 :root {
-  --primary: #7C3AED;
-  --primary-light: #9F67FA;
-  --primary-dark: #6D28D9;
-  --purple: #9284BE;
-  --gradient: linear-gradient(135deg, #7C3AED 0%, #9F67FA 100%);
-  --bg: #F5F5F7;
-  --bg-card: #ffffff;
-  --bg-hover: #f5f3ff;
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
-  --border: #e5e7eb;
-  --border-light: #f3f4f6;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow: 0 4px 12px rgba(124,58,237,0.08), 0 1px 3px rgba(0,0,0,0.06);
-  --shadow-lg: 0 10px 30px rgba(124,58,237,0.12);
-  --radius: 12px;
-  --radius-sm: 8px;
-  --work: #F59E42;
-  --job: #3B82F6;
-  --growth: #10b981;
-  --personal: #E66BA4;
-  --morning: #F59E42;
-  --daytime: #7C3AED;
-  --night: #6B7EE0;
-  --success: #10b981;
+  /* ===== paper 테마 디자인 토큰 (DESIGN_SPEC 1·2절, 실측 원문값) ===== */
+  --t-bg: #F8F4EC;
+  --t-bg2: #F0EAE0;
+  --t-surface: #FFFDF9;
+  --t-text: #2A2622;
+  --t-text2: #574E45;
+  --t-muted: #7A6F62;
+  --t-muted2: #9C9184;
+  --t-line: #E4DCCF;
+  --t-line2: #D3C8B6;
+  --t-accent: #23506B;
+  --t-accent-soft: #E6EDF2;
+  --t-accent-line: #C9D6E0;
+  --t-accent-dark: #1B3E52;
+  --t-accent2: #6B4E8C;
+  --t-accent2-soft: #EDE7F3;
+  --t-accent2-line: #D3C6E1;
+  --t-on-accent: #FFFFFF;
+  --t-on-ink: #FFFDF9;
+  --t-success: #2F6B4F; --t-success-soft: #E4EFE8; --t-success-line: #BFD8C9;
+  --t-danger: #8C3B32;  --t-danger-soft: #F5E3E0;  --t-danger-line: #E3BDB7;
+  --t-warn: #8A6A1F;    --t-warn-soft: #F5ECD9;    --t-warn-line: #E4D3A8;
+  --t-insight: #9A5B3C; --t-insight-soft: #F6E8E0; --t-insight-line: #E5C9B8;
+  --t-chart-routine: #2F79C4;
+  --t-chart-todo: #C4744A;
+  --t-cat-work: #A8712A; --t-cat-work-soft: #F5EBDD; --t-cat-work-line: #E6CFA8;
+  --t-cat-job: #2F6F7E;  --t-cat-job-soft: #E1EEF1;  --t-cat-job-line: #B9D3DA;
+  --t-cat-personal: #A04E66; --t-cat-personal-soft: #F5E3E8; --t-cat-personal-line: #E4BFCA;
+  --t-shadow: 0 1px 2px rgba(42,38,34,.05), 0 2px 8px rgba(42,38,34,.04);
+  --t-shadow-sm: 0 1px 2px rgba(42,38,34,.05);
+  --t-radius-lg: 14px;
+  --t-radius-nav: 10px;
+  --t-radius-btn: 10px;
+  --t-radius-input: 10px;
+  --t-radius-check: 6px;
+  /* 간격 스케일 (DESIGN_SPEC 1.3) */
+  --spacing-xs: .5rem; --spacing-sm: .75rem; --spacing-md: 1rem;
+  --spacing-lg: 1.5rem; --spacing-xl: 2rem; --spacing-2xl: 2.5rem; --spacing-3xl: 3rem;
+
+  /* ===== 기존 프로젝트 변수 → paper 토큰 매핑 (CSS 리스킨) ===== */
+  --primary: var(--t-accent);
+  --primary-light: #2E6488;
+  --primary-dark: var(--t-accent-dark);
+  --purple: var(--t-accent2);
+  --gradient: linear-gradient(135deg, #23506B 0%, #2E6488 100%);
+  --bg: var(--t-bg);
+  --bg-card: var(--t-surface);
+  --bg-hover: var(--t-accent-soft);
+  --text-primary: var(--t-text);
+  --text-secondary: var(--t-text2);
+  --text-muted: var(--t-muted);
+  --border: var(--t-line);
+  --border-light: var(--t-bg2);
+  --shadow-sm: var(--t-shadow-sm);
+  --shadow: var(--t-shadow);
+  --shadow-lg: 0 8px 16px rgba(42,38,34,.1), 0 20px 48px rgba(0,0,0,.15);
+  --radius: var(--t-radius-lg);
+  --radius-sm: var(--t-radius-btn);
+  --work: var(--t-cat-work);
+  --job: var(--t-cat-job);
+  --growth: var(--t-accent2);
+  --personal: var(--t-cat-personal);
+  --morning: var(--t-warn);
+  --daytime: var(--t-accent);
+  --night: var(--t-accent2);
+  --success: var(--t-success);
   --nav-width: 220px;
-  --accent-purple: #7C3AED;
-  --accent-purple-bg: #F5F3FF;
-  --accent-purple-dark: #6D28D9;
-  --accent-purple-border: #DDD6FE;
-  --page-bg: #F5F5F7;
-  --card-border: #e5e7eb;
+  --accent-purple: var(--t-accent);
+  --accent-purple-bg: var(--t-accent-soft);
+  --accent-purple-dark: var(--t-accent-dark);
+  --accent-purple-border: var(--t-accent-line);
+  --page-bg: var(--t-bg);
+  --card-border: var(--t-line);
+  /* 기존 코드에서 참조되지만 정의 누락됐던 변수 보강 */
+  --card: var(--t-surface);
+  --text: var(--t-text);
+  --hover: var(--t-bg2);
   /* Ant Design 기반 토큰 */
   --btn-height: 32px;
   --btn-height-lg: 40px;
-  --btn-radius: 6px;
+  --btn-radius: var(--t-radius-btn);
   --card-padding: 20px;
-  --card-radius: 12px;
+  --card-radius: var(--t-radius-lg);
   /* 카테고리 태그 색상 */
-  --tag-work-bg: #DBEAFE; --tag-work-color: #1D4ED8;
-  --tag-job-bg: #FEF3C7;  --tag-job-color: #92400E;
-  --tag-growth-bg: #D1FAE5; --tag-growth-color: #065F46;
-  --tag-personal-bg: #FEE2E2; --tag-personal-color: #991B1B;
-  /* AI 결과 영역 */
-  --ai-bg: #F5F3FF; --ai-border: #7C3AED;
+  --tag-work-bg: var(--t-cat-work-soft); --tag-work-color: var(--t-cat-work);
+  --tag-job-bg: var(--t-cat-job-soft);  --tag-job-color: var(--t-cat-job);
+  --tag-growth-bg: var(--t-accent2-soft); --tag-growth-color: var(--t-accent2);
+  --tag-personal-bg: var(--t-cat-personal-soft); --tag-personal-color: var(--t-cat-personal);
+  /* AI 결과 영역 (insight 팔레트) */
+  --ai-bg: var(--t-insight-soft); --ai-border: var(--t-insight);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: Paperlogy, 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 500;
+  word-break: keep-all;
+  -webkit-font-smoothing: antialiased;
   background: var(--bg);
   color: var(--text-primary);
   min-height: 100vh;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* ── LAYOUT ── */
@@ -83,10 +137,10 @@ body {
   background: var(--page-bg);
 }
 
-/* ── TOP HEADER ── */
+/* ── TOP HEADER ── (paper: 크림 배경, 하단 라인만) */
 .header-strip {
-  background: #ffffff;
-  border-bottom: 1px solid var(--card-border);
+  background: var(--t-bg);
+  border-bottom: 1px solid var(--t-line);
   width: 100%;
 }
 .top-header {
@@ -108,17 +162,17 @@ body {
 }
 .user-badge {
   display: flex; align-items: center; gap: 8px;
-  background: white; padding: 5px 12px; border-radius: 6px;
-  border: 1px solid var(--card-border);
-  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+  background: var(--t-surface); padding: 6px 12px; border-radius: var(--t-radius-btn);
+  border: 1px solid var(--t-line);
+  font-size: 13px; font-weight: 600; color: var(--t-text2);
 }
-.user-badge svg { width: 14px; height: 14px; color: #9ca3af; }
+.user-badge svg { width: 14px; height: 14px; color: var(--t-muted); }
 .logout-btn {
-  background: white; border: 1px solid var(--card-border); padding: 5px 12px; border-radius: 6px;
-  font-size: 12px; font-weight: 500; color: var(--text-secondary); cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
+  background: var(--t-surface); border: 1px solid var(--t-line2); padding: 8px 16px; border-radius: var(--t-radius-btn);
+  font-size: 13px; font-weight: 600; color: var(--t-text2); cursor: pointer;
+  transition: all 0.2s;
 }
-.logout-btn:hover { border-color: #d1d5db; color: var(--text-primary); }
+.logout-btn:hover { background: var(--t-bg2); border-color: var(--t-muted2); color: var(--t-text); }
 
 /* ── MAIN NAV CONTAINER ── */
 .main-nav-container {
@@ -135,32 +189,40 @@ body {
 }
 
 .nav-card {
-  border-radius: 12px;
-  padding: 16px;
-  display: flex; flex-direction: column; gap: 12px;
+  border-radius: var(--t-radius-nav);
+  padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 8px;
+  box-shadow: var(--t-shadow-sm);
+  transition: background 0.2s, border-color 0.2s;
 }
-.nav-card.plan   { background: #ffffff; border: 1px solid var(--card-border); }
-.nav-card.execute { background: #ffffff; border: 1px solid var(--card-border); }
-.nav-card.review  { background: #ffffff; border: 1px solid var(--card-border); }
+.nav-card.plan    { background: var(--t-surface); border: 1px solid var(--t-line); }
+.nav-card.execute { background: var(--t-surface); border: 1px solid var(--t-line); }
+.nav-card.review  { background: var(--t-surface); border: 1px solid var(--t-line); }
 
 .nav-card-title {
-  font-size: 11px; font-weight: 600; color: #adb5bd; text-align: center;
-  letter-spacing: 0.04em; text-transform: uppercase;
+  font-size: 11px; font-weight: 700; color: var(--t-muted); text-align: center;
+  letter-spacing: 0.06em; text-transform: uppercase;
 }
 
 .nav-card-buttons {
-  display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+  display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;
 }
 
 .nav-btn {
-  background: white; border: 1px solid #e5e7eb; border-radius: 8px;
-  padding: 8px 12px; font-size: 13.5px; font-weight: 600; color: #4b5563;
+  background: transparent; border: 0; border-radius: 8px;
+  padding: 8px 12px; font-size: 13.5px; font-weight: 600; color: var(--t-text2);
   display: flex; align-items: center; gap: 6px; cursor: pointer;
   transition: all 0.2s;
 }
-.nav-btn:hover { border-color: var(--accent-purple); color: var(--accent-purple); }
-.nav-btn.active { background: var(--accent-purple); color: white; border-color: var(--accent-purple); }
-.nav-btn.active svg { stroke: white; }
+.nav-btn svg { stroke: currentColor; }
+.nav-btn:hover { color: var(--t-accent); }
+.nav-btn.active { background: transparent; color: var(--t-accent); font-weight: 700; }
+/* 활성 탭을 포함한 그룹 전체를 accent(남색)로 채움 — DESIGN_SPEC 3.2 :has() 규칙 */
+.nav-card:has(.nav-btn.active) { background: var(--t-accent); border-color: var(--t-accent); }
+.nav-card:has(.nav-btn.active) .nav-card-title { color: color-mix(in srgb, var(--t-on-accent) 75%, transparent); }
+.nav-card:has(.nav-btn.active) .nav-btn { color: color-mix(in srgb, var(--t-on-accent) 70%, transparent); }
+.nav-card:has(.nav-btn.active) .nav-btn:hover { color: var(--t-on-accent); }
+.nav-card:has(.nav-btn.active) .nav-btn.active { color: var(--t-on-accent); font-weight: 700; }
 
 /* ── CENTER AREA ── */
 .center-date-nav {
@@ -168,23 +230,24 @@ body {
   margin-bottom: 16px;
 }
 .center-date-nav .date-nav-btn {
-  background: white; width: 36px; height: 36px; border-radius: 10px; border: 1px solid #e5e7eb;
+  background: var(--t-surface); width: 36px; height: 36px; border-radius: var(--t-radius-btn); border: 1px solid var(--t-line);
+  color: var(--t-muted);
 }
 .center-date-text {
-  background: var(--primary); color: white; font-weight: 700; padding: 10px 24px;
-  border-radius: 24px; display: flex; align-items: center; gap: 8px; font-size: 15px;
+  background: var(--t-accent-soft); color: var(--t-accent); font-weight: 600; padding: 8px 16px;
+  border-radius: 999px; display: flex; align-items: center; gap: 8px; font-size: 15px;
 }
 
 .sub-toggles {
   display: flex; justify-content: center; gap: 12px; margin-bottom: 30px;
 }
 .sub-toggle-btn {
-  background: #e5e7eb; border: none; padding: 8px 16px; border-radius: 20px;
+  background: #E4DCCF; border: none; padding: 8px 16px; border-radius: 20px;
   font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-  display: flex; align-items: center; gap: 6px; color: #4b5563;
+  display: flex; align-items: center; gap: 6px; color: #574E45;
   text-decoration: none;
 }
-.sub-toggle-btn:hover { background: #d1d5db; }
+.sub-toggle-btn:hover { background: #D3C8B6; }
 
 /* ── MAIN CONTENT ── */
 .main-content {
@@ -261,7 +324,7 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s;
-  box-shadow: 0 2px 8px rgba(127,119,221,0.3);
+  box-shadow: 0 2px 8px rgba(35,80,107,0.3);
 }
 .today-btn:hover { opacity: 0.88; }
 
@@ -271,34 +334,36 @@ body {
   gap: 20px;
 }
 
-/* ── CARD ── */
+/* ── CARD ── (paper: surface 배경, 1px line, radius 14px, --t-shadow) */
 .card {
   background: var(--bg-card);
+  border: 1px solid var(--t-line);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow: var(--t-shadow);
   overflow: hidden;
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.3s cubic-bezier(.4,0,.2,1);
 }
-.card:hover { box-shadow: var(--shadow-lg); }
+.card:hover { box-shadow: var(--t-shadow); }
 .card.routine-card {
-  border: 1px solid var(--card-border); background: #ffffff;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03); border-radius: 8px;
+  border: 1px solid var(--t-line); background: var(--t-surface);
+  box-shadow: var(--t-shadow); border-radius: var(--t-radius-lg);
 }
-.card.routine-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+.card.routine-card:hover { box-shadow: var(--t-shadow); }
 .card.todo-card {
-  border: 1px solid var(--card-border); background: #ffffff;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03); border-radius: 8px;
+  border: 1px solid var(--t-line); background: var(--t-surface);
+  box-shadow: var(--t-shadow); border-radius: var(--t-radius-lg);
 }
-.card.todo-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+.card.todo-card:hover { box-shadow: var(--t-shadow); }
+/* 하루 성찰 카드: 점선(dashed) 테두리 — DESIGN_SPEC 3.4.1 예외(실측 렌더 기준) */
 .card.reflection-card {
-  border: 1px solid var(--card-border); background: #ffffff;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03); border-radius: 8px;
+  border: 1px dashed var(--t-line); background: var(--t-surface);
+  box-shadow: var(--t-shadow); border-radius: var(--t-radius-lg);
 }
-.card.reflection-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+.card.reflection-card:hover { box-shadow: var(--t-shadow); }
 /* 배운 것 카드도 동일 */
 #learning-notes-section.card {
-  border: 1px solid var(--card-border); background: #ffffff;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03); border-radius: 8px;
+  border: 1px solid var(--t-line); background: var(--t-surface);
+  box-shadow: var(--t-shadow); border-radius: var(--t-radius-lg);
 }
 
 .card-header {
@@ -306,19 +371,20 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 14px 18px 12px;
-  border-bottom: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--t-line);
 }
 
 .card-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #1f2937;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--t-text);
 }
 
-.card-title svg { width: 16px; height: 16px; color: #9ca3af; }
+.card-title svg { width: 20px; height: 20px; color: var(--t-accent); }
 
 .card-body { padding: 14px 18px; }
 
@@ -336,7 +402,7 @@ body {
 }
 
 .routine-section-title.morning { color: var(--morning); background: rgba(245,158,66,0.08); }
-.routine-section-title.daytime { color: var(--daytime); background: rgba(91,95,199,0.08); }
+.routine-section-title.daytime { color: var(--daytime); background: rgba(35,80,107,0.08); }
 .routine-section-title.night   { color: var(--night);   background: rgba(107,126,224,0.08); }
 .routine-section-title svg { width: 13px; height: 13px; }
 
@@ -351,14 +417,14 @@ body {
   transition: background 0.15s;
   border: 1px solid transparent;
 }
-.check-item { background: #f9fafb; }
+.check-item { background: #F0EAE0; }
 .check-item:hover { background: var(--accent-purple-bg); border-color: var(--accent-purple-border); }
 .check-item.done { background: var(--accent-purple-bg); }
 .check-item.done .item-label { text-decoration: line-through; color: var(--text-muted); opacity: 0.65; }
 
 .custom-cb {
   width: 18px; height: 18px;
-  border: 2px solid #d1d5db;
+  border: 2px solid #D3C8B6;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
@@ -394,24 +460,29 @@ body {
   flex-wrap: wrap;
 }
 
+/* 밑줄형 탭 (DESIGN_SPEC 3.5, paper): 투명 배경 + 활성 시 하단 2px 밑줄 */
 .cat-tab {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 0;
+  font-size: 15px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
-  border: 1.5px solid;
+  transition: all 0.2s;
+  border: 0;
   background: transparent;
+  color: var(--t-muted);
+  box-shadow: inset 0 -2px 0 transparent;
 }
-.cat-tab.work   { color: var(--work);     border-color: var(--work);     }
-.cat-tab.job    { color: var(--job);      border-color: var(--job);      }
-.cat-tab.growth { color: var(--growth);   border-color: var(--growth);   }
-.cat-tab.personal { color: var(--personal); border-color: var(--personal); }
-.cat-tab.active.work     { background: var(--work);     color: white; }
-.cat-tab.active.job      { background: var(--job);      color: white; }
-.cat-tab.active.growth   { background: var(--growth);   color: white; }
-.cat-tab.active.personal { background: var(--personal); color: white; }
+.cat-tab.work, .cat-tab.job, .cat-tab.growth, .cat-tab.personal {
+  color: var(--t-muted); border-color: transparent;
+}
+.cat-tab:hover { color: var(--t-text); background: transparent; }
+.cat-tab.active,
+.cat-tab.active.work, .cat-tab.active.job,
+.cat-tab.active.growth, .cat-tab.active.personal {
+  background: transparent; color: var(--t-text); font-weight: 700;
+  box-shadow: inset 0 -2px 0 var(--t-text);
+}
 
 .todo-list { margin-top: 10px; max-height: 280px; overflow-y: auto; }
 
@@ -437,7 +508,7 @@ body {
   color: var(--text-muted);
 }
 .todo-item:hover .todo-delete { opacity: 1; }
-.todo-delete:hover { background: #fee2e2; color: #ef4444; }
+.todo-delete:hover { background: #F5E3E0; color: #8C3B32; }
 .todo-delete svg { width: 13px; height: 13px; }
 
 .add-todo-row {
@@ -449,27 +520,30 @@ body {
 }
 
 .add-todo-input {
-  flex: 1; border: 1.5px solid var(--border);
-  border-radius: 8px; padding: 7px 12px;
-  font-size: 13px; font-family: inherit;
-  color: var(--text-primary);
-  background: var(--bg-card);
-  transition: border-color 0.15s;
+  flex: 1; border: 1px solid var(--t-line2);
+  border-radius: var(--t-radius-input); padding: 12px 14px;
+  font-size: 15px; font-family: inherit;
+  color: var(--t-text);
+  background: var(--t-surface);
+  transition: all 0.2s;
   outline: none;
+  min-height: 44px;
 }
-.add-todo-input:focus { border-color: var(--accent-purple); box-shadow: 0 0 0 3px rgba(127,119,221,0.12); }
+.add-todo-input::placeholder { color: var(--t-muted2); }
+.add-todo-input:focus { border-color: var(--t-accent); box-shadow: 0 0 0 3px var(--t-accent-soft); }
 
 .add-btn {
-  width: 36px; height: 36px;
-  background: var(--accent-purple);
-  border: none; border-radius: 50%; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  color: white; transition: opacity 0.15s;
-  box-shadow: 0 2px 6px rgba(127,119,221,0.3);
+  min-height: 44px;
+  padding: 0 20px;
+  background: var(--t-accent);
+  border: none; border-radius: var(--t-radius-btn); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  color: var(--t-on-accent); font-weight: 600; font-size: 15px;
+  transition: all 0.2s;
   flex-shrink: 0;
 }
-.add-btn:hover { opacity: 0.85; }
-.add-btn svg { width: 15px; height: 15px; }
+.add-btn:hover { background: var(--t-accent-dark); }
+.add-btn svg { width: 16px; height: 16px; }
 
 .empty-state {
   text-align: center; padding: 24px 0;
@@ -499,29 +573,30 @@ body {
 .reflection-label .emoji { font-size: 14px; }
 
 .reflection-textarea {
-  width: 100%; border: 1.5px solid var(--border);
-  border-radius: 8px; padding: 9px 12px;
-  font-size: 13px; font-family: inherit;
-  color: var(--text-primary);
-  background: var(--bg-card);
-  resize: none; min-height: 60px;
-  outline: none; transition: border-color 0.15s;
+  width: 100%; border: 1px solid var(--t-accent2-line);
+  border-radius: 8px; padding: 12px;
+  font-size: 15px; font-family: inherit;
+  color: var(--t-text);
+  background: var(--t-surface);
+  resize: none; min-height: 100px;
+  outline: none; transition: all 0.2s;
   line-height: 1.55;
 }
-.reflection-textarea:focus { border-color: var(--accent-purple); box-shadow: 0 0 0 3px rgba(127,119,221,0.1); }
+.reflection-textarea:focus { border-color: var(--t-accent2); box-shadow: 0 0 0 3px var(--t-accent2-soft); }
 
+/* 성찰 저장하기: accent2(보라) — DESIGN_SPEC 3.6 */
 .save-btn {
-  width: 100%; padding: 10px;
-  background: var(--accent-purple);
-  color: white; border: none;
-  border-radius: 20px; font-size: 14px; font-weight: 600;
-  cursor: pointer; transition: opacity 0.15s;
-  box-shadow: 0 3px 10px rgba(127,119,221,0.3);
+  width: 100%; max-width: 260px; padding: 12px 32px;
+  background: var(--t-accent2);
+  color: var(--t-on-accent); border: none;
+  border-radius: 12px; font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(42,38,34,.15);
   font-family: inherit;
   display: flex; align-items: center; justify-content: center; gap: 6px;
-  margin-top: 14px;
+  margin: 16px auto 0;
 }
-.save-btn:hover { opacity: 0.88; }
+.save-btn:hover { filter: brightness(1.08); }
 .save-btn svg { width: 15px; height: 15px; }
 
 /* ── CARRY-OVER MODAL ── */
@@ -543,7 +618,7 @@ body {
 }
 
 .modal-header {
-  background: var(--gradient, linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%));
+  background: var(--gradient, linear-gradient(135deg, #2E6488 0%, #1B3E52 100%));
   padding: 20px 24px 16px;
   color: white;
   display: flex;
@@ -567,22 +642,22 @@ body {
   display: block;
   font-size: 13.5px;
   font-weight: 600;
-  color: #4b5563;
+  color: #574E45;
   margin-bottom: 8px;
 }
 .modal-input {
   width: 100%; box-sizing: border-box;
   padding: 12px 14px;
-  border: 1.5px solid #e5e7eb;
+  border: 1.5px solid #E4DCCF;
   border-radius: 12px;
   font-size: 14.5px;
   margin-bottom: 18px;
   outline: none;
   transition: border-color 0.2s;
-  background: #f9fafb;
+  background: #F0EAE0;
 }
 .modal-input:focus {
-  border-color: #8b5cf6;
+  border-color: #2E6488;
   background: white;
 }
 
@@ -599,14 +674,14 @@ body {
   padding: 4px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 600;
   border: none; cursor: pointer; transition: all 0.15s; font-family: inherit;
 }
-.btn-carry.yes  { background: rgba(91,95,199,0.12); color: var(--primary); }
+.btn-carry.yes  { background: rgba(35,80,107,0.12); color: var(--primary); }
 .btn-carry.yes:hover { background: var(--primary); color: white; }
 .btn-carry.skip { background: rgba(107,114,128,0.08); color: var(--text-muted); }
-.btn-carry.skip:hover { background: #fee2e2; color: #ef4444; }
+.btn-carry.skip:hover { background: #F5E3E0; color: #8C3B32; }
 
 .btn-primary {
   flex: 1; padding: 12px; border: none; border-radius: 12px;
-  background: var(--gradient, linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)); color: white;
+  background: var(--gradient, linear-gradient(135deg, #2E6488 0%, #1B3E52 100%)); color: white;
   font-size: 14.5px; font-weight: 600; cursor: pointer;
   font-family: inherit; transition: opacity 0.15s;
 }
@@ -614,8 +689,8 @@ body {
 .btn-secondary {
   flex: 1;
   padding: 12px 16px; border: none;
-  border-radius: 12px; background: #f3f4f6;
-  font-size: 14.5px; font-weight: 600; color: #4b5563;
+  border-radius: 12px; background: #F0EAE0;
+  font-size: 14.5px; font-weight: 600; color: #574E45;
   cursor: pointer; font-family: inherit; transition: all 0.15s;
 }
 
@@ -632,22 +707,22 @@ body {
   display: flex; justify-content: space-between; align-items: center;
   padding: 28px 28px 20px 28px;
 }
-.modal-header-custom h3 { margin: 0; font-size: 18px; font-weight: 700; color: #111827; }
+.modal-header-custom h3 { margin: 0; font-size: 18px; font-weight: 700; color: #2A2622; }
 .modal-header-custom .close-btn { background: none; border: none; cursor: pointer; padding: 4px; display:flex; transition: background 0.2s; border-radius: 8px;}
-.modal-header-custom .close-btn:hover { background: #f3f4f6; }
+.modal-header-custom .close-btn:hover { background: #F0EAE0; }
 .modal-body-custom {
   padding: 0 28px 28px 28px;
 }
 .rc-field { margin-bottom: 20px; text-align: left; }
-.rc-field .modal-label { display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px; }
-.rc-field .sub-label { color: #9ca3af; font-weight: 500; font-size: 12.5px; margin-left: 4px; }
+.rc-field .modal-label { display: block; font-size: 14px; font-weight: 600; color: #574E45; margin-bottom: 8px; }
+.rc-field .sub-label { color: #9C9184; font-weight: 500; font-size: 12.5px; margin-left: 4px; }
 .rc-field .modal-input {
   width: 100%; box-sizing: border-box;
   padding: 13px 16px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #E4DCCF;
   border-radius: 10px;
   font-size: 15px;
-  color: #111827;
+  color: #2A2622;
   outline: none;
   background: white;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -660,9 +735,9 @@ body {
   background-position: right 14px center;
   padding-right: 40px;
 }
-.rc-field .modal-input:focus { border-color: #7c3aed; box-shadow: 0 0 0 1px #7c3aed; }
+.rc-field .modal-input:focus { border-color: #23506B; box-shadow: 0 0 0 1px #23506B; }
 .modal-btn:hover { opacity: 0.9; }
-.btn-secondary:hover { background: #e5e7eb; color: #374151; }
+.btn-secondary:hover { background: #E4DCCF; color: #574E45; }
 
 .modal-buttons {
   display: flex; gap: 10px;
@@ -670,15 +745,15 @@ body {
 .modal-btn {
   flex: 1; padding: 12px; border: none; border-radius: 12px; font-size: 14.5px; font-weight: 600; cursor: pointer; transition: all 0.2s;
 }
-.modal-btn.cancel { background: #f3f4f6; color: #4b5563; }
-.modal-btn.cancel:hover { background: #e5e7eb; }
-.modal-btn.save { background: #8b5cf6; color: white; box-shadow: 0 4px 10px rgba(139, 92, 246, 0.2); }
-.modal-btn.save:hover { background: #7c3aed; box-shadow: 0 6px 14px rgba(139, 92, 246, 0.3); transform: translateY(-1px); }
+.modal-btn.cancel { background: #F0EAE0; color: #574E45; }
+.modal-btn.cancel:hover { background: #E4DCCF; }
+.modal-btn.save { background: #2E6488; color: white; box-shadow: 0 4px 10px rgba(35,80,107, 0.2); }
+.modal-btn.save:hover { background: #23506B; box-shadow: 0 6px 14px rgba(35,80,107, 0.3); transform: translateY(-1px); }
 
 /* ── TOAST ── */
 .toast {
   position: fixed; bottom: 28px; right: 28px;
-  background: #1f2937; color: white;
+  background: #2A2622; color: white;
   padding: 12px 18px; border-radius: 10px;
   font-size: 13.5px; font-weight: 600;
   box-shadow: 0 6px 20px rgba(0,0,0,0.2);
@@ -708,8 +783,8 @@ body {
   /* ── 모바일 하단 탭바: 가로 스크롤 8탭 ── */
   .main-nav-container {
     position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important;
-    height: 58px !important; background: white !important;
-    border-top: 1px solid #e5e7eb !important; z-index: 100 !important;
+    height: 58px !important; background: var(--t-surface) !important;
+    border-top: 1px solid var(--t-line) !important; z-index: 100 !important;
     margin: 0 !important; padding: 0 4px !important; border-radius: 0 !important; box-shadow: none !important;
     display: flex !important; flex-direction: row !important; align-items: stretch !important;
     overflow-x: auto !important; overflow-y: hidden !important;
@@ -735,15 +810,15 @@ body {
     display: flex !important; flex-direction: column !important;
     align-items: center !important; justify-content: center !important;
     gap: 3px !important; font-size: 10px !important; font-weight: 600 !important;
-    color: #6b7280 !important; white-space: nowrap !important; cursor: pointer !important;
+    color: var(--t-muted) !important; white-space: nowrap !important; cursor: pointer !important;
     border-bottom: 3px solid transparent !important; box-sizing: border-box !important;
   }
   .nav-btn svg { width: 20px !important; height: 20px !important; flex-shrink: 0 !important; }
   .nav-btn.active {
-    color: #7c3aed !important; border-bottom-color: #7c3aed !important;
+    color: #23506B !important; border-bottom-color: #23506B !important;
     background: transparent !important;
   }
-  .nav-btn.active svg { stroke: #7c3aed !important; }
+  .nav-btn.active svg { stroke: #23506B !important; }
 
   /* nav-card-buttons는 display:contents일 때 불필요하지만 안전하게 처리 */
   .nav-card-buttons {
@@ -792,7 +867,7 @@ body {
   .cat-tab { padding: 6px 12px !important; font-size: 12px !important; min-height: 28px !important; } /* 예외 */
   .add-todo-row { flex-direction: row; width: 100%; gap: 8px; }
   .add-todo-input { width: 100%; height: 44px !important; }
-  .add-btn { width: 44px !important; height: 44px !important; min-height: 44px !important; }
+  .add-btn { min-width: 44px !important; height: 44px !important; min-height: 44px !important; padding: 0 14px !important; }
   .todo-item { height: 48px !important; padding: 0 10px !important; gap: 12px !important; } /* 터치 영역 48px */
   .todo-text { font-size: 13px !important; }
   .todo-tools { display: flex; gap: 12px !important; margin-left: auto; justify-content: flex-end; }
@@ -812,7 +887,7 @@ body {
 
   /* 목표 관리 페이지 (Goals) */
   #page-plan .content-grid, #page-goals .goals-grid, .page-goals-grid { grid-template-columns: 1fr !important; }
-  .goal-category-section, .yearly-section, .monthly-section { border-bottom: 1px solid #e5e7eb; padding-bottom: 20px; margin-bottom: 20px; }
+  .goal-category-section, .yearly-section, .monthly-section { border-bottom: 1px solid #E4DCCF; padding-bottom: 20px; margin-bottom: 20px; }
   .goal-textarea, .action-plan-textarea { min-height: 80px !important; }
 
   /* 프로젝트 페이지 */
@@ -868,8 +943,8 @@ body {
   
   /* 반복업무 관리 페이지용 CSS */
   .page-recurring-wrapper {
-    background: #f7effe;
-    border: 1px solid #d8b4fe;
+    background: #EDE7F3;
+    border: 1px solid #6B4E8C;
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(109, 40, 217, 0.05);
@@ -879,7 +954,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1.5px solid #eaddf3;
+    border-bottom: 1.5px solid #EDE7F3;
   }
   .pr-title-group {
     display: flex;
@@ -887,7 +962,7 @@ body {
     gap: 16px;
   }
   .pr-icon-wrapper {
-    background: #8b5cf6;
+    background: #2E6488;
     color: white;
     width: 48px;
     height: 48px;
@@ -895,24 +970,24 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 8px rgba(139, 92, 246, 0.25);
+    box-shadow: 0 4px 8px rgba(35,80,107, 0.25);
   }
   .pr-icon-wrapper svg { width: 22px; height: 22px; }
   .pr-header-text h2 {
     margin: 0;
-    color: #4c1d95;
+    color: #6B4E8C;
     font-size: 20px;
     font-weight: 800;
     letter-spacing: -0.3px;
   }
   .pr-header-text p {
     margin: 6px 0 0 0;
-    color: #6b7280;
+    color: #7A6F62;
     font-size: 13.5px;
     font-weight: 500;
   }
   .pr-add-btn {
-    background: #7c3aed;
+    background: #23506B;
     color: #fff;
     border: none;
     padding: 10px 20px;
@@ -923,10 +998,10 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.2);
+    box-shadow: 0 2px 6px rgba(35,80,107, 0.2);
     transition: all 0.2s;
   }
-  .pr-add-btn:hover { background: #6d28d9; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3); }
+  .pr-add-btn:hover { background: #1B3E52; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(35,80,107, 0.3); }
   
   .pr-content-area {
     padding: 30px;
@@ -938,7 +1013,7 @@ body {
   }
   .rc-card {
     background: #ffffff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #E4DCCF;
     border-radius: 12px;
     padding: 18px;
     display: flex;
@@ -950,7 +1025,7 @@ body {
   }
   .rc-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(124,58,237,0.10);
+    box-shadow: 0 4px 12px rgba(35,80,107,0.10);
   }
   .rc-header {
     display: flex;
@@ -958,7 +1033,7 @@ body {
     align-items: center;
   }
   .rc-icon-box {
-    background: #7C3AED;
+    background: #23506B;
     border-radius: 10px;
     width: 42px;
     height: 42px;
@@ -968,7 +1043,7 @@ body {
     font-size: 18px;
     color: white;
     flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(124,58,237,0.25);
+    box-shadow: 0 2px 6px rgba(35,80,107,0.25);
   }
   .rc-info {
     flex: 1;
@@ -980,7 +1055,7 @@ body {
   .rc-info h3 {
     margin: 0;
     font-size: 15px;
-    color: #1f2937;
+    color: #2A2622;
     font-weight: 700;
   }
   .rc-badge {
@@ -995,15 +1070,15 @@ body {
     right: 14px;
     background: none;
     border: none;
-    color: #d1d5db;
+    color: #D3C8B6;
     cursor: pointer;
     font-size: 16px;
     padding: 4px;
     transition: all 0.2s;
   }
-  .rc-delete:hover { color: #ef4444; transform: scale(1.15); }
+  .rc-delete:hover { color: #8C3B32; transform: scale(1.15); }
   .rc-divider {
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid #F0EAE0;
     margin: 2px 0;
   }
   .rc-details {
@@ -1011,13 +1086,13 @@ body {
     flex-direction: column;
     gap: 10px;
     font-size: 12.5px;
-    color: #6b7280;
+    color: #7A6F62;
     margin-bottom: 2px;
   }
   .rc-details span { display: flex; align-items: center; gap: 8px; font-weight: 500; }
   .rc-action-btn {
     width: 100%;
-    background: #7C3AED;
+    background: #23506B;
     color: white;
     border: none;
     padding: 10px;
@@ -1030,21 +1105,21 @@ body {
     justify-content: center;
     gap: 8px;
     transition: background 0.15s, box-shadow 0.15s;
-    box-shadow: 0 2px 6px rgba(124,58,237,0.20);
+    box-shadow: 0 2px 6px rgba(35,80,107,0.20);
   }
   .rc-action-btn:hover {
-    background: #6D28D9;
-    box-shadow: 0 4px 10px rgba(124,58,237,0.30);
+    background: #1B3E52;
+    box-shadow: 0 4px 10px rgba(35,80,107,0.30);
   }
   .rt-badge {
-    background: #ede9fe;
-    color: #7c3aed;
+    background: #EDE7F3;
+    color: #23506B;
     font-size: 11px;
     font-weight: 600;
     padding: 3px 6px;
     border-radius: 4px;
     margin-right: 6px;
-    border: 1px solid #ddd6fe;
+    border: 1px solid #C9D6E0;
   }
 
   .recurring-section { margin-bottom: 24px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
@@ -1055,16 +1130,16 @@ body {
   .recurring-actions { display: flex; gap: 8px; }
   .recurring-btn { background: none; border: none; padding: 4px; border-radius: 4px; cursor: pointer; color: var(--text-muted); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
   .recurring-btn:hover { background: rgba(0,0,0,0.05); color: var(--text); }
-  .recurring-btn.delete:hover { color: #ef4444; background: #fee2e2; }
+  .recurring-btn.delete:hover { color: #8C3B32; background: #F5E3E0; }
   .rt-day-chip {
-    width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid #D1D5DB;
-    background: #F3F4F6; color: #6B7280; font-size: 13px; font-weight: 600;
+    width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid #D3C8B6;
+    background: #F0EAE0; color: #7A6F62; font-size: 13px; font-weight: 600;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
     transition: background 0.15s, color 0.15s, border-color 0.15s;
     font-family: inherit; padding: 0;
   }
   .rt-day-chip.selected {
-    background: #7C3AED; color: #fff; border-color: #7C3AED;
+    background: #23506B; color: #fff; border-color: #23506B;
   }
   .add-routine-box { display: flex; gap: 8px; margin-top: 12px; padding: 0 4px; }
   .add-routine-input { flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s; background: var(--bg); color: var(--text); }
@@ -1108,9 +1183,9 @@ body {
     gap: 12px;
   }
 
-  .theme-growth { border-left-color: #34d399; background: rgba(52, 211, 153, 0.05); }
-  .theme-relation { border-left-color: #fb923c; background: rgba(251, 146, 60, 0.05); }
-  .theme-work { border-left-color: #60a5fa; background: rgba(96, 165, 250, 0.05); }
+  .theme-growth { border-left-color: #2F6B4F; background: rgba(52, 211, 153, 0.05); }
+  .theme-relation { border-left-color: #A8712A; background: rgba(251, 146, 60, 0.05); }
+  .theme-work { border-left-color: #2F6F7E; background: rgba(96, 165, 250, 0.05); }
   
   .goal-card-title {
     font-size: 15px;
@@ -1161,43 +1236,43 @@ body {
   .btn-gc:hover { opacity: 0.88; }
   .btn-gc svg { width: 16px; height: 16px; }
   /* Secondary ghost 스타일 */
-  .btn-gray { background: transparent; color: #374151; border: 1.5px solid #e5e7eb; }
-  .btn-gray:hover { border-color: #7C3AED; color: #7C3AED; }
-  .btn-gray-light { background: #f5f3ff; color: #7C3AED; border: 1.5px solid #DDD6FE; }
-  .btn-gray-light:hover { background: #ede9fe; }
+  .btn-gray { background: transparent; color: #574E45; border: 1.5px solid #E4DCCF; }
+  .btn-gray:hover { border-color: #23506B; color: #23506B; }
+  .btn-gray-light { background: #E6EDF2; color: #23506B; border: 1.5px solid #C9D6E0; }
+  .btn-gray-light:hover { background: #EDE7F3; }
   
   /* Themes — 카드 배경 흰색 통일, 아이콘만 색상 유지 */
   .theme-purple, .theme-indigo, .theme-mint {
     background: #ffffff;
-    border-color: #e5e7eb;
+    border-color: #E4DCCF;
   }
-  .theme-purple .gc-icon  { background: #7C3AED; }
-  .theme-indigo .gc-icon  { background: #7C3AED; }
-  .theme-mint .gc-icon    { background: #7C3AED; }
+  .theme-purple .gc-icon  { background: #23506B; }
+  .theme-indigo .gc-icon  { background: #23506B; }
+  .theme-mint .gc-icon    { background: #23506B; }
 
   /* 모든 테마의 btn-primary → 보라색 통일 */
   .theme-purple .btn-primary,
   .theme-indigo .btn-primary,
-  .theme-mint .btn-primary  { background: #7C3AED; color: white; }
-  .theme-indigo .btn-sub    { background: #DDD6FE; color: #4C1D95; }
+  .theme-mint .btn-primary  { background: #23506B; color: white; }
+  .theme-indigo .btn-sub    { background: #C9D6E0; color: #6B4E8C; }
 
   /* gc-body 구분선 */
   .theme-purple .gc-body,
   .theme-indigo .gc-body,
-  .theme-mint .gc-body      { border-top-color: #e5e7eb; }
+  .theme-mint .gc-body      { border-top-color: #E4DCCF; }
   
   /* Routine Cols */
   .routine-cols { display: flex; gap: 20px; }
-  .routine-cols .r-col { flex: 1; padding: 14px; background: #f8fafc; border-radius: 12px; border: 1px solid #f1f5f9; }
+  .routine-cols .r-col { flex: 1; padding: 14px; background: #F0EAE0; border-radius: 12px; border: 1px solid #F0EAE0; }
   .r-col-head { display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 13.5px; margin-bottom: 12px; }
   .r-col-head span:first-child { color: var(--text-primary); display:flex; align-items:center; gap:6px; }
   .r-col-head span:first-child svg { width: 15px; height: 15px;}
   .r-col-head .r-col-cnt { color: var(--text-muted); font-size: 12px; font-weight: 500; }
-  .tc-morning { color: #f59e0b; }
-  .tc-daytime { color: #06b6d4; }
-  .tc-night { color: #6b21a8; }
+  .tc-morning { color: #8A6A1F; }
+  .tc-daytime { color: #2F6F7E; }
+  .tc-night { color: #6B4E8C; }
   
-  .add-routine-dash { width: 100%; padding: 12px; border: 1.5px dashed #ab7cf6; border-radius: 8px; background: transparent; color: #ab7cf6; font-size: 13.5px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+  .add-routine-dash { width: 100%; padding: 12px; border: 1.5px dashed #6B4E8C; border-radius: 8px; background: transparent; color: #6B4E8C; font-size: 13.5px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
   .add-routine-dash:hover { background: rgba(171,124,246,0.05); }
   
   /* Monthly Goal Routine Items */
@@ -1205,20 +1280,20 @@ body {
     display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 8px; padding: 10px 12px;
     border-radius: 8px; font-size: 13.5px; font-weight: 500;
-    color: #1e293b; background: white; border: 1px solid #e2e8f0;
+    color: #2A2622; background: white; border: 1px solid #E4DCCF;
     box-shadow: 0 1px 2px rgba(0,0,0,0.02);
   }
-  .monthly-r-item.morning { border-left: 3px solid #f59e0b; }
-  .monthly-r-item.daytime { border-left: 3px solid #06b6d4; }
-  .monthly-r-item.night   { border-left: 3px solid #6b21a8; }
+  .monthly-r-item.morning { border-left: 3px solid #8A6A1F; }
+  .monthly-r-item.daytime { border-left: 3px solid #2F6F7E; }
+  .monthly-r-item.night   { border-left: 3px solid #6B4E8C; }
   
   .monthly-r-del {
-    background: transparent; border: none; color: #cbd5e1; cursor: pointer; padding: 0 4px; transition: color 0.2s;
+    background: transparent; border: none; color: #D3C8B6; cursor: pointer; padding: 0 4px; transition: color 0.2s;
   }
-  .monthly-r-del:hover { color: #ef4444; }
+  .monthly-r-del:hover { color: #8C3B32; }
   
   #toggle-weekday.btn-gray-light, #toggle-weekend.btn-gray-light {
-    color: #475569; font-weight: 600;
+    color: #574E45; font-weight: 600;
   }
   
   /* Year Goals */
@@ -1226,21 +1301,21 @@ body {
   .yg-cat-title { font-weight: 700; font-size: 13.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
   .yg-cat-title svg { width: 15px; height: 15px; }
 
-  .tc-growth { color: #3b82f6; }
-  .tc-relation { color: #ec4899; }
-  .tc-work { color: #10b981; }
+  .tc-growth { color: #2F6F7E; }
+  .tc-relation { color: #A04E66; }
+  .tc-work { color: #2F6B4F; }
   
-  .yg-item .goal-editor { width: 100%; box-sizing: border-box; background: white; border: 1px solid #c0b0ed; border-radius: 8px; padding: 14px; min-height: 80px; font-size: 14px; transition: border-color 0.2s; }
-  .yg-item .goal-editor:focus { border-color: #8b5cf6; }
+  .yg-item .goal-editor { width: 100%; box-sizing: border-box; background: white; border: 1px solid #6B4E8C; border-radius: 8px; padding: 14px; min-height: 80px; font-size: 14px; transition: border-color 0.2s; }
+  .yg-item .goal-editor:focus { border-color: #2E6488; }
   
   /* Month Goals */
   .mg-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
-  .mg-col-title { font-weight: 700; font-size: 15px; margin-bottom: 16px; color: #1eb589; display: flex; align-items: center; gap: 6px; }
-  .mg-col-title.tc-indigo { color: #8b5cf6; }
+  .mg-col-title { font-weight: 700; font-size: 15px; margin-bottom: 16px; color: #2F6B4F; display: flex; align-items: center; gap: 6px; }
+  .mg-col-title.tc-indigo { color: #2E6488; }
   .mg-col-title svg { width: 18px; height: 18px; }
-  .mg-cell { background: white; border: 1px solid #73d8c1; border-radius: 8px; padding: 14px; min-height: 90px; width:100%; box-sizing: border-box; font-size:14px; transition: border-color 0.2s; }
-  .mg-cell:focus { border-color: #1eb589; }
-  .mg-cell-disabled { background: #f9fafb; border: 1px solid #e5e7eb; color: #9ca3af; display: flex; align-items: center; justify-content: center; min-height: 120px; font-size: 13.5px; flex:1; }
+  .mg-cell { background: white; border: 1px solid #BFD8C9; border-radius: 8px; padding: 14px; min-height: 90px; width:100%; box-sizing: border-box; font-size:14px; transition: border-color 0.2s; }
+  .mg-cell:focus { border-color: #2F6B4F; }
+  .mg-cell-disabled { background: #F0EAE0; border: 1px solid #E4DCCF; color: #9C9184; display: flex; align-items: center; justify-content: center; min-height: 120px; font-size: 13.5px; flex:1; }
   
   @media (max-width: 768px) {
     .routine-cols { flex-direction: column; }
@@ -1252,30 +1327,30 @@ body {
   }
   
   /* AI Feedback Styles */
-  .ai-feedback-section { margin-top: 24px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: var(--shadow-sm); }
-  .ai-feedback-title { font-size: 18px; font-weight: 800; color: #1f2937; margin-bottom: 24px; display: flex; align-items: center; gap: 8px; }
-  .ai-feedback-item { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px dashed #e5e7eb; }
+  .ai-feedback-section { margin-top: 24px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #E4DCCF; box-shadow: var(--shadow-sm); }
+  .ai-feedback-title { font-size: 18px; font-weight: 800; color: #2A2622; margin-bottom: 24px; display: flex; align-items: center; gap: 8px; }
+  .ai-feedback-item { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px dashed #E4DCCF; }
   .ai-feedback-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-  .ai-feedback-cat { font-size: 15px; font-weight: 700; color: #4b5563; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .ai-feedback-cat { font-size: 15px; font-weight: 700; color: #574E45; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
   .ai-feedback-comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
   @media (max-width: 640px) { .ai-feedback-comparison { grid-template-columns: 1fr; } }
-  .ai-feedback-original { padding: 14px; background: #f9fafb; border-radius: 10px; font-size: 13.5px; color: #6b7280; border: 1px solid #f3f4f6; line-height: 1.6; }
-  .ai-feedback-original-label { font-size: 11px; font-weight: 700; color: #9ca3af; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .ai-feedback-suggestion { padding: 14px; background: #f0fdf4; border-radius: 10px; border: 1px solid #dcfce7; line-height: 1.6; }
-  .ai-feedback-suggestion-label { font-size: 11px; font-weight: 700; color: #16a34a; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .ai-feedback-list { margin: 0; padding-left: 20px; color: #16a34a; font-size: 13.5px; font-weight: 600; }
+  .ai-feedback-original { padding: 14px; background: #F0EAE0; border-radius: 10px; font-size: 13.5px; color: #7A6F62; border: 1px solid #F0EAE0; line-height: 1.6; }
+  .ai-feedback-original-label { font-size: 11px; font-weight: 700; color: #9C9184; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .ai-feedback-suggestion { padding: 14px; background: #E4EFE8; border-radius: 10px; border: 1px solid #E4EFE8; line-height: 1.6; }
+  .ai-feedback-suggestion-label { font-size: 11px; font-weight: 700; color: #2F6B4F; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .ai-feedback-list { margin: 0; padding-left: 20px; color: #2F6B4F; font-size: 13.5px; font-weight: 600; }
   .ai-feedback-list li { margin-bottom: 6px; }
   .ai-feedback-list li:last-child { margin-bottom: 0; }
-  .btn-apply-ai { width: 100%; padding: 10px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-  .btn-apply-ai:hover { background: #059669; transform: translateY(-1px); }
+  .btn-apply-ai { width: 100%; padding: 10px; background: #2F6B4F; color: white; border: none; border-radius: 8px; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .btn-apply-ai:hover { background: #2F6B4F; transform: translateY(-1px); }
   .btn-apply-ai:active { transform: translateY(0); }
-  .btn-apply-ai:disabled { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; transform: none; }
+  .btn-apply-ai:disabled { background: #E4DCCF; color: #9C9184; cursor: not-allowed; transform: none; }
 
 
 /* --- 프로젝트 관리를 위한 추가 CSS --- */
 .page-projects-wrapper {
-  background: #e8f4fd;
-  border: 2px solid #93c5fd;
+  background: #E1EEF1;
+  border: 2px solid #B9D3DA;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -1290,13 +1365,13 @@ body {
   padding: 24px 30px;
 }
 .pp-add-btn {
-  background: #6d4b9a; /* 보라색 톤보단 Vercel 사이트에 맞춤 #8b5cf6 */
-  background: #8b5cf6;
+  background: #6B4E8C; /* 보라색 톤보단 Vercel 사이트에 맞춤 #2E6488 */
+  background: #2E6488;
   color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;
 }
 .pp-add-btn:hover { opacity: 0.9; }
 .pp-divider {
-  height: 1px; background: #e5e7eb; width: calc(100% - 60px); margin: 0 auto;
+  height: 1px; background: #E4DCCF; width: calc(100% - 60px); margin: 0 auto;
 }
 .tabs-container.pp-tabs {
   display: flex;
@@ -1316,16 +1391,16 @@ body {
   display: flex; justify-content: center; align-items: center; gap: 8px;
 }
 .tab-btn:not(.active) {
-  background: #f9fafb;
-  color: #6b7280;
-  border: 1px solid #e5e7eb;
+  background: #F0EAE0;
+  color: #7A6F62;
+  border: 1px solid #E4DCCF;
 }
 .tab-btn.active.tab-active {
-  background: #7C3AED;
+  background: #23506B;
   color: white;
 }
 .tab-btn.active.tab-completed {
-  background: #10b981;
+  background: #2F6B4F;
   color: white;
 }
 .pp-content-area {
@@ -1346,57 +1421,57 @@ body {
 .project-card {
   background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 15px; position: relative;
 }
-.project-card.completed { background: #f9fafb; border: 1px solid #f3f4f6;}
+.project-card.completed { background: #F0EAE0; border: 1px solid #F0EAE0;}
 .pc-top { display: flex; align-items: flex-start; justify-content: space-between; }
 .pc-top-left { display: flex; align-items: center; gap: 10px; }
-.pc-icon { font-size: 32px; background: #f3f4f6; width: 44px; height: 44px; display: flex; align-items:center; justify-content:center; border-radius: 50%;}
+.pc-icon { font-size: 32px; background: #F0EAE0; width: 44px; height: 44px; display: flex; align-items:center; justify-content:center; border-radius: 50%;}
 .pc-name-container { display: flex; flex-direction: column; gap: 4px; }
-.pc-name { font-weight: 700; font-size: 16px; color: #1f2937; margin: 0; }
+.pc-name { font-weight: 700; font-size: 16px; color: #2A2622; margin: 0; }
 .pc-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; width: fit-content; }
-.pc-badge.self { background: #fef3c7; color: #d97706; }
-.pc-badge.family { background: #fce7f3; color: #db2777; }
-.pc-badge.work { background: #dbeafe; color: #2563eb; }
+.pc-badge.self { background: #F5ECD9; color: #8A6A1F; }
+.pc-badge.family { background: #F5E3E8; color: #A04E66; }
+.pc-badge.work { background: #E1EEF1; color: #2F6F7E; }
 .completed .pc-icon { filter: grayscale(100%); }
-.completed .pc-name { color: #6b7280; text-decoration: line-through; }
+.completed .pc-name { color: #7A6F62; text-decoration: line-through; }
 .completed .pc-badge { opacity: 0.6; }
-.pc-arrow { background: none; border: none; cursor: pointer; color: #9ca3af; padding: 5px; font-size: 16px; }
+.pc-arrow { background: none; border: none; cursor: pointer; color: #9C9184; padding: 5px; font-size: 16px; }
 .pc-progress-container { display: flex; flex-direction: column; gap: 5px; }
-.pc-progress-header { display: flex; justify-content: space-between; font-size: 12px; color: #4b5563; font-weight: 500; }
-.pc-progress-bar-bg { width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
-.pc-progress-bar-fill { height: 100%; transition: width 0.3s ease; border-radius: 4px; background: #3b82f6; }
-.completed .pc-progress-bar-fill { background: #10b981; }
-.pc-todos-section { background: #fef9ec; border-radius: 8px; padding: 15px; margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
-.pc-todos-title { font-weight: 600; font-size: 14px; color: #374151; display:flex; justify-content:space-between; align-items:center; }
-.pc-todos-actions button { background:none; border:none; cursor:pointer; color:#9ca3af; margin-left:8px; padding:0; }
-.pc-todo-item { display: flex; align-items: flex-start; gap: 10px; font-size: 15.5px; color: #4b5563; padding: 7px 0; }
+.pc-progress-header { display: flex; justify-content: space-between; font-size: 12px; color: #574E45; font-weight: 500; }
+.pc-progress-bar-bg { width: 100%; height: 8px; background: #E4DCCF; border-radius: 4px; overflow: hidden; }
+.pc-progress-bar-fill { height: 100%; transition: width 0.3s ease; border-radius: 4px; background: #2F6F7E; }
+.completed .pc-progress-bar-fill { background: #2F6B4F; }
+.pc-todos-section { background: #F5ECD9; border-radius: 8px; padding: 15px; margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
+.pc-todos-title { font-weight: 600; font-size: 14px; color: #574E45; display:flex; justify-content:space-between; align-items:center; }
+.pc-todos-actions button { background:none; border:none; cursor:pointer; color:#9C9184; margin-left:8px; padding:0; }
+.pc-todo-item { display: flex; align-items: flex-start; gap: 10px; font-size: 15.5px; color: #574E45; padding: 7px 0; }
 .pc-todo-text { flex: 1; word-break: break-all; margin-top:0px; line-height: 1.6; }
-.pc-todo-item.done .pc-todo-text { text-decoration: line-through; color: #9ca3af; }
-.pc-todo-item input[type="checkbox"] { flex-shrink: 0; width: 16px; height: 16px; cursor: pointer; accent-color: #3b82f6; margin-top:2px; }
-.completed .pc-todo-item input[type="checkbox"] { accent-color: #10b981; }
+.pc-todo-item.done .pc-todo-text { text-decoration: line-through; color: #9C9184; }
+.pc-todo-item input[type="checkbox"] { flex-shrink: 0; width: 16px; height: 16px; cursor: pointer; accent-color: #2F6F7E; margin-top:2px; }
+.completed .pc-todo-item input[type="checkbox"] { accent-color: #2F6B4F; }
 .pc-todo-tools { display:flex; gap:6px; opacity: 0; transition: opacity 0.2s; }
 .pc-todo-item:hover .pc-todo-tools { opacity: 1; }
-.pc-todo-tools button { background:none; border:none; cursor:pointer; padding:0; font-size:12px; color:#6b7280;}
+.pc-todo-tools button { background:none; border:none; cursor:pointer; padding:0; font-size:12px; color:#7A6F62;}
 .pc-todo-input-wrap { display: flex; gap: 5px; margin-top: 5px; }
-.pc-todo-input-wrap input { flex: 1; padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 12px; }
-.pc-todo-input-wrap button { background: #3b82f6; color: white; border: none; padding: 0 10px; border-radius: 4px; cursor: pointer; font-size:16px;}
-.pc-btn-primary { background: linear-gradient(to right, #8b5cf6, #3b82f6); color: white; border: none; padding: 8px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 10px; }
-.completed .pc-btn-primary { background: #10b981; margin-top: 0; }
-.empty-projects { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: #6b7280; gap: 10px; text-align: center; }
-.empty-projects svg { width: 48px; height: 48px; color: #9ca3af; }
-.empty-projects h3 { font-size: 16px; font-weight: 600; color: #374151; margin:0; }
+.pc-todo-input-wrap input { flex: 1; padding: 6px 10px; border: 1px solid #D3C8B6; border-radius: 4px; font-size: 12px; }
+.pc-todo-input-wrap button { background: #2F6F7E; color: white; border: none; padding: 0 10px; border-radius: 4px; cursor: pointer; font-size:16px;}
+.pc-btn-primary { background: linear-gradient(to right, #2E6488, #2F6F7E); color: white; border: none; padding: 8px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+.completed .pc-btn-primary { background: #2F6B4F; margin-top: 0; }
+.empty-projects { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: #7A6F62; gap: 10px; text-align: center; }
+.empty-projects svg { width: 48px; height: 48px; color: #9C9184; }
+.empty-projects h3 { font-size: 16px; font-weight: 600; color: #574E45; margin:0; }
 .empty-projects p { font-size: 14px; margin:0; }
 
 /* 모달 CSS 추가 */
 #projectModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
 #projectModal .modal-content { background: white; border-radius: 12px; width: 90%; max-width: 400px; padding: 24px; display:flex; flex-direction:column; gap:20px; }
-#projectModal h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; }
+#projectModal h2 { margin: 0; font-size: 20px; font-weight: 700; color: #2A2622; }
 #projectModal .form-group { display: flex; flex-direction: column; gap: 8px; }
-#projectModal label { font-size: 14px; font-weight: 600; color: #374151; }
-#projectModal input, #projectModal select { padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; outline: none; }
-#projectModal input:focus, #projectModal select:focus { border-color: #8b5cf6; }
+#projectModal label { font-size: 14px; font-weight: 600; color: #574E45; }
+#projectModal input, #projectModal select { padding: 10px; border: 1px solid #D3C8B6; border-radius: 6px; font-size: 14px; outline: none; }
+#projectModal input:focus, #projectModal select:focus { border-color: #2E6488; }
 #projectModal .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
-#projectModal .btn-cancel { background: #f3f4f6; color: #4b5563; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
-#projectModal .btn-save { background: #8b5cf6; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+#projectModal .btn-cancel { background: #F0EAE0; color: #574E45; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+#projectModal .btn-save { background: #2E6488; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
 
 
 /* --- 프로젝트 관리를 위한 추가 CSS --- */
@@ -1413,14 +1488,14 @@ body {
 .projects-title {
   font-size: 24px;
   font-weight: 700;
-  color: #1f2937;
+  color: #2A2622;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 .projects-subtitle {
   font-size: 14px;
-  color: #6b7280;
+  color: #7A6F62;
   margin-top: 5px;
 }
 .tabs-container {
@@ -1438,15 +1513,15 @@ body {
   transition: all 0.2s;
 }
 .tab-btn:not(.active) {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: #F0EAE0;
+  color: #7A6F62;
 }
 .tab-btn.active.tab-active {
-  background: #7C3AED;
+  background: #23506B;
   color: white;
 }
 .tab-btn.active.tab-completed {
-  background: #10b981;
+  background: #2F6B4F;
   color: white;
 }
 .projects-grid {
@@ -1462,7 +1537,7 @@ body {
 }
 
 .project-card {
-  background: #e8f4fd;
+  background: #E1EEF1;
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.05);
@@ -1478,16 +1553,16 @@ body {
   box-shadow: 0 6px 12px rgba(0,0,0,0.08);
 }
 .project-card.completed {
-  background: #f3f4f6;
+  background: #F0EAE0;
 }
 .project-detail-panel {
   grid-column: 1 / -1;
-  background: #FFF9E6;
+  background: #F5ECD9;
   border-radius: 12px;
   padding: 24px;
   margin-top: 5px;
   margin-bottom: 15px;
-  border: 1px solid #fde047;
+  border: 1px solid #E4D3A8;
   box-shadow: 0 8px 16px rgba(0,0,0,0.06);
   animation: slidePanelDown 0.3s ease-out forwards;
 }
@@ -1499,27 +1574,27 @@ body {
   display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
 }
 .pdp-header h3 {
-  margin: 0; font-size: 18px; color: #92400e; font-weight: 700;
+  margin: 0; font-size: 18px; color: #8A6A1F; font-weight: 700;
 }
 .pdp-close {
-  background: none; border: none; font-size: 24px; color: #9ca3af; cursor: pointer; font-weight: bold;
+  background: none; border: none; font-size: 24px; color: #9C9184; cursor: pointer; font-weight: bold;
 }
-.pdp-close:hover { color: #4b5563; }
+.pdp-close:hover { color: #574E45; }
 .detail-btn-today {
   display: block; width: 100%; text-align: center; margin-top: 16px; padding: 14px;
-  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; border: none;
+  background: linear-gradient(135deg, #2E6488 0%, #1B3E52 100%); color: white; border: none;
   border-radius: 10px; font-size: 15.5px; font-weight: 600; cursor: pointer;
-  box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3); transition: transform 0.2s;
+  box-shadow: 0 4px 10px rgba(35,80,107, 0.3); transition: transform 0.2s;
 }
 .detail-btn-today:active { transform: scale(0.98); }
 .detail-input-wrap {
   display: flex; gap: 8px; margin-top: 16px;
 }
 .detail-input-wrap input {
-  flex: 1; padding: 12px; border: 1px solid #fcd34d; border-radius: 8px; outline: none; font-size: 14.5px; background: #fff;
+  flex: 1; padding: 12px; border: 1px solid #E4D3A8; border-radius: 8px; outline: none; font-size: 14.5px; background: #fff;
 }
 .detail-input-wrap button {
-  background: #f59e0b; color: white; border: none; border-radius: 8px; padding: 0 18px; font-size: 20px; font-weight: bold; cursor: pointer;
+  background: #8A6A1F; color: white; border: none; border-radius: 8px; padding: 0 18px; font-size: 20px; font-weight: bold; cursor: pointer;
   box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
 }
 
@@ -1527,26 +1602,26 @@ body {
 .pc-top-left { display: flex; align-items: center; gap: 10px; }
 .pc-icon { font-size: 24px; }
 .pc-name-container { display: flex; flex-direction: column; gap: 4px; }
-.pc-name { font-weight: 700; font-size: 16px; color: #1f2937; margin: 0; }
+.pc-name { font-weight: 700; font-size: 16px; color: #2A2622; margin: 0; }
 .pc-badge {
   font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; width: fit-content;
 }
-.pc-badge.self { background: #fef3c7; color: #d97706; }
-.pc-badge.family { background: #fce7f3; color: #db2777; }
-.pc-badge.work { background: #dbeafe; color: #2563eb; }
+.pc-badge.self { background: #F5ECD9; color: #8A6A1F; }
+.pc-badge.family { background: #F5E3E8; color: #A04E66; }
+.pc-badge.work { background: #E1EEF1; color: #2F6F7E; }
 
 .completed .pc-icon { filter: grayscale(100%); }
-.completed .pc-name { color: #6b7280; text-decoration: line-through; }
+.completed .pc-name { color: #7A6F62; text-decoration: line-through; }
 .completed .pc-badge { opacity: 0.6; }
 
 .pc-progress-container { display: flex; flex-direction: column; gap: 5px; }
-.pc-progress-header { display: flex; justify-content: space-between; font-size: 12px; color: #4b5563; font-weight: 500; }
-.pc-progress-bar-bg { width: 100%; height: 8px; background: #d1d5db; border-radius: 4px; overflow: hidden; }
-.pc-progress-bar-fill { height: 100%; transition: width 0.3s ease; border-radius: 4px; background: #3b82f6; }
-.completed .pc-progress-bar-fill { background: #10b981; }
+.pc-progress-header { display: flex; justify-content: space-between; font-size: 12px; color: #574E45; font-weight: 500; }
+.pc-progress-bar-bg { width: 100%; height: 8px; background: #D3C8B6; border-radius: 4px; overflow: hidden; }
+.pc-progress-bar-fill { height: 100%; transition: width 0.3s ease; border-radius: 4px; background: #2F6F7E; }
+.completed .pc-progress-bar-fill { background: #2F6B4F; }
 
 .pc-todos-section {
-  background: #fef9ec;
+  background: #F5ECD9;
   border-radius: 8px;
   padding: 15px;
   margin-top: 10px;
@@ -1554,58 +1629,58 @@ body {
   flex-direction: column;
   gap: 10px;
 }
-.pc-todos-title { font-weight: 600; font-size: 14px; color: #374151; display:flex; justify-content:space-between; align-items:center; }
-.pc-todos-actions button { background:none; border:none; cursor:pointer; color:#9ca3af; margin-left:8px; padding:0; }
-.pc-todo-item { display: flex; align-items: flex-start; gap: 10px; font-size: 15.5px; color: #4b5563; padding: 7px 0; }
+.pc-todos-title { font-weight: 600; font-size: 14px; color: #574E45; display:flex; justify-content:space-between; align-items:center; }
+.pc-todos-actions button { background:none; border:none; cursor:pointer; color:#9C9184; margin-left:8px; padding:0; }
+.pc-todo-item { display: flex; align-items: flex-start; gap: 10px; font-size: 15.5px; color: #574E45; padding: 7px 0; }
 .pc-todo-text { flex: 1; word-break: break-all; margin-top:0px; line-height: 1.6; }
-.pc-todo-item.done .pc-todo-text { text-decoration: line-through; color: #9ca3af; }
-.pc-todo-item input[type="checkbox"] { flex-shrink: 0; width: 16px; height: 16px; cursor: pointer; accent-color: #3b82f6; margin-top:2px; }
-.completed .pc-todo-item input[type="checkbox"] { accent-color: #10b981; }
+.pc-todo-item.done .pc-todo-text { text-decoration: line-through; color: #9C9184; }
+.pc-todo-item input[type="checkbox"] { flex-shrink: 0; width: 16px; height: 16px; cursor: pointer; accent-color: #2F6F7E; margin-top:2px; }
+.completed .pc-todo-item input[type="checkbox"] { accent-color: #2F6B4F; }
 .pc-todo-tools { display:flex; gap:6px; opacity: 0; transition: opacity 0.2s; }
 .pc-todo-item:hover .pc-todo-tools { opacity: 1; }
-.pc-todo-tools button { background:none; border:none; cursor:pointer; padding:0; font-size:12px; color:#6b7280;}
+.pc-todo-tools button { background:none; border:none; cursor:pointer; padding:0; font-size:12px; color:#7A6F62;}
 
 .pc-todo-input-wrap { display: flex; gap: 5px; margin-top: 5px; }
-.pc-todo-input-wrap input { flex: 1; padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 12px; }
-.pc-todo-input-wrap button { background: #3b82f6; color: white; border: none; padding: 0 10px; border-radius: 4px; cursor: pointer; font-size:16px;}
+.pc-todo-input-wrap input { flex: 1; padding: 6px 10px; border: 1px solid #D3C8B6; border-radius: 4px; font-size: 12px; }
+.pc-todo-input-wrap button { background: #2F6F7E; color: white; border: none; padding: 0 10px; border-radius: 4px; cursor: pointer; font-size:16px;}
 
 .pc-btn-primary {
-  background: linear-gradient(to right, #8b5cf6, #3b82f6);
+  background: linear-gradient(to right, #2E6488, #2F6F7E);
   color: white; border: none; padding: 8px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 10px;
 }
-.completed .pc-btn-primary { background: #10b981; margin-top: 0; }
+.completed .pc-btn-primary { background: #2F6B4F; margin-top: 0; }
 
 .empty-projects {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 60px 20px; color: #6b7280; gap: 10px; text-align: center; background: white; border-radius: 12px;
+  padding: 60px 20px; color: #7A6F62; gap: 10px; text-align: center; background: white; border-radius: 12px;
 }
-.empty-projects svg { width: 48px; height: 48px; color: #d1d5db; }
-.empty-projects h3 { font-size: 16px; font-weight: 600; color: #374151; margin:0; }
+.empty-projects svg { width: 48px; height: 48px; color: #D3C8B6; }
+.empty-projects h3 { font-size: 16px; font-weight: 600; color: #574E45; margin:0; }
 .empty-projects p { font-size: 14px; margin:0; }
 
 /* 모달 CSS 추가 */
 #projectModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
 #projectModal .modal-content { background: white; border-radius: 12px; width: 90%; max-width: 400px; padding: 24px; display:flex; flex-direction:column; gap:20px; }
-#projectModal h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; }
+#projectModal h2 { margin: 0; font-size: 20px; font-weight: 700; color: #2A2622; }
 #projectModal .form-group { display: flex; flex-direction: column; gap: 8px; }
-#projectModal label { font-size: 14px; font-weight: 600; color: #374151; }
-#projectModal input, #projectModal select { padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; outline: none; }
-#projectModal input:focus, #projectModal select:focus { border-color: #8b5cf6; }
+#projectModal label { font-size: 14px; font-weight: 600; color: #574E45; }
+#projectModal input, #projectModal select { padding: 10px; border: 1px solid #D3C8B6; border-radius: 6px; font-size: 14px; outline: none; }
+#projectModal input:focus, #projectModal select:focus { border-color: #2E6488; }
 #projectModal .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
-#projectModal .btn-cancel { background: #f3f4f6; color: #4b5563; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
-#projectModal .btn-save { background: #8b5cf6; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+#projectModal .btn-cancel { background: #F0EAE0; color: #574E45; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+#projectModal .btn-save { background: #2E6488; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
 
 /* ── AUTH SCREEN ── */
 #auth-screen {
   display: none; position: fixed; inset: 0; z-index: 9999;
-  background: linear-gradient(135deg, #f0f0f8 0%, #e8e8f8 100%);
+  background: linear-gradient(135deg, #F8F4EC 0%, #F0EAE0 100%);
   align-items: center; justify-content: center;
 }
 #auth-screen.visible { display: flex; }
 .auth-card {
-  background: white; border-radius: 20px; padding: 40px 36px;
+  background: var(--t-surface); border-radius: 20px; padding: 40px 36px;
   width: 100%; max-width: 400px;
-  box-shadow: 0 10px 40px rgba(91,95,199,0.15);
+  box-shadow: 0 10px 40px rgba(35,80,107,0.15);
   display: flex; flex-direction: column; gap: 20px;
 }
 .auth-logo {
@@ -1614,21 +1689,21 @@ body {
 }
 .auth-logo .logo-icon {
   width: 56px; height: 56px;
-  background: linear-gradient(135deg, #5B5FC7, #8B7AB8);
+  background: linear-gradient(135deg, #23506B, #6B4E8C);
   border-radius: 16px; display: flex; align-items: center; justify-content: center;
 }
-.auth-logo h1 { font-size: 22px; font-weight: 700; color: #1f2937; margin: 0; }
-.auth-logo p  { font-size: 13px; color: #6b7280; margin: 0; }
+.auth-logo h1 { font-size: 22px; font-weight: 700; color: #2A2622; margin: 0; }
+.auth-logo p  { font-size: 13px; color: #7A6F62; margin: 0; }
 .auth-form { display: flex; flex-direction: column; gap: 14px; }
 .auth-field { display: flex; flex-direction: column; gap: 6px; }
-.auth-field label { font-size: 13px; font-weight: 600; color: #374151; }
+.auth-field label { font-size: 13px; font-weight: 600; color: #574E45; }
 .auth-field input {
-  border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 11px 14px;
+  border: 1.5px solid #E4DCCF; border-radius: 10px; padding: 11px 14px;
   font-size: 14px; outline: none; transition: border-color 0.2s; font-family: inherit;
 }
-.auth-field input:focus { border-color: #5B5FC7; }
+.auth-field input:focus { border-color: #23506B; }
 .auth-btn-primary {
-  background: linear-gradient(135deg, #5B5FC7, #8B7AB8); color: white;
+  background: linear-gradient(135deg, #23506B, #6B4E8C); color: white;
   border: none; border-radius: 10px; padding: 13px;
   font-size: 15px; font-weight: 700; cursor: pointer;
   transition: opacity 0.2s; font-family: inherit;
@@ -1636,22 +1711,22 @@ body {
 .auth-btn-primary:hover { opacity: 0.9; }
 .auth-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 .auth-btn-secondary {
-  background: #f3f4f6; color: #4b5563; border: none; border-radius: 10px;
+  background: #F0EAE0; color: #574E45; border: none; border-radius: 10px;
   padding: 11px; font-size: 14px; font-weight: 600; cursor: pointer;
   transition: background 0.2s; font-family: inherit;
 }
-.auth-btn-secondary:hover { background: #e5e7eb; }
+.auth-btn-secondary:hover { background: #E4DCCF; }
 .auth-msg {
   border-radius: 8px; padding: 10px 12px; font-size: 13px; display: none;
 }
-.auth-msg.error { display: block; background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
-.auth-msg.success { display: block; background: #f0fdf4; border: 1px solid #86efac; color: #16a34a; }
-.auth-divider { text-align: center; font-size: 12px; color: #9ca3af; }
+.auth-msg.error { display: block; background: #F5E3E0; border: 1px solid #E3BDB7; color: #8C3B32; }
+.auth-msg.success { display: block; background: #E4EFE8; border: 1px solid #BFD8C9; color: #2F6B4F; }
+.auth-divider { text-align: center; font-size: 12px; color: #9C9184; }
 
 /* ─────────── 2단계 디자인 시스템 통일 ─────────── */
 /* 버튼 3종류 공통 클래스 */
 .btn-ds-primary {
-  background: #7C3AED !important;
+  background: #23506B !important;
   color: white !important;
   border: none !important;
   border-radius: 8px !important;
@@ -1671,8 +1746,8 @@ body {
 .btn-ds-primary:disabled { opacity: 0.5 !important; cursor: not-allowed !important; }
 .btn-ds-secondary {
   background: transparent !important;
-  color: #374151 !important;
-  border: 1px solid #E5E7EB !important;
+  color: #574E45 !important;
+  border: 1px solid #E4DCCF !important;
   border-radius: 8px !important;
   padding: 10px 20px !important;
   height: 40px !important;
@@ -1685,16 +1760,16 @@ body {
   justify-content: center !important;
   gap: 6px !important;
 }
-.btn-ds-secondary:hover { background: #F9FAFB !important; }
+.btn-ds-secondary:hover { background: #F0EAE0 !important; }
 
 /* 순환구조 프리필 버튼 (3단계 학습→실천→성찰) */
 .cycle-prefill-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #F5F3FF;
-  color: #7C3AED;
-  border: 1px solid #DDD6FE;
+  background: #E6EDF2;
+  color: #23506B;
+  border: 1px solid #C9D6E0;
   border-radius: 8px;
   padding: 8px 14px;
   font-size: 13px;
@@ -1704,24 +1779,24 @@ body {
   transition: background 0.15s;
   margin-top: 12px;
 }
-.cycle-prefill-btn:hover { background: #EDE9FE; }
+.cycle-prefill-btn:hover { background: #EDE7F3; }
 
 /* 어제 다짐 배너 */
 .pledge-banner {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  background: #FFFBEB;
-  border: 1px solid #FDE68A;
+  background: #F5ECD9;
+  border: 1px solid #E4D3A8;
   border-radius: 10px;
   padding: 12px 16px;
   margin-bottom: 16px;
   font-size: 14px;
-  color: #92400E;
+  color: #8A6A1F;
 }
 .pledge-banner-text { flex: 1; line-height: 1.5; }
 .pledge-banner-accept {
-  background: #F59E0B;
+  background: #8A6A1F;
   color: white;
   border: none;
   border-radius: 6px;
@@ -1736,7 +1811,7 @@ body {
 .pledge-banner-dismiss {
   background: transparent;
   border: none;
-  color: #92400E;
+  color: #8A6A1F;
   cursor: pointer;
   font-size: 18px;
   line-height: 1;
@@ -1840,15 +1915,15 @@ body {
   margin-bottom: 10px !important;
 }
 .routine-section-title.morning {
-  color: #f59e0b !important;
+  color: #8A6A1F !important;
   background: rgba(245,158,11,0.08) !important;
 }
 .routine-section-title.daytime {
-  color: #5B5FC7 !important;
-  background: rgba(91,95,199,0.08) !important;
+  color: #23506B !important;
+  background: rgba(35,80,107,0.08) !important;
 }
 .routine-section-title.night {
-  color: #6B7EE0 !important;
+  color: #2F6F7E !important;
   background: rgba(107,126,224,0.08) !important;
 }
 .routine-card .check-item {
@@ -1857,7 +1932,7 @@ body {
   gap: 10px !important;
   padding: 7px 8px !important;
   border-radius: 8px !important;
-  background: #f9fafb !important;
+  background: #F0EAE0 !important;
   margin-bottom: 4px !important;
   cursor: pointer !important;
   border: 1px solid transparent !important;
@@ -1872,7 +1947,7 @@ body {
   height: 18px !important;
   min-width: 18px !important;
   border-radius: 50% !important;
-  border: 2px solid #d1d5db !important;
+  border: 2px solid #D3C8B6 !important;
 }
 .routine-card .check-item.done {
   background: var(--accent-purple-bg) !important;
@@ -1883,12 +1958,12 @@ body {
 }
 .routine-card .check-item.done .item-label {
   text-decoration: line-through !important;
-  color: #9ca3af !important;
+  color: #9C9184 !important;
   opacity: 0.65;
 }
 .routine-empty-items {
   text-align: center;
-  color: #9ca3af;
+  color: #9C9184;
   font-size: 13px;
   padding: 10px 0;
 }
@@ -1901,11 +1976,11 @@ body {
   justify-content: center;
 }
 .sub-toggle-custom-btn {
-  background: white;
-  border: 1px solid var(--accent-purple-border);
-  color: var(--accent-purple);
+  background: var(--t-accent-soft);
+  border: 1px solid var(--t-accent-line);
+  color: var(--t-accent);
   height: 36px;
-  border-radius: 20px;
+  border-radius: 999px;
   padding: 6px 20px;
   font-size: 13px;
   font-weight: 600;
@@ -1917,12 +1992,28 @@ body {
   font-family: inherit;
   transition: all 0.2s;
 }
+/* 두 번째 칩(하루 성찰)은 accent2(보라) 계열 — DESIGN_SPEC 3.3 */
+.sub-toggle-custom-btn:last-child {
+  background: var(--t-accent2-soft);
+  border-color: var(--t-accent2-line);
+  color: var(--t-accent2);
+}
 .sub-toggle-custom-btn:active, .sub-toggle-custom-btn:focus, .sub-toggle-custom-btn.active {
-  background: var(--accent-purple) !important;
-  color: white !important;
+  background: var(--t-accent-line) !important;
+  color: var(--t-accent) !important;
+  font-weight: 700;
+}
+.sub-toggle-custom-btn:last-child.active,
+.sub-toggle-custom-btn:last-child:active,
+.sub-toggle-custom-btn:last-child:focus {
+  background: var(--t-accent2-line) !important;
+  color: var(--t-accent2) !important;
 }
 .sub-toggle-custom-btn:hover {
-  background: var(--accent-purple-bg);
+  background: var(--t-accent-line);
+}
+.sub-toggle-custom-btn:last-child:hover {
+  background: var(--t-accent2-line);
 }
 
 /* 날짜 표시 영역 디자인 */
@@ -1955,7 +2046,7 @@ body {
   font-weight: 700;
   border-radius: 20px;
   padding: 8px 24px;
-  box-shadow: 0 4px 12px rgba(127,119,221,0.3);
+  box-shadow: 0 4px 12px rgba(35,80,107,0.3);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2051,7 +2142,7 @@ body {
         <button class="date-nav-custom-btn" onclick="changeDate(1)">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="m9 18 6-6-6-6"/></svg>
         </button>
-        <button id="btnToday" style="display:none; position:absolute; right:0; padding:6px 12px; font-size:13px; font-weight:600; background-color:#e0e7ff; color:#4338ca; border:none; border-radius:8px; cursor:pointer;" onclick="goToToday()">오늘로 이동</button>
+        <button id="btnToday" style="display:none; position:absolute; right:0; padding:6px 12px; font-size:13px; font-weight:600; background-color:#EDE7F3; color:#23506B; border:none; border-radius:8px; cursor:pointer;" onclick="goToToday()">오늘로 이동</button>
       </div>
       <!-- Hidden input for task date change -->
       <input type="text" id="taskDateInputH" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;">
@@ -2110,7 +2201,7 @@ body {
           <div class="card-title" style="display:flex; align-items:center; gap:6px;">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check-square" aria-hidden="true" style="color:var(--primary)" class="lucide lucide-check-square"><path d="M21 10.656V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12.344"></path><path d="m9 11 3 3L22 4"></path></svg>
             오늘 할일
-            <button onclick="goToToday()" style="background:#f0f4ff; border:1px solid #c7d2fe; color:#4338ca; border-radius:9999px; font-size:13px; font-weight:600; padding:4px 12px; margin-left:4px; cursor:pointer; line-height:1; transition:all 0.2s;">☀️ 오늘로 이동</button>
+            <button onclick="goToToday()" style="background:#EDE7F3; border:1px solid #EDE7F3; color:#23506B; border-radius:9999px; font-size:13px; font-weight:600; padding:4px 12px; margin-left:4px; cursor:pointer; line-height:1; transition:all 0.2s;">☀️ 오늘로 이동</button>
           </div>
           <div class="stats-row">
             <span class="stat-badge" id="todoProgress">0 / 2</span>
@@ -2134,34 +2225,35 @@ body {
             <div style="font-weight: 700; margin-bottom: 12px; font-size: 15px; display: flex; align-items: center; gap: 6px;">
               🎯 이번 주 원씽
             </div>
-            <div style="display: flex; align-items: flex-start; gap: 8px; background: white; padding: 12px 16px; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-              <input type="checkbox" id="weekly-onething-check" style="width: 20px; height: 20px; cursor: pointer; accent-color: #7F77DD; margin-top: 2px;" onchange="saveWeeklyOneThing()">
-              <textarea id="weekly-onething-input" rows="1" placeholder="이번 주 반드시 끝낼 단 하나" style="flex: 1; width: 100%; min-width: 0; border: none; outline: none; font-size: 15px; color: #333; resize: none; overflow: hidden; line-height: 1.5; font-family: inherit; background: transparent; padding: 0;" oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';" onblur="saveWeeklyOneThing()" onkeydown="handleWeeklyOneThingKeydown(event)"></textarea>
+            <div style="display: flex; align-items: flex-start; gap: 8px; background: white; padding: 12px 16px; border-radius: 12px; border: 1px solid #E4DCCF; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+              <input type="checkbox" id="weekly-onething-check" style="width: 20px; height: 20px; cursor: pointer; accent-color: #23506B; margin-top: 2px;" onchange="saveWeeklyOneThing()">
+              <textarea id="weekly-onething-input" rows="1" placeholder="이번 주 반드시 끝낼 단 하나" style="flex: 1; width: 100%; min-width: 0; border: none; outline: none; font-size: 15px; color: #2A2622; resize: none; overflow: hidden; line-height: 1.5; font-family: inherit; background: transparent; padding: 0;" oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';" onblur="saveWeeklyOneThing()" onkeydown="handleWeeklyOneThingKeydown(event)"></textarea>
             </div>
           </div>
           
           <!-- 신규: 진짜 하루 1개 오늘의 원씽 -->
           <div id="daily-onething-section" style="margin-bottom: 24px;">
             <div style="font-weight: 700; margin-bottom: 12px; font-size: 15px; display: flex; align-items: center; gap: 6px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" style="color: #F59E0B;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" style="color: #8A6A1F;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               ⭐ 오늘의 원씽
             </div>
-            <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 12px 16px; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-              <input type="checkbox" id="daily-onething-check" style="width: 20px; height: 20px; cursor: pointer; accent-color: #7F77DD;" onchange="saveDailyOneThing()">
-              <input type="text" id="daily-onething-input" placeholder="오늘 반드시 끝낼 단 하나" style="flex: 1; border: none; outline: none; font-size: 15px; color: #333;" onblur="saveDailyOneThing()">
+            <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 12px 16px; border-radius: 12px; border: 1px solid #E4DCCF; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+              <input type="checkbox" id="daily-onething-check" style="width: 20px; height: 20px; cursor: pointer; accent-color: #23506B;" onchange="saveDailyOneThing()">
+              <input type="text" id="daily-onething-input" placeholder="오늘 반드시 끝낼 단 하나" style="flex: 1; border: none; outline: none; font-size: 15px; color: #2A2622;" onblur="saveDailyOneThing()">
             </div>
           </div>
                     <div class="category-tabs" id="catTabs">
-            <button class="cat-tab work active" style="background-color:#fff7ed; color:#f59e0b; border-color:#f59e0b;" onclick="switchCat('work',this)">🗂 Work</button>
-            <button class="cat-tab job" onclick="switchCat('job',this)">📋 Job</button>
-            <button class="cat-tab growth" onclick="switchCat('growth',this)">🌱 Growth</button>
-            <button class="cat-tab personal" onclick="switchCat('personal',this)">💜 Personal</button>
+            <button class="cat-tab work active" onclick="switchCat('work',this)">Work</button>
+            <button class="cat-tab job" onclick="switchCat('job',this)">Job</button>
+            <button class="cat-tab growth" onclick="switchCat('growth',this)">Growth</button>
+            <button class="cat-tab personal" onclick="switchCat('personal',this)">Personal</button>
           </div>
           
           <div class="add-todo-row" style="margin-top:16px;">
             <input class="add-todo-input" id="todoInput" placeholder="복잡하고 어려운 일을 입력하세요..." onkeydown="if(event.key==='Enter'){event.preventDefault();addTodo();}">
             <button class="add-btn" onclick="addTodo()">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+              <span>추가</span>
             </button>
           </div>
 
@@ -2193,7 +2285,7 @@ body {
             onclick="generateLearningAnalysis()"
             style="
               width:100%; padding:14px; margin-top:16px;
-              background: linear-gradient(135deg, #10b981, #3b82f6);
+              background: linear-gradient(135deg, #2F6B4F, #2F6F7E);
               color:white; border:none; border-radius:10px;
               font-size:15px; font-weight:700; cursor:pointer;
               font-family:inherit;
@@ -2206,9 +2298,9 @@ body {
               id="learningAiContent"
               style="
                 font-size:14px; line-height:1.9;
-                color:#1f2937; white-space:pre-wrap;
-                background:#f8f8ff; border-radius:10px;
-                padding:16px; border:1px solid #e5e7eb;
+                color:#2A2622; white-space:pre-wrap;
+                background:#F0EAE0; border-radius:10px;
+                padding:16px; border:1px solid #E4DCCF;
               ">
             </div>
             <!-- 3단계 Feature 1: 학습→원씽 프리필 버튼 -->
@@ -2263,7 +2355,7 @@ body {
             onclick="runAIAnalysis()"
             style="
               width:100%; padding:14px;
-              background: linear-gradient(135deg, #5B5FC7, #8B7AB8);
+              background: linear-gradient(135deg, #23506B, #6B4E8C);
               color:white; border:none; border-radius:10px;
               font-size:15px; font-weight:700; cursor:pointer;
               font-family:inherit;
@@ -2284,9 +2376,9 @@ body {
                   id="aiContent"
                   style="
                     font-size:14px; line-height:1.9;
-                    color:#1f2937; white-space:pre-wrap;
-                    background:#f8f8ff; border-radius:10px;
-                    padding:16px; border:1px solid #e5e7eb;
+                    color:#2A2622; white-space:pre-wrap;
+                    background:#F0EAE0; border-radius:10px;
+                    padding:16px; border:1px solid #E4DCCF;
                   ">
                 </div>
               </div>
@@ -2349,11 +2441,11 @@ body {
         <div class="pp-header-area">
           <div class="projects-header">
             <div style="display:flex; align-items:center; gap: 12px">
-              <div style="background: #3b82f6; width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+              <div style="background: #2F6F7E; width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 7V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3M4 7h16M4 7v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7M9 13h6M9 17h6"/></svg>
               </div>
               <div>
-                <h1 class="projects-title" style="color: #1e3a8a; margin:0; font-size:22px; gap:6px;">프로젝트</h1>
+                <h1 class="projects-title" style="color: #23506B; margin:0; font-size:22px; gap:6px;">프로젝트</h1>
                 <p class="projects-subtitle" style="margin:2px 0 0 0;">프로젝트를 관리하고 할일을 등록하세요</p>
               </div>
             </div>
@@ -2526,7 +2618,7 @@ body {
             <div class="gc-footer">
               <button class="btn-gc btn-gray-light" onclick="copyLastYearGoals()"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> 작년 목표 복사</button>
               <div style="display:flex; gap:8px;">
-                <button class="btn-gc btn-primary" onclick="getAnnualGoalFeedback()" style="background: linear-gradient(135deg, #9F7AEA 0%, #D6BCFA 100%); color: #4A154B; text-shadow: 0 1px 1px rgba(255,255,255,0.4);"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .963L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg> AI 피드백 생성</button>
+                <button class="btn-gc btn-primary" onclick="getAnnualGoalFeedback()" style="background: linear-gradient(135deg, #6B4E8C 0%, #6B4E8C 100%); color: #6B4E8C; text-shadow: 0 1px 1px rgba(255,255,255,0.4);"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .963L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg> AI 피드백 생성</button>
                 <button class="btn-gc btn-primary" onclick="saveGoalsData()">저장하기</button>
                 <button class="btn-gc btn-gray-light" onclick="loadGoalsData()">취소</button>
               </div>
@@ -2537,7 +2629,7 @@ body {
         <!-- AI 피드백 섹션 (기본 숨김) -->
         <div id="ai-feedback-section" class="ai-feedback-section hidden">
           <div class="ai-feedback-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2F6B4F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
             AI 피드백
           </div>
           <div id="ai-feedback-container">
@@ -2549,7 +2641,7 @@ body {
         <div id="monthly-onething-section" style="margin-bottom: 0;">
           <h3 style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 18px;">
             <span><span id="onething-month-label">년 월 월간 원씽</span></span>
-            <button id="monthly-onething-ai-btn" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; text-shadow: 0 1px 1px rgba(0,0,0,0.2); box-shadow: 0 2px 6px rgba(139,92,246,0.3);" onclick="getMonthlyOneThingSuggest()">✨ AI로 이번 달 원씽 제안받기</button>
+            <button id="monthly-onething-ai-btn" style="background: linear-gradient(135deg, #2E6488 0%, #1B3E52 100%); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; text-shadow: 0 1px 1px rgba(0,0,0,0.2); box-shadow: 0 2px 6px rgba(35,80,107,0.3);" onclick="getMonthlyOneThingSuggest()">✨ AI로 이번 달 원씽 제안받기</button>
           </h3>
           <div id="ai-monthly-onething-notice" class="monthly-ai-notice">💡 AI가 제안한 내용이에요. 확인 후 각각 '저장' 버튼을 누르세요!</div>
           <div class="onething-grid">
@@ -2736,7 +2828,7 @@ body {
             <div class="gc-footer">
               <button class="btn-gc btn-gray-light" onclick="typeof copyLastMonthGoals === 'function' ? copyLastMonthGoals() : null"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> 지난달 계획 복사</button>
               <div style="display:flex; gap:8px;">
-                <button id="monthlyAiBtn" class="btn-gc btn-primary" onclick="getMonthlyAISuggestion()" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);">✨ AI로 제안받기</button>
+                <button id="monthlyAiBtn" class="btn-gc btn-primary" onclick="getMonthlyAISuggestion()" style="background: linear-gradient(135deg, #2E6488 0%, #1B3E52 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);">✨ AI로 제안받기</button>
                 <button class="btn-gc btn-gray-light" onclick="typeof loadMonthGoalsData === 'function' ? loadMonthGoalsData() : null">취소</button>
               </div>
             </div>
@@ -2779,7 +2871,7 @@ body {
         <div class="modal-header-custom">
           <h3>반복업무 추가</h3>
           <button class="close-btn" onclick="closeRecurringModal()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#9C9184" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
           </button>
         </div>
         <div class="modal-body-custom">
@@ -2830,8 +2922,8 @@ body {
           </div>
 
           <div class="modal-buttons" style="margin-top: 24px; display: flex; gap: 10px;">
-            <button class="modal-btn save" style="flex: 2; padding: 14px; border-radius: 10px; background: #7c3aed; color: white; border: none; font-weight: 600; font-size: 15.5px; cursor: pointer; transition: opacity 0.2s;" onclick="saveRecurringTask()">✓ 저장</button>
-            <button class="modal-btn cancel" style="flex: 1; padding: 14px; border-radius: 10px; background: #f3f4f6; color: #374151; border: none; font-weight: 600; font-size: 15.5px; cursor: pointer; transition: all 0.2s;" onclick="closeRecurringModal()">취소</button>
+            <button class="modal-btn save" style="flex: 2; padding: 14px; border-radius: 10px; background: #23506B; color: white; border: none; font-weight: 600; font-size: 15.5px; cursor: pointer; transition: opacity 0.2s;" onclick="saveRecurringTask()">✓ 저장</button>
+            <button class="modal-btn cancel" style="flex: 1; padding: 14px; border-radius: 10px; background: #F0EAE0; color: #574E45; border: none; font-weight: 600; font-size: 15.5px; cursor: pointer; transition: all 0.2s;" onclick="closeRecurringModal()">취소</button>
           </div>
         </div>
       </div>
@@ -2839,44 +2931,44 @@ body {
 
     <div id="page-completed" style="display:none;padding:20px 28px;">
       <div style="display:flex; gap:10px; margin-bottom:20px;">
-        <select id="ch-filter-period" style="padding:8px; border-radius:6px; border:1px solid #ddd;">
+        <select id="ch-filter-period" style="padding:8px; border-radius:6px; border:1px solid #E4DCCF;">
           <option value="today">오늘</option>
           <option value="week">이번 주</option>
           <option value="month">이번 달</option>
           <option value="all">전체</option>
         </select>
-        <select id="ch-filter-category" style="padding:8px; border-radius:6px; border:1px solid #ddd;">
+        <select id="ch-filter-category" style="padding:8px; border-radius:6px; border:1px solid #E4DCCF;">
           <option value="all">전체</option>
           <option value="work">Work</option>
           <option value="job">Job</option>
           <option value="growth">Growth</option>
           <option value="personal">Personal</option>
         </select>
-        <select id="ch-filter-type" style="padding:8px; border-radius:6px; border:1px solid #ddd;">
+        <select id="ch-filter-type" style="padding:8px; border-radius:6px; border:1px solid #E4DCCF;">
           <option value="all">전체</option>
           <option value="todo">오늘 할일</option>
           <option value="project">프로젝트 할일</option>
         </select>
-        <button onclick="ch_searchCompleted()" style="padding:8px 16px; background:#5B5FC7; color:white; border:none; border-radius:6px; cursor:pointer;">🔍 검색</button>
+        <button onclick="ch_searchCompleted()" style="padding:8px 16px; background:#23506B; color:white; border:none; border-radius:6px; cursor:pointer;">🔍 검색</button>
       </div>
 
       <div style="display:flex; gap:20px; margin-bottom:20px;">
         <div style="flex:1; background:white; padding:20px; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.1); text-align:center;">
-          <div style="font-size:14px; color:#666; margin-bottom:8px;">완료한 오늘 할일</div>
-          <div id="ch-stat-todo" style="font-size:24px; font-weight:bold; color:#5B5FC7;">0</div>
+          <div style="font-size:14px; color:#7A6F62; margin-bottom:8px;">완료한 오늘 할일</div>
+          <div id="ch-stat-todo" style="font-size:24px; font-weight:bold; color:#23506B;">0</div>
         </div>
         <div style="flex:1; background:white; padding:20px; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.1); text-align:center;">
-          <div style="font-size:14px; color:#666; margin-bottom:8px;">완료한 프로젝트 할일</div>
-          <div id="ch-stat-project" style="font-size:24px; font-weight:bold; color:#10B981;">0</div>
+          <div style="font-size:14px; color:#7A6F62; margin-bottom:8px;">완료한 프로젝트 할일</div>
+          <div id="ch-stat-project" style="font-size:24px; font-weight:bold; color:#2F6B4F;">0</div>
         </div>
         <div style="flex:1; background:white; padding:20px; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.1); text-align:center;">
-          <div style="font-size:14px; color:#666; margin-bottom:8px;">총 완료</div>
-          <div id="ch-stat-total" style="font-size:24px; font-weight:bold; color:#111827;">0</div>
+          <div style="font-size:14px; color:#7A6F62; margin-bottom:8px;">총 완료</div>
+          <div id="ch-stat-total" style="font-size:24px; font-weight:bold; color:#2A2622;">0</div>
         </div>
       </div>
 
       <div id="ch-results">
-        <div style="text-align:center;padding:40px;color:#999;">조건을 선택하고 검색해주세요</div>
+        <div style="text-align:center;padding:40px;color:#9C9184;">조건을 선택하고 검색해주세요</div>
       </div>
     </div>
   </main>
@@ -3245,11 +3337,11 @@ async function loadTodayOneThing() {
     
     const getCatDetails = (cat) => {
       switch(cat) {
-        case 'work': return { label: '💼 Work (업무)', color: '#f59e0b' };
-        case 'job': return { label: '📋 Job (직무)', color: '#3b82f6' };
-        case 'growth': return { label: '🌱 Growth (성장)', color: '#10b981' };
-        case 'personal': return { label: '💜 Personal (개인)', color: '#8b5cf6' };
-        default: return { label: cat, color: '#6b7280' };
+        case 'work': return { label: '💼 Work (업무)', color: '#8A6A1F' };
+        case 'job': return { label: '📋 Job (직무)', color: '#2F6F7E' };
+        case 'growth': return { label: '🌱 Growth (성장)', color: '#2F6B4F' };
+        case 'personal': return { label: '💜 Personal (개인)', color: '#2E6488' };
+        default: return { label: cat, color: '#7A6F62' };
       }
     };
     
@@ -3257,22 +3349,22 @@ async function loadTodayOneThing() {
     categories.forEach((cat, idx) => {
       const details = getCatDetails(cat);
       // 3단계 Feature 3: 빈값이면 "목표관리에서 설정하기" 버튼 노출
-      const goalsBtn = '<button onclick="navigate(\'goals\')" style="background:#F5F3FF;color:#7C3AED;border:1px solid #DDD6FE;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">목표관리에서 설정하기</button>';
+      const goalsBtn = '<button onclick="navigate(\'goals\')" style="background:#E6EDF2;color:#23506B;border:1px solid #C9D6E0;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">목표관리에서 설정하기</button>';
       const yText = yearlyMap[cat] && yearlyMap[cat].trim() !== '' ? yearlyMap[cat] : goalsBtn;
       const mText = monthlyMap[cat] && monthlyMap[cat].trim() !== '' ? monthlyMap[cat] : goalsBtn;
-      const borderStyle = idx === categories.length - 1 ? '' : 'border-bottom:1px dashed #e2e8f0;';
+      const borderStyle = idx === categories.length - 1 ? '' : 'border-bottom:1px dashed #E4DCCF;';
       
       rowsHtml += `
         <div style="display:flex; flex-direction:column; margin-bottom:12px; padding-bottom:12px; ${borderStyle}">
           <div style="font-size:12.5px; font-weight:700; color:${details.color}; margin-bottom:6px;">${details.label}</div>
           <div style="display:flex; flex-wrap:wrap; gap:12px;">
             <div style="flex:1; min-width:140px;">
-              <div style="font-size:11px; font-weight:600; color:#94a3b8; margin-bottom:2px;">연간 원씽</div>
-              <div style="font-size:13px; color:#475569; word-break: keep-all;">${yText}</div>
+              <div style="font-size:11px; font-weight:600; color:#9C9184; margin-bottom:2px;">연간 원씽</div>
+              <div style="font-size:13px; color:#574E45; word-break: keep-all;">${yText}</div>
             </div>
             <div style="flex:1; min-width:140px;">
-              <div style="font-size:11px; font-weight:600; color:#94a3b8; margin-bottom:2px;">이달 원씽</div>
-              <div style="font-size:13px; color:#475569; word-break: keep-all;">${mText}</div>
+              <div style="font-size:11px; font-weight:600; color:#9C9184; margin-bottom:2px;">이달 원씽</div>
+              <div style="font-size:13px; color:#574E45; word-break: keep-all;">${mText}</div>
             </div>
           </div>
         </div>
@@ -3281,10 +3373,10 @@ async function loadTodayOneThing() {
     
     container.style.display = 'block';
     container.innerHTML = `
-      <div style="font-weight: 600; font-size: 13.5px; color: #64748b; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 4px 0;" onclick="const c = document.getElementById('context-onething-content'); const icon = document.getElementById('context-chevron'); if(c.style.display==='none'){c.style.display='block';icon.innerText='▴';}else{c.style.display='none';icon.innerText='▾';}">
+      <div style="font-weight: 600; font-size: 13.5px; color: #7A6F62; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 4px 0;" onclick="const c = document.getElementById('context-onething-content'); const icon = document.getElementById('context-chevron'); if(c.style.display==='none'){c.style.display='block';icon.innerText='▴';}else{c.style.display='none';icon.innerText='▾';}">
         🎯 연간·이달 원씽 <span id="context-chevron">▾</span>
       </div>
-      <div id="context-onething-content" style="display: none; margin-top: 8px; background: #f8fafc; border-radius: 12px; padding: 14px 14px 2px 14px; border: 1px solid #e2e8f0;">
+      <div id="context-onething-content" style="display: none; margin-top: 8px; background: #F0EAE0; border-radius: 12px; padding: 14px 14px 2px 14px; border: 1px solid #E4DCCF;">
         ${rowsHtml}
       </div>
     `;
@@ -3463,7 +3555,7 @@ async function loadLearningNotes() {
         const delBtn = document.createElement('button');
         delBtn.style.background = 'none';
         delBtn.style.border = 'none';
-        delBtn.style.color = '#9CA3AF';
+        delBtn.style.color = '#9C9184';
         delBtn.style.cursor = 'pointer';
         delBtn.style.fontSize = '16px';
         delBtn.style.padding = '4px 8px';
@@ -3770,11 +3862,11 @@ function renderRoutines() {
     if (!emptyMsg) {
       emptyMsg = document.createElement('div');
       emptyMsg.id = 'emptyRoutineMsg';
-      emptyMsg.style = "text-align:center; padding:30px; color:#6b7280; font-size:14px; background:#f9fafb; border-radius:12px; border:1px dashed #d1d5db; margin-top:16px;";
+      emptyMsg.style = "text-align:center; padding:30px; color:#7A6F62; font-size:14px; background:#F0EAE0; border-radius:12px; border:1px dashed #D3C8B6; margin-top:16px;";
       emptyMsg.innerHTML = `
         <div style="margin-bottom:12px">목표관리에서 이번 달 루틴을 등록해주세요</div>
         <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
-          <button onclick="importRecentRoutinesToToday(this)" style="padding:8px 16px; background:#F3E8FF; color:#7E22CE; border:1px solid #D8B4FE; border-radius:8px; font-weight:600; cursor:pointer;">
+          <button onclick="importRecentRoutinesToToday(this)" style="padding:8px 16px; background:#EDE7F3; color:#6B4E8C; border:1px solid #6B4E8C; border-radius:8px; font-weight:600; cursor:pointer;">
             📋 지난 루틴 가져오기
           </button>
           <button onclick="navigate('goals')" style="padding:8px 16px; background:var(--gradient); color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
@@ -3843,10 +3935,10 @@ function renderTodos() {
   if (!container) return;
 
   const categories = [
-    { key: 'work',     label: 'Work',     icon: '💼', bg: '#ffffff', border: '#93C5FD', color: '#1D4ED8', tagBg: '#DBEAFE', tagColor: '#1D4ED8' },
-    { key: 'job',      label: 'Job',      icon: '📋', bg: '#ffffff', border: '#FCD34D', color: '#92400E', tagBg: '#FEF3C7', tagColor: '#92400E' },
-    { key: 'growth',   label: 'Growth',   icon: '🌱', bg: '#ffffff', border: '#6EE7B7', color: '#065F46', tagBg: '#D1FAE5', tagColor: '#065F46' },
-    { key: 'personal', label: 'Personal', icon: '💜', bg: '#ffffff', border: '#FCA5A5', color: '#991B1B', tagBg: '#FEE2E2', tagColor: '#991B1B' }
+    { key: 'work',     label: 'Work',     icon: '💼', bg: '#ffffff', border: '#B9D3DA', color: '#2F6F7E', tagBg: '#E1EEF1', tagColor: '#2F6F7E' },
+    { key: 'job',      label: 'Job',      icon: '📋', bg: '#ffffff', border: '#E4D3A8', color: '#8A6A1F', tagBg: '#F5ECD9', tagColor: '#8A6A1F' },
+    { key: 'growth',   label: 'Growth',   icon: '🌱', bg: '#ffffff', border: '#BFD8C9', color: '#2F6B4F', tagBg: '#E4EFE8', tagColor: '#2F6B4F' },
+    { key: 'personal', label: 'Personal', icon: '💜', bg: '#ffffff', border: '#E3BDB7', color: '#8C3B32', tagBg: '#F5E3E0', tagColor: '#8C3B32' }
   ];
 
   let html = '';
@@ -3863,7 +3955,7 @@ function renderTodos() {
     html += `
       <div id="group-${cat.key}" style="
         background:#ffffff;
-        border:1px solid #e5e7eb;
+        border:1px solid #E4DCCF;
         border-top:3px solid ${cat.border};
         border-radius:12px;
         padding:14px 16px;
@@ -3881,27 +3973,27 @@ function renderTodos() {
             margin-bottom:6px;
             opacity:${t.done ? '0.6' : '1'};
           ">
-            <span style="color:#ccc; cursor:grab; font-size:14px;">⠿</span>
+            <span style="color:#D3C8B6; cursor:grab; font-size:14px;">⠿</span>
             <div onclick="toggleTodo('${t.id}')" style="
               width:18px; height:18px;
               border-radius:4px;
-              border:2px solid ${t.done ? cat.color : '#d1d5db'};
+              border:2px solid ${t.done ? cat.color : '#D3C8B6'};
               background:${t.done ? cat.color : 'white'};
               display:flex; align-items:center; justify-content:center;
               cursor:pointer; flex-shrink:0;
             ">
               ${t.done ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
             </div>
-            ${t.is_recurring ? '<span style="font-size:10px; background:#ede9fe; color:#7c3aed; padding:2px 6px; border-radius:10px; font-weight:600;">🔄 반복업무</span>' : ''}
+            ${t.is_recurring ? '<span style="font-size:10px; background:#EDE7F3; color:#23506B; padding:2px 6px; border-radius:10px; font-weight:600;">🔄 반복업무</span>' : ''}
             <div style="flex:1; display:${t.done ? 'flex' : 'none'}; align-items:center; flex-wrap:wrap;">
-              <span style="font-size:13.5px; color:#9ca3af; text-decoration:line-through;">${t.text}</span>
-              ${t.completed_at ? `<span style="font-size:12px; background:#e8f5e9; color:#2e7d32; border-radius:4px; padding:2px 8px; margin-left:8px; font-weight:500;">✓ ${new Date(t.completed_at).getMonth()+1}/${new Date(t.completed_at).getDate()}(${DAYS[new Date(t.completed_at).getDay()]}) 완료</span>` : ''}
+              <span style="font-size:13.5px; color:#9C9184; text-decoration:line-through;">${t.text}</span>
+              ${t.completed_at ? `<span style="font-size:12px; background:#E4EFE8; color:#2F6B4F; border-radius:4px; padding:2px 8px; margin-left:8px; font-weight:500;">✓ ${new Date(t.completed_at).getMonth()+1}/${new Date(t.completed_at).getDate()}(${DAYS[new Date(t.completed_at).getDay()]}) 완료</span>` : ''}
             </div>
-            <span style="flex:1; font-size:13.5px; display:${t.done ? 'none' : 'block'}; color:#1f2937;">${t.text}</span>
+            <span style="flex:1; font-size:13.5px; display:${t.done ? 'none' : 'block'}; color:#2A2622;">${t.text}</span>
             <div style="display:flex; gap:6px; margin-left:auto;">
               <span onclick="openTaskDate('${t.id}', '${t.log_date}')" style="cursor:pointer; font-size:14px; opacity:0.6; padding:2px;">📅</span>
               <span onclick="copyTask('${t.id}')" style="cursor:pointer; font-size:14px; opacity:0.6; padding:2px;">📋</span>
-              <span onclick="deleteTodo('${t.id}')" style="cursor:pointer; color:#ef4444; padding:2px; font-size:14px;">🗑️</span>
+              <span onclick="deleteTodo('${t.id}')" style="cursor:pointer; color:#8C3B32; padding:2px; font-size:14px;">🗑️</span>
             </div>
           </div>
         `).join('')}
@@ -3910,7 +4002,7 @@ function renderTodos() {
   });
 
   if (html === '') {
-    html = '<div style="text-align:center; padding:24px; color:#9ca3af; font-size:13px;">할일이 없어요! + 버튼으로 추가해보세요 ✨</div>';
+    html = '<div style="text-align:center; padding:24px; color:#9C9184; font-size:13px;">할일이 없어요! + 버튼으로 추가해보세요 ✨</div>';
   }
 
   container.innerHTML = html;
@@ -4313,14 +4405,14 @@ function addGoalRoutine(timeOfDay) {
   form.style = 'display:flex;gap:6px;margin-top:8px;';
   form.innerHTML = `
     <input type="text" placeholder="루틴 입력 후 Enter"
-      style="flex:1;padding:8px 10px;border:1.5px solid #ab7cf6;border-radius:8px;font-size:13px;outline:none;font-family:inherit;"
+      style="flex:1;padding:8px 10px;border:1.5px solid #6B4E8C;border-radius:8px;font-size:13px;outline:none;font-family:inherit;"
       onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();_confirmAddRoutine(this,'${timeOfDay}');}
                  if(event.key==='Escape'){this.parentNode.remove();}"
       autofocus>
     <button onclick="_confirmAddRoutine(this.previousElementSibling,'${timeOfDay}')"
-      style="padding:7px 12px;background:#ab7cf6;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap;">추가</button>
+      style="padding:7px 12px;background:#6B4E8C;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap;">추가</button>
     <button onclick="this.parentNode.remove()"
-      style="padding:7px 10px;background:#f3f4f6;color:#4b5563;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕</button>
+      style="padding:7px 10px;background:#F0EAE0;color:#574E45;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✕</button>
   `;
   listEl.appendChild(form);
   form.querySelector('input').focus();
@@ -4937,19 +5029,19 @@ async function getAnnualGoalFeedback() {
     }
 
     resultArea.innerHTML = `
-      <div style="margin-top:16px; padding:16px; background:#f0fdf4; border-radius:12px; border:1px solid #bbf7d0;">
-        <div style="font-weight:700; color:#15803d; margin-bottom:12px; font-size:15px;">✨ AI 피드백 결과</div>
+      <div style="margin-top:16px; padding:16px; background:#E4EFE8; border-radius:12px; border:1px solid #E4EFE8;">
+        <div style="font-weight:700; color:#2F6B4F; margin-bottom:12px; font-size:15px;">✨ AI 피드백 결과</div>
         <div style="margin-bottom:12px;">
-          <div style="color:#0891b2; font-weight:600; margin-bottom:6px;">📚 자기계발</div>
-          ${(result.selfDev||[]).map((s,i)=>`<div style="padding:5px 0; color:#374151; border-bottom:1px solid #e5e7eb;">${i+1}. ${s}</div>`).join('')}
+          <div style="color:#2F6F7E; font-weight:600; margin-bottom:6px;">📚 자기계발</div>
+          ${(result.selfDev||[]).map((s,i)=>`<div style="padding:5px 0; color:#574E45; border-bottom:1px solid #E4DCCF;">${i+1}. ${s}</div>`).join('')}
         </div>
         <div style="margin-bottom:12px;">
-          <div style="color:#db2777; font-weight:600; margin-bottom:6px;">💜 가족/관계</div>
-          ${(result.family||[]).map((s,i)=>`<div style="padding:5px 0; color:#374151; border-bottom:1px solid #e5e7eb;">${i+1}. ${s}</div>`).join('')}
+          <div style="color:#A04E66; font-weight:600; margin-bottom:6px;">💜 가족/관계</div>
+          ${(result.family||[]).map((s,i)=>`<div style="padding:5px 0; color:#574E45; border-bottom:1px solid #E4DCCF;">${i+1}. ${s}</div>`).join('')}
         </div>
         <div style="margin-bottom:4px;">
-          <div style="color:#059669; font-weight:600; margin-bottom:6px;">💼 업무/재정</div>
-          ${(result.work||[]).map((s,i)=>`<div style="padding:5px 0; color:#374151; border-bottom:1px solid #e5e7eb;">${i+1}. ${s}</div>`).join('')}
+          <div style="color:#2F6B4F; font-weight:600; margin-bottom:6px;">💼 업무/재정</div>
+          ${(result.work||[]).map((s,i)=>`<div style="padding:5px 0; color:#574E45; border-bottom:1px solid #E4DCCF;">${i+1}. ${s}</div>`).join('')}
         </div>
       </div>`;
 
@@ -5070,7 +5162,7 @@ async function getMonthlyAISuggestion() {
       if (notice) notice.remove();
 
       targetBtn.dataset.mode = 'ai';
-      targetBtn.style.cssText = targetBtn.dataset.originalStyle || 'background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);';
+      targetBtn.style.cssText = targetBtn.dataset.originalStyle || 'background: linear-gradient(135deg, #2E6488 0%, #1B3E52 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);';
       targetBtn.innerHTML = targetBtn.dataset.originalHtml || '✨ AI로 제안받기';
     } catch(e) {
       console.error('Save error:', e);
@@ -5086,7 +5178,7 @@ async function getMonthlyAISuggestion() {
   if (!confirm("AI가 연간 목표를 분석해서 이번 달 실천계획을 제안해드릴까요?")) return;
 
   targetBtn.dataset.originalHtml = targetBtn.innerHTML;
-  targetBtn.dataset.originalStyle = targetBtn.getAttribute('style') || 'background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);';
+  targetBtn.dataset.originalStyle = targetBtn.getAttribute('style') || 'background: linear-gradient(135deg, #2E6488 0%, #1B3E52 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);';
 
   // 2단계: 분석 중 표시
   targetBtn.disabled = true;
@@ -5162,19 +5254,19 @@ async function getMonthlyAISuggestion() {
         noticeBox.id = 'ai-monthly-notice';
         monthlyContainer.insertBefore(noticeBox, monthlyContainer.firstChild);
       }
-      noticeBox.style.cssText = 'background: #fef9c3; color: #92400e; padding: 10px; border-radius: 8px; font-weight: 600; margin-bottom: 12px; font-size: 13.5px; text-align: center;';
+      noticeBox.style.cssText = 'background: #F5ECD9; color: #8A6A1F; padding: 10px; border-radius: 8px; font-weight: 600; margin-bottom: 12px; font-size: 13.5px; text-align: center;';
       noticeBox.innerHTML = '💡 AI가 제안한 내용이에요. 확인 후 저장해주세요!';
     }
     
     // 버튼 상태 변경
     targetBtn.dataset.mode = 'save';
-    targetBtn.style.cssText = 'background: #10b981; color: white; border: none; outline: none; box-shadow: 0 4px 12px rgba(16,185,129,0.3); font-weight: 600;';
+    targetBtn.style.cssText = 'background: #2F6B4F; color: white; border: none; outline: none; box-shadow: 0 4px 12px rgba(16,185,129,0.3); font-weight: 600;';
     targetBtn.innerHTML = '💾 저장하기';
 
   } catch(e) {
     console.error('월간 AI 오류 상세:', e);
     showToast('오류: ' + (e.message || 'API 호출 실패'));
-    targetBtn.style.cssText = targetBtn.dataset.originalStyle || 'background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);';
+    targetBtn.style.cssText = targetBtn.dataset.originalStyle || 'background: linear-gradient(135deg, #2E6488 0%, #1B3E52 100%); color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.2);';
     targetBtn.innerHTML = targetBtn.dataset.originalHtml || '✨ AI로 제안받기';
   }
 
@@ -5641,8 +5733,8 @@ function prefillWeeklyOneThingFromAI(aiText) {
 .cal-cell:hover { transform:scale(1.1); }
 .cal-empty { background:transparent; }
 .cal-c0 { background:var(--hover); }
-.cal-c1 { background:rgba(91,95,199,.2); color:var(--primary); }
-.cal-c2 { background:rgba(91,95,199,.45); color:white; }
+.cal-c1 { background:rgba(35,80,107,.2); color:var(--primary); }
+.cal-c2 { background:rgba(35,80,107,.45); color:white; }
 .cal-c3 { background:var(--primary); color:white; }
 .cal-today { box-shadow:0 0 0 2px var(--primary); }
 
@@ -5656,8 +5748,8 @@ function prefillWeeklyOneThingFromAI(aiText) {
   width:100%; aspect-ratio:1; border-radius:2px;
 }
 .yr-c0 { background:var(--hover); }
-.yr-c1 { background:rgba(91,95,199,.25); }
-.yr-c2 { background:rgba(91,95,199,.55); }
+.yr-c1 { background:rgba(35,80,107,.25); }
+.yr-c2 { background:rgba(35,80,107,.55); }
 .yr-c3 { background:var(--primary); }
 
 /* 막대 그래프 (월별 완료율) */
@@ -5678,7 +5770,7 @@ function prefillWeeklyOneThingFromAI(aiText) {
 .ai-review-btn:disabled { opacity:.55; cursor:not-allowed; }
 .ai-review-result {
   margin-top:14px; padding:16px; border-radius:10px;
-  background:rgba(91,95,199,.06); border:1.5px solid rgba(91,95,199,.15);
+  background:rgba(35,80,107,.06); border:1.5px solid rgba(35,80,107,.15);
   font-size:13.5px; line-height:1.8; white-space:pre-wrap; color:var(--text-primary);
   position:relative;
 }
@@ -5706,7 +5798,7 @@ function prefillWeeklyOneThingFromAI(aiText) {
 }
 .onething-box {
   background: #ffffff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #E4DCCF;
   border-radius: 12px;
   padding: 16px;
   display: flex;
@@ -5714,12 +5806,12 @@ function prefillWeeklyOneThingFromAI(aiText) {
   gap: 12px;
   transition: box-shadow 0.2s;
 }
-.onething-box:hover { box-shadow: 0 2px 8px rgba(124,58,237,0.08); }
+.onething-box:hover { box-shadow: 0 2px 8px rgba(35,80,107,0.08); }
 /* 카테고리는 상단 3px 보더라인으로만 구분 */
-.onething-box.work  { border-top: 3px solid #93C5FD; }
-.onething-box.job   { border-top: 3px solid #FCD34D; }
-.onething-box.growth { border-top: 3px solid #6EE7B7; }
-.onething-box.personal { border-top: 3px solid #FCA5A5; }
+.onething-box.work  { border-top: 3px solid #B9D3DA; }
+.onething-box.job   { border-top: 3px solid #E4D3A8; }
+.onething-box.growth { border-top: 3px solid #BFD8C9; }
+.onething-box.personal { border-top: 3px solid #E3BDB7; }
 
 /* 카테고리 라벨: pill 태그 스타일 */
 .onething-label {
@@ -5733,22 +5825,22 @@ function prefillWeeklyOneThingFromAI(aiText) {
 .onething-box.personal .onething-label { background: var(--tag-personal-bg); color: var(--tag-personal-color); }
 
 .onething-input {
-  border: 1px solid #e5e7eb;
+  border: 1px solid #E4DCCF;
   border-radius: var(--btn-radius);
   padding: 9px 12px;
   font-size: 14px;
   width: 100%;
-  background: #fafafa;
+  background: #F0EAE0;
   box-sizing: border-box;
   transition: border-color 0.2s;
 }
-.onething-input:focus { border-color: #7C3AED; outline: none; background: #fff; }
+.onething-input:focus { border-color: #23506B; outline: none; background: #fff; }
 
 /* 저장 버튼: ghost Secondary */
 .onething-save-btn {
   background: transparent;
-  color: #7C3AED;
-  border: 1.5px solid #7C3AED;
+  color: #23506B;
+  border: 1.5px solid #23506B;
   border-radius: var(--btn-radius);
   padding: 6px 14px;
   font-size: 13px;
@@ -5758,7 +5850,7 @@ function prefillWeeklyOneThingFromAI(aiText) {
   height: var(--btn-height);
   transition: all 0.15s;
 }
-.onething-save-btn:hover { background: #7C3AED; color: #fff; }
+.onething-save-btn:hover { background: #23506B; color: #fff; }
 
 @media (max-width: 768px) {
   .onething-grid { grid-template-columns: 1fr; }
@@ -5766,20 +5858,20 @@ function prefillWeeklyOneThingFromAI(aiText) {
 
 /* ── AI 생성 버튼 공통 스타일 ── */
 .btn-ai {
-  background: #7C3AED; color: #fff;
+  background: #23506B; color: #fff;
   border: none; border-radius: var(--btn-radius);
   padding: 6px 14px; font-size: 13px; font-weight: 600;
   cursor: pointer; height: var(--btn-height);
   display: inline-flex; align-items: center; gap: 5px;
   transition: background 0.15s;
 }
-.btn-ai:hover { background: #6D28D9; }
+.btn-ai:hover { background: #1B3E52; }
 
 /* ── AI 요약 카드 (삼쩜삼 원칙: 수치/핵심 문구를 상단에 크게) ── */
 #ai-summary {
-  background: var(--ai-bg);          /* #F5F3FF 보라 tint */
-  border: 1.5px solid #DDD6FE;       /* 기존 --accent-purple-border */
-  border-left: 4px solid var(--primary); /* #7C3AED 포인트 1곳 */
+  background: var(--ai-bg);          /* #E6EDF2 보라 tint */
+  border: 1.5px solid #C9D6E0;       /* 기존 --accent-purple-border */
+  border-left: 4px solid var(--primary); /* #23506B 포인트 1곳 */
   border-radius: 12px;
   padding: 16px 20px;
   font-size: 15px;
@@ -5807,33 +5899,33 @@ function prefillWeeklyOneThingFromAI(aiText) {
 .ai-detail-body.open { display: block; }
 
 /* ── 월말 결과 아코디언 ── */
-.result-accordion { border-top: 1px solid #f3f4f6; margin-top: 4px; }
+.result-accordion { border-top: 1px solid #F0EAE0; margin-top: 4px; }
 .result-accordion-header {
   width: 100%; background: none; border: none; padding: 10px 0 6px;
   display: flex; align-items: center; justify-content: space-between;
   cursor: pointer; font-family: inherit;
 }
 .result-accordion-header .result-label {
-  font-size: 13px; font-weight: 700; color: #6b7280;
+  font-size: 13px; font-weight: 700; color: #7A6F62;
   display: flex; align-items: center; gap: 6px;
 }
-.result-accordion-header .result-chevron { font-size: 11px; color: #9ca3af; transition: transform 0.2s; }
+.result-accordion-header .result-chevron { font-size: 11px; color: #9C9184; transition: transform 0.2s; }
 .result-accordion-header.open .result-chevron { transform: rotate(180deg); }
 .result-accordion-body { display: none; padding-top: 4px; }
 .result-accordion-body.open { display: block; }
 /* auto-height textarea */
 .onething-result-ta {
   width: 100%; min-height: 72px;
-  border: 1px solid #e5e7eb; border-radius: var(--btn-radius);
+  border: 1px solid #E4DCCF; border-radius: var(--btn-radius);
   padding: 9px 12px; font-size: 13.5px; line-height: 1.6;
   font-family: inherit; resize: none; overflow: hidden;
-  background: #fafafa; box-sizing: border-box;
+  background: #F0EAE0; box-sizing: border-box;
   transition: border-color 0.2s;
 }
-.onething-result-ta:focus { border-color: #7C3AED; outline: none; background: #fff; }
+.onething-result-ta:focus { border-color: #23506B; outline: none; background: #fff; }
 /* 월간 AI 알림 배너 */
 .monthly-ai-notice {
-  background: var(--ai-bg); color: #4C1D95;
+  background: var(--ai-bg); color: #6B4E8C;
   border: 1px solid var(--ai-border); border-radius: 8px;
   padding: 10px 14px; font-size: 13px; font-weight: 600;
   margin-bottom: 12px; display: none;
@@ -5858,9 +5950,9 @@ function fmtDateStr(d) {
 }
 
 function rateColor(rate) {
-  if (rate === 0) return 'rgba(91,95,199,.08)';
-  if (rate < 50) return 'rgba(91,95,199,.25)';
-  if (rate < 80) return 'rgba(91,95,199,.55)';
+  if (rate === 0) return 'rgba(35,80,107,.08)';
+  if (rate < 50) return 'rgba(35,80,107,.25)';
+  if (rate < 80) return 'rgba(35,80,107,.55)';
   return 'var(--primary)';
 }
 
@@ -5885,7 +5977,7 @@ async function callAiReview(userMessage, resultId, btnId) {
     const result = data.result || '';
     res.innerHTML = `<div class="ai-review-result">${result.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
   } catch(e) {
-    res.innerHTML = `<div style="color:#dc2626;font-size:12.5px;padding:10px;background:#fee2e2;border-radius:8px;">오류: ${e.message}</div>`;
+    res.innerHTML = `<div style="color:#8C3B32;font-size:12.5px;padding:10px;background:#F5E3E0;border-radius:8px;">오류: ${e.message}</div>`;
   }
   btn.disabled = false;
   btn.innerHTML = '✨ AI 총평 다시 받기';
@@ -6218,8 +6310,8 @@ ${reflectionSummary}
       .replace(/\n/g, '<br>');
 
     resultArea.innerHTML = `
-      <div style="line-height:1.9;font-size:14.5px;color:#1f2937;padding:16px;background:#F5F3FF;border-radius:8px;border-left:3px solid #7C3AED;">
-        <div style="font-size:11px;font-weight:700;color:#7C3AED;margin-bottom:8px;display:flex;align-items:center;gap:4px;">✦ AI 생성</div>
+      <div style="line-height:1.9;font-size:14.5px;color:#2A2622;padding:16px;background:#E6EDF2;border-radius:8px;border-left:3px solid #23506B;">
+        <div style="font-size:11px;font-weight:700;color:#23506B;margin-bottom:8px;display:flex;align-items:center;gap:4px;">✦ AI 생성</div>
         ${formatted}
       </div>
     `;
@@ -6350,8 +6442,8 @@ async function generateMonthlyAIReview(startStr, endStr) {
       .replace(/\n/g, '<br>');
 
     resultArea.innerHTML = `
-      <div style="line-height:1.9;font-size:14.5px;color:#1f2937;padding:16px;background:#F5F3FF;border-radius:8px;border-left:3px solid #7C3AED;">
-        <div style="font-size:11px;font-weight:700;color:#7C3AED;margin-bottom:8px;display:flex;align-items:center;gap:4px;">✦ AI 생성</div>
+      <div style="line-height:1.9;font-size:14.5px;color:#2A2622;padding:16px;background:#E6EDF2;border-radius:8px;border-left:3px solid #23506B;">
+        <div style="font-size:11px;font-weight:700;color:#23506B;margin-bottom:8px;display:flex;align-items:center;gap:4px;">✦ AI 생성</div>
         ${formatted}
       </div>
     `;
@@ -6473,8 +6565,8 @@ async function generateYearlyAIReview(startStr, endStr) {
       .replace(/\n/g, '<br>');
 
     resultArea.innerHTML = `
-      <div style="line-height:1.9;font-size:14.5px;color:#1f2937;padding:16px;background:#F5F3FF;border-radius:8px;border-left:3px solid #7C3AED;">
-        <div style="font-size:11px;font-weight:700;color:#7C3AED;margin-bottom:8px;display:flex;align-items:center;gap:4px;">✦ AI 생성</div>
+      <div style="line-height:1.9;font-size:14.5px;color:#2A2622;padding:16px;background:#E6EDF2;border-radius:8px;border-left:3px solid #23506B;">
+        <div style="font-size:11px;font-weight:700;color:#23506B;margin-bottom:8px;display:flex;align-items:center;gap:4px;">✦ AI 생성</div>
         ${formatted}
       </div>
     `;
@@ -6597,19 +6689,19 @@ async function loadWeeklyPage() {
   const wotDone = wot && wot.done;
   const wotBadge = wot && wot.text 
     ? (wotDone 
-        ? '<span style="background:#10B981; color:white; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600; margin-left:8px;">✅ 달성</span>' 
-        : '<span style="background:#E5E7EB; color:#4B5563; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600; margin-left:8px;">⬜ 미달성</span>') 
+        ? '<span style="background:#2F6B4F; color:white; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600; margin-left:8px;">✅ 달성</span>' 
+        : '<span style="background:#E4DCCF; color:#574E45; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600; margin-left:8px;">⬜ 미달성</span>') 
     : '';
-  const wotColor = wot && wot.text ? '#111827' : '#9CA3AF';
+  const wotColor = wot && wot.text ? '#2A2622' : '#9C9184';
 
   // AI 총평용 메시지는 이제 generateWeeklyAIReview 내부에서 구성됩니다.
 
   // HTML 렌더링
   const html = `
   <!-- 이번 주 원씽 읽기 전용 표시 -->
-  <div style="background:#FAF5FF; border:1.5px solid #E9D5FF; border-radius:16px; padding:20px; margin-bottom:24px; display:flex; flex-direction:column; gap:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+  <div style="background:#EDE7F3; border:1.5px solid #EDE7F3; border-radius:16px; padding:20px; margin-bottom:24px; display:flex; flex-direction:column; gap:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
     <div style="display:flex; align-items:center;">
-      <span style="font-size:14px; font-weight:700; color:#7E22CE; display:flex; align-items:center; gap:6px;">
+      <span style="font-size:14px; font-weight:700; color:#6B4E8C; display:flex; align-items:center; gap:6px;">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
         이번 주 원씽
       </span>
@@ -6621,47 +6713,47 @@ async function loadWeeklyPage() {
   </div>
 
   <!-- 섹션 1: 주간 지표 -->
-  <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:24px; margin-bottom:24px;">
+  <div style="background:#ffffff; border:1px solid #E4DCCF; border-radius:12px; padding:24px; margin-bottom:24px;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
-      <div style="width:36px; height:36px; border-radius:50%; background:#EDE9FE; display:flex; align-items:center; justify-content:center; font-size:18px;">📊</div>
-      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#111827;">주간 지표</h3>
+      <div style="width:36px; height:36px; border-radius:50%; background:#EDE7F3; display:flex; align-items:center; justify-content:center; font-size:18px;">📊</div>
+      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#2A2622;">주간 지표</h3>
     </div>
     
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px;">
       <!-- 루틴 실천율 -->
       <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <div style="font-size:13px; color:#6B7280; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+        <div style="font-size:13px; color:#7A6F62; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
           <span>🔄</span> 루틴 실천율
         </div>
-        <div style="font-size:28px; font-weight:bold; color:${routineRate === 0 ? '#EF4444' : (routineRate >= 50 ? '#10B981' : '#374151')}; margin-bottom:4px;">
+        <div style="font-size:28px; font-weight:bold; color:${routineRate === 0 ? '#8C3B32' : (routineRate >= 50 ? '#2F6B4F' : '#574E45')}; margin-bottom:4px;">
           ${routineRate}%
         </div>
-        <div style="font-size:13px; color:#6B7280; margin-bottom:8px;">${routineDone} / ${routineTotal} 체크</div>
-        <div style="font-size:12px; color:#9CA3AF;">★모닝:-% 🌙나이트:-%</div>
+        <div style="font-size:13px; color:#7A6F62; margin-bottom:8px;">${routineDone} / ${routineTotal} 체크</div>
+        <div style="font-size:12px; color:#9C9184;">★모닝:-% 🌙나이트:-%</div>
       </div>
       
       <!-- 할일 완료율 -->
       <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <div style="font-size:13px; color:#6B7280; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+        <div style="font-size:13px; color:#7A6F62; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
           <span>✅</span> 할일 완료율
         </div>
-        <div style="font-size:28px; font-weight:bold; color:#374151; margin-bottom:4px;">
+        <div style="font-size:28px; font-weight:bold; color:#574E45; margin-bottom:4px;">
           ${overallRate}%
         </div>
-        <div style="font-size:13px; color:#6B7280; margin-bottom:8px;">${doneAll} / ${totalAll} 완료</div>
-        <div style="font-size:12px; color:#9CA3AF;">평균 일일 할일: ${Math.round(totalAll / 7)}개</div>
+        <div style="font-size:13px; color:#7A6F62; margin-bottom:8px;">${doneAll} / ${totalAll} 완료</div>
+        <div style="font-size:12px; color:#9C9184;">평균 일일 할일: ${Math.round(totalAll / 7)}개</div>
       </div>
 
       <!-- 성찰 작성일 -->
       <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <div style="font-size:13px; color:#6B7280; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+        <div style="font-size:13px; color:#7A6F62; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
           <span>📝</span> 성찰 작성일
         </div>
-        <div style="font-size:28px; font-weight:bold; color:${reflects.length === 0 ? '#EF4444' : '#374151'}; margin-bottom:4px;">
+        <div style="font-size:28px; font-weight:bold; color:${reflects.length === 0 ? '#8C3B32' : '#574E45'}; margin-bottom:4px;">
           ${reflects.length}일
         </div>
-        <div style="font-size:13px; color:#6B7280; margin-bottom:8px;">${Math.round(reflects.length / 7 * 100)}% 작성률</div>
-        <div style="font-size:12px; color:#9CA3AF;">7일 중 ${reflects.length}일 기록</div>
+        <div style="font-size:13px; color:#7A6F62; margin-bottom:8px;">${Math.round(reflects.length / 7 * 100)}% 작성률</div>
+        <div style="font-size:12px; color:#9C9184;">7일 중 ${reflects.length}일 기록</div>
       </div>
     </div>
 
@@ -6671,47 +6763,47 @@ async function loadWeeklyPage() {
         const d = items.filter(t=>t.done).length;
         const tot = items.length;
         const r = tot > 0 ? Math.round(d / tot * 100) : 0;
-        const catBorderMap  = { work:'#93C5FD', job:'#FCD34D', growth:'#6EE7B7', personal:'#FCA5A5' };
-        const catTagBg      = { work:'#DBEAFE', job:'#FEF3C7', growth:'#D1FAE5', personal:'#FEE2E2' };
-        const catTagColor   = { work:'#1D4ED8', job:'#92400E', growth:'#065F46', personal:'#991B1B' };
-        return `<div style="background:#fff; border:1px solid #e5e7eb; border-top:3px solid ${catBorderMap[cat]||'#e5e7eb'}; border-radius:8px; padding:12px;">
-          <div style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:${catTagBg[cat]||'#f3f4f6'};color:${catTagColor[cat]||'#374151'};margin-bottom:6px;">${CAT_LABEL[cat] || cat}</div>
-          <div style="font-size:18px; font-weight:bold; color:#111827; margin-bottom:2px;">${r}%</div>
-          <div style="font-size:11px; color:#6B7280;">${d} / ${tot} 완료</div>
+        const catBorderMap  = { work:'#B9D3DA', job:'#E4D3A8', growth:'#BFD8C9', personal:'#E3BDB7' };
+        const catTagBg      = { work:'#E1EEF1', job:'#F5ECD9', growth:'#E4EFE8', personal:'#F5E3E0' };
+        const catTagColor   = { work:'#2F6F7E', job:'#8A6A1F', growth:'#2F6B4F', personal:'#8C3B32' };
+        return `<div style="background:#fff; border:1px solid #E4DCCF; border-top:3px solid ${catBorderMap[cat]||'#E4DCCF'}; border-radius:8px; padding:12px;">
+          <div style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:${catTagBg[cat]||'#F0EAE0'};color:${catTagColor[cat]||'#574E45'};margin-bottom:6px;">${CAT_LABEL[cat] || cat}</div>
+          <div style="font-size:18px; font-weight:bold; color:#2A2622; margin-bottom:2px;">${r}%</div>
+          <div style="font-size:11px; color:#7A6F62;">${d} / ${tot} 완료</div>
         </div>`;
       }).join('')}
     </div>
   </div>
 
   <!-- 섹션 2: 주간 분석 -->
-  <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:24px; margin-bottom:24px;">
+  <div style="background:#ffffff; border:1px solid #E4DCCF; border-radius:12px; padding:24px; margin-bottom:24px;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
-      <div style="width:36px; height:36px; border-radius:50%; background:#FEE2E2; display:flex; align-items:center; justify-content:center; font-size:18px;">💡</div>
-      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#111827;">주간 분석</h3>
+      <div style="width:36px; height:36px; border-radius:50%; background:#F5E3E0; display:flex; align-items:center; justify-content:center; font-size:18px;">💡</div>
+      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#2A2622;">주간 분석</h3>
     </div>
 
     <!-- 실천율 카드들 -->
-    <h4 style="font-size:14px; font-weight:bold; color:#374151; margin-bottom:12px;">🎯 실천율</h4>
+    <h4 style="font-size:14px; font-weight:bold; color:#574E45; margin-bottom:12px;">🎯 실천율</h4>
     <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-      <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:14px 16px; color:#4B5563; font-size:13px; display:flex; gap:10px; align-items:center;">
-        <span style="font-size:16px;color:#F97316;">!</span> <span>${overallRate >= 50 ? '할일 완료율이 양호합니다. 이 페이스를 유지해보세요!' : '할일 완료율이 다소 낮습니다. 중요한 할일부터 하나씩 차근차근 시작해보세요.'}</span>
+      <div style="background:#F5ECD9; border:1px solid #E4D3A8; border-radius:12px; padding:14px 16px; color:#574E45; font-size:13px; display:flex; gap:10px; align-items:center;">
+        <span style="font-size:16px;color:#A8712A;">!</span> <span>${overallRate >= 50 ? '할일 완료율이 양호합니다. 이 페이스를 유지해보세요!' : '할일 완료율이 다소 낮습니다. 중요한 할일부터 하나씩 차근차근 시작해보세요.'}</span>
       </div>
-      <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:14px 16px; color:#4B5563; font-size:13px; display:flex; gap:10px; align-items:center;">
-        <span style="font-size:16px;color:#F97316;">!</span> <span>${routineRate >= 50 ? '루틴 실천율이 좋습니다. 습관이 잘 형성되고 있습니다!' : '규칙적인 루틴 실천에 조금만 더 신경써보세요.'}</span>
+      <div style="background:#F5ECD9; border:1px solid #E4D3A8; border-radius:12px; padding:14px 16px; color:#574E45; font-size:13px; display:flex; gap:10px; align-items:center;">
+        <span style="font-size:16px;color:#A8712A;">!</span> <span>${routineRate >= 50 ? '루틴 실천율이 좋습니다. 습관이 잘 형성되고 있습니다!' : '규칙적인 루틴 실천에 조금만 더 신경써보세요.'}</span>
       </div>
-      <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:14px 16px; color:#4B5563; font-size:13px; display:flex; gap:10px; align-items:center;">
-        <span style="font-size:16px;color:#F97316;">!</span> <span>${reflects.length >= 3 ? '꾸준히 성찰을 기록하고 있습니다. 자기 객관화에 큰 도움이 됩니다.' : '이번 주말에는 꼭 한 주를 되돌아보는 성찰을 기록해보세요.'}</span>
+      <div style="background:#F5ECD9; border:1px solid #E4D3A8; border-radius:12px; padding:14px 16px; color:#574E45; font-size:13px; display:flex; gap:10px; align-items:center;">
+        <span style="font-size:16px;color:#A8712A;">!</span> <span>${reflects.length >= 3 ? '꾸준히 성찰을 기록하고 있습니다. 자기 객관화에 큰 도움이 됩니다.' : '이번 주말에는 꼭 한 주를 되돌아보는 성찰을 기록해보세요.'}</span>
       </div>
     </div>
 
     <!-- 전주 대비 변화 -->
-    <h4 style="font-size:14px; font-weight:bold; color:#374151; margin-bottom:12px;">↗ 전주 대비 변화</h4>
-    <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06); font-size:13px; color:#9CA3AF; margin-bottom:20px; text-align:center;">
+    <h4 style="font-size:14px; font-weight:bold; color:#574E45; margin-bottom:12px;">↗ 전주 대비 변화</h4>
+    <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06); font-size:13px; color:#9C9184; margin-bottom:20px; text-align:center;">
       전주 대비 큰 변화가 없습니다.
     </div>
 
     <!-- 주간 패턴 -->
-    <h4 style="font-size:14px; font-weight:bold; color:#374151; margin-bottom:12px;">〰 주간 패턴</h4>
+    <h4 style="font-size:14px; font-weight:bold; color:#574E45; margin-bottom:12px;">〰 주간 패턴</h4>
     ${ (() => {
       let bDay = days[0].label;
       let dN = 0, lN = 0, mMax = -1;
@@ -6722,48 +6814,48 @@ async function loadWeeklyPage() {
       });
       return `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
         <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-          <div style="font-size:13px; color:#6B7280; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">📅 가장 활발한 요일</div>
-          <div style="font-size:22px; font-weight:bold; color:#111827; margin-bottom:4px;">${bDay}요일</div>
-          <div style="font-size:12px; color:#6B7280;">할일 ${dN}개, 루틴 ${lN}개 완료</div>
+          <div style="font-size:13px; color:#7A6F62; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">📅 가장 활발한 요일</div>
+          <div style="font-size:22px; font-weight:bold; color:#2A2622; margin-bottom:4px;">${bDay}요일</div>
+          <div style="font-size:12px; color:#7A6F62;">할일 ${dN}개, 루틴 ${lN}개 완료</div>
         </div>
         <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-          <div style="font-size:13px; color:#6B7280; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">🏆 가장 완료율 높은 카테고리</div>
-          <div style="font-size:22px; font-weight:bold; color:#111827; margin-bottom:4px;">${bestCatRate === -1 ? '-' : bestCat}</div>
-          <div style="font-size:12px; color:#6B7280;">${bestCatRate === -1 ? '0' : Math.round(bestCatRate)}% 완료</div>
+          <div style="font-size:13px; color:#7A6F62; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">🏆 가장 완료율 높은 카테고리</div>
+          <div style="font-size:22px; font-weight:bold; color:#2A2622; margin-bottom:4px;">${bestCatRate === -1 ? '-' : bestCat}</div>
+          <div style="font-size:12px; color:#7A6F62;">${bestCatRate === -1 ? '0' : Math.round(bestCatRate)}% 완료</div>
         </div>
       </div>`;
     })() }
   </div>
 
   <!-- 섹션 3: AI 주간 성찰 -->
-  <div style="background:linear-gradient(135deg,#F3E8FF,#FCE7F3); border-radius:16px; padding:24px;">
+  <div style="background:linear-gradient(135deg,#EDE7F3,#F5E3E8); border-radius:16px; padding:24px;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
       <div style="width:36px; height:36px; border-radius:50%; background:white; display:flex; align-items:center; justify-content:center; font-size:18px;">✨</div>
-      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#111827;">AI 주간 성찰</h3>
+      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#2A2622;">AI 주간 성찰</h3>
     </div>
     
     <div id="weekly-ai-result" style="margin-bottom:20px;">
       ${savedReview ? `
-        <div style="line-height:1.9;font-size:15px;color:#333;padding:8px 0;">
+        <div style="line-height:1.9;font-size:15px;color:#2A2622;padding:8px 0;">
           ${savedReview.content}
         </div>
       ` : `
         <div style="text-align:center; padding:20px;">
           <div style="font-size:40px; margin-bottom:12px;">✨</div>
-          <div style="font-size:16px; font-weight:bold; color:#374151; margin-bottom:6px;">AI 주간 성찰이 아직 없습니다</div>
-          <div style="font-size:13px; color:#6B7280;">이번 주의 활동을 분석하여 맞춤형 피드백을 제공합니다.</div>
+          <div style="font-size:16px; font-weight:bold; color:#574E45; margin-bottom:6px;">AI 주간 성찰이 아직 없습니다</div>
+          <div style="font-size:13px; color:#7A6F62;">이번 주의 활동을 분석하여 맞춤형 피드백을 제공합니다.</div>
         </div>
       `}
     </div>
 
-    <button id="weekly-ai-btn" class="ai-review-btn" onclick="generateWeeklyAIReview('${startStr}', '${endStr}')" style="width:100%; background:#8B5CF6; color:white; border:none; padding:14px; border-radius:12px; font-weight:bold; cursor:pointer;">
+    <button id="weekly-ai-btn" class="ai-review-btn" onclick="generateWeeklyAIReview('${startStr}', '${endStr}')" style="width:100%; background:#2E6488; color:white; border:none; padding:14px; border-radius:12px; font-weight:bold; cursor:pointer;">
       ${savedReview ? '🔄 다시 생성하기' : '✦ AI 성찰 생성하기'}
     </button>
   </div>`;
 bodyEl.innerHTML = html;
   } catch(e) {
     console.error(e);
-    bodyEl.innerHTML = '<div style="padding:40px; text-align:center; color:#ef4444;">데이터를 불러오는 중 오류가 발생했습니다.</div>';
+    bodyEl.innerHTML = '<div style="padding:40px; text-align:center; color:#8C3B32;">데이터를 불러오는 중 오류가 발생했습니다.</div>';
   }
 }
 
@@ -6882,47 +6974,47 @@ async function loadMonthlyPage() {
 
   const html = `
   <!-- 섹션 1: 월간 지표 -->
-  <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:24px; margin-bottom:24px;">
+  <div style="background:#ffffff; border:1px solid #E4DCCF; border-radius:12px; padding:24px; margin-bottom:24px;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
-      <div style="width:36px; height:36px; border-radius:50%; background:#EDE9FE; display:flex; align-items:center; justify-content:center; font-size:18px;">📊</div>
-      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#111827;">월간 지표</h3>
+      <div style="width:36px; height:36px; border-radius:50%; background:#EDE7F3; display:flex; align-items:center; justify-content:center; font-size:18px;">📊</div>
+      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#2A2622;">월간 지표</h3>
     </div>
     
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px;">
       <!-- 루틴 실천율 -->
       <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <div style="font-size:13px; color:#6B7280; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+        <div style="font-size:13px; color:#7A6F62; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
           <span>🔄</span> 루틴 실천율
         </div>
-        <div style="font-size:28px; font-weight:bold; color:${routineRate === 0 ? '#EF4444' : (routineRate >= 50 ? '#10B981' : '#374151')}; margin-bottom:4px;">
+        <div style="font-size:28px; font-weight:bold; color:${routineRate === 0 ? '#8C3B32' : (routineRate >= 50 ? '#2F6B4F' : '#574E45')}; margin-bottom:4px;">
           ${routineRate}%
         </div>
-        <div style="font-size:13px; color:#6B7280; margin-bottom:8px;">${routineDone} / ${routineTotal} 체크</div>
-        <div style="font-size:12px; color:#9CA3AF;">★모닝:-% 🌙나이트:-%</div>
+        <div style="font-size:13px; color:#7A6F62; margin-bottom:8px;">${routineDone} / ${routineTotal} 체크</div>
+        <div style="font-size:12px; color:#9C9184;">★모닝:-% 🌙나이트:-%</div>
       </div>
       
       <!-- 할일 완료율 -->
       <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <div style="font-size:13px; color:#6B7280; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+        <div style="font-size:13px; color:#7A6F62; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
           <span>✅</span> 할일 완료율
         </div>
-        <div style="font-size:28px; font-weight:bold; color:#374151; margin-bottom:4px;">
+        <div style="font-size:28px; font-weight:bold; color:#574E45; margin-bottom:4px;">
           ${overallRate}%
         </div>
-        <div style="font-size:13px; color:#6B7280; margin-bottom:8px;">${doneAll} / ${totalAll} 완료</div>
-        <div style="font-size:12px; color:#9CA3AF;">평균 일일 할일: ${Math.round(totalAll / days.length)}개</div>
+        <div style="font-size:13px; color:#7A6F62; margin-bottom:8px;">${doneAll} / ${totalAll} 완료</div>
+        <div style="font-size:12px; color:#9C9184;">평균 일일 할일: ${Math.round(totalAll / days.length)}개</div>
       </div>
 
       <!-- 성찰 작성일 -->
       <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <div style="font-size:13px; color:#6B7280; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+        <div style="font-size:13px; color:#7A6F62; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
           <span>📝</span> 성찰 작성일
         </div>
-        <div style="font-size:28px; font-weight:bold; color:${reflects.length === 0 ? '#EF4444' : '#374151'}; margin-bottom:4px;">
+        <div style="font-size:28px; font-weight:bold; color:${reflects.length === 0 ? '#8C3B32' : '#574E45'}; margin-bottom:4px;">
           ${reflects.length}일
         </div>
-        <div style="font-size:13px; color:#6B7280; margin-bottom:8px;">${Math.round(reflects.length / days.length * 100)}% 작성률</div>
-        <div style="font-size:12px; color:#9CA3AF;">${days.length}일 중 ${reflects.length}일 기록</div>
+        <div style="font-size:13px; color:#7A6F62; margin-bottom:8px;">${Math.round(reflects.length / days.length * 100)}% 작성률</div>
+        <div style="font-size:12px; color:#9C9184;">${days.length}일 중 ${reflects.length}일 기록</div>
       </div>
     </div>
 
@@ -6932,47 +7024,47 @@ async function loadMonthlyPage() {
         const d = items.filter(t=>t.done).length;
         const tot = items.length;
         const r = tot > 0 ? Math.round(d / tot * 100) : 0;
-        const catBorderMap  = { work:'#93C5FD', job:'#FCD34D', growth:'#6EE7B7', personal:'#FCA5A5' };
-        const catTagBg      = { work:'#DBEAFE', job:'#FEF3C7', growth:'#D1FAE5', personal:'#FEE2E2' };
-        const catTagColor   = { work:'#1D4ED8', job:'#92400E', growth:'#065F46', personal:'#991B1B' };
-        return `<div style="background:#fff; border:1px solid #e5e7eb; border-top:3px solid ${catBorderMap[cat]||'#e5e7eb'}; border-radius:8px; padding:12px;">
-          <div style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:${catTagBg[cat]||'#f3f4f6'};color:${catTagColor[cat]||'#374151'};margin-bottom:6px;">${CAT_LABEL[cat] || cat}</div>
-          <div style="font-size:18px; font-weight:bold; color:#111827; margin-bottom:2px;">${r}%</div>
-          <div style="font-size:11px; color:#6B7280;">${d} / ${tot} 완료</div>
+        const catBorderMap  = { work:'#B9D3DA', job:'#E4D3A8', growth:'#BFD8C9', personal:'#E3BDB7' };
+        const catTagBg      = { work:'#E1EEF1', job:'#F5ECD9', growth:'#E4EFE8', personal:'#F5E3E0' };
+        const catTagColor   = { work:'#2F6F7E', job:'#8A6A1F', growth:'#2F6B4F', personal:'#8C3B32' };
+        return `<div style="background:#fff; border:1px solid #E4DCCF; border-top:3px solid ${catBorderMap[cat]||'#E4DCCF'}; border-radius:8px; padding:12px;">
+          <div style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:${catTagBg[cat]||'#F0EAE0'};color:${catTagColor[cat]||'#574E45'};margin-bottom:6px;">${CAT_LABEL[cat] || cat}</div>
+          <div style="font-size:18px; font-weight:bold; color:#2A2622; margin-bottom:2px;">${r}%</div>
+          <div style="font-size:11px; color:#7A6F62;">${d} / ${tot} 완료</div>
         </div>`;
       }).join('')}
     </div>
   </div>
 
   <!-- 섹션 2: 월간 분석 -->
-  <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:24px; margin-bottom:24px;">
+  <div style="background:#ffffff; border:1px solid #E4DCCF; border-radius:12px; padding:24px; margin-bottom:24px;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
-      <div style="width:36px; height:36px; border-radius:50%; background:#FEE2E2; display:flex; align-items:center; justify-content:center; font-size:18px;">💡</div>
-      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#111827;">월간 분석</h3>
+      <div style="width:36px; height:36px; border-radius:50%; background:#F5E3E0; display:flex; align-items:center; justify-content:center; font-size:18px;">💡</div>
+      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#2A2622;">월간 분석</h3>
     </div>
 
     <!-- 실천율 카드들 -->
-    <h4 style="font-size:14px; font-weight:bold; color:#374151; margin-bottom:12px;">🎯 실천율</h4>
+    <h4 style="font-size:14px; font-weight:bold; color:#574E45; margin-bottom:12px;">🎯 실천율</h4>
     <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-      <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:14px 16px; color:#4B5563; font-size:13px; display:flex; gap:10px; align-items:center;">
-        <span style="font-size:16px;color:#F97316;">!</span> <span>${overallRate >= 50 ? '이번 달 할일 완료율이 양호합니다. 훌륭한 성과입니다!' : '할일 완료율이 낮습니다. 일정을 재점검하고 작은 것부터 시작해보세요.'}</span>
+      <div style="background:#F5ECD9; border:1px solid #E4D3A8; border-radius:12px; padding:14px 16px; color:#574E45; font-size:13px; display:flex; gap:10px; align-items:center;">
+        <span style="font-size:16px;color:#A8712A;">!</span> <span>${overallRate >= 50 ? '이번 달 할일 완료율이 양호합니다. 훌륭한 성과입니다!' : '할일 완료율이 낮습니다. 일정을 재점검하고 작은 것부터 시작해보세요.'}</span>
       </div>
-      <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:14px 16px; color:#4B5563; font-size:13px; display:flex; gap:10px; align-items:center;">
-        <span style="font-size:16px;color:#F97316;">!</span> <span>${routineRate >= 50 ? '규칙적인 요소를 잘 해내고 있습니다. 습관 형성이 원활하네요!' : '의식적인 노력을 통해 필수 루틴 기록에 신경을 써주세요.'}</span>
+      <div style="background:#F5ECD9; border:1px solid #E4D3A8; border-radius:12px; padding:14px 16px; color:#574E45; font-size:13px; display:flex; gap:10px; align-items:center;">
+        <span style="font-size:16px;color:#A8712A;">!</span> <span>${routineRate >= 50 ? '규칙적인 요소를 잘 해내고 있습니다. 습관 형성이 원활하네요!' : '의식적인 노력을 통해 필수 루틴 기록에 신경을 써주세요.'}</span>
       </div>
-      <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:14px 16px; color:#4B5563; font-size:13px; display:flex; gap:10px; align-items:center;">
-        <span style="font-size:16px;color:#F97316;">!</span> <span>${reflects.length >= 10 ? '꾸준히 성찰을 기록하고 있습니다. 자기 객관화에 큰 도움이 됩니다.' : '조금 더 자주 하루를 돌아보는 성찰을 기록해보세요.'}</span>
+      <div style="background:#F5ECD9; border:1px solid #E4D3A8; border-radius:12px; padding:14px 16px; color:#574E45; font-size:13px; display:flex; gap:10px; align-items:center;">
+        <span style="font-size:16px;color:#A8712A;">!</span> <span>${reflects.length >= 10 ? '꾸준히 성찰을 기록하고 있습니다. 자기 객관화에 큰 도움이 됩니다.' : '조금 더 자주 하루를 돌아보는 성찰을 기록해보세요.'}</span>
       </div>
     </div>
 
     <!-- 전월 대비 변화 -->
-    <h4 style="font-size:14px; font-weight:bold; color:#374151; margin-bottom:12px;">↗ 전월 대비 변화</h4>
-    <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06); font-size:13px; color:#9CA3AF; margin-bottom:20px; text-align:center;">
+    <h4 style="font-size:14px; font-weight:bold; color:#574E45; margin-bottom:12px;">↗ 전월 대비 변화</h4>
+    <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06); font-size:13px; color:#9C9184; margin-bottom:20px; text-align:center;">
       전월 대비 큰 변화가 없습니다.
     </div>
 
     <!-- 월간 패턴 -->
-    <h4 style="font-size:14px; font-weight:bold; color:#374151; margin-bottom:12px;">〰 월간 패턴</h4>
+    <h4 style="font-size:14px; font-weight:bold; color:#574E45; margin-bottom:12px;">〰 월간 패턴</h4>
     ${ (() => {
       let bDay = days[0].label;
       let dN = 0, lN = 0, mMax = -1;
@@ -6983,48 +7075,48 @@ async function loadMonthlyPage() {
       });
       return `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
         <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-          <div style="font-size:13px; color:#6B7280; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">📅 가장 활발한 일자</div>
-          <div style="font-size:22px; font-weight:bold; color:#111827; margin-bottom:4px;">${bDay}일</div>
-          <div style="font-size:12px; color:#6B7280;">할일 ${dN}개, 루틴 ${lN}개 완료</div>
+          <div style="font-size:13px; color:#7A6F62; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">📅 가장 활발한 일자</div>
+          <div style="font-size:22px; font-weight:bold; color:#2A2622; margin-bottom:4px;">${bDay}일</div>
+          <div style="font-size:12px; color:#7A6F62;">할일 ${dN}개, 루틴 ${lN}개 완료</div>
         </div>
         <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-          <div style="font-size:13px; color:#6B7280; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">🏆 가장 완료율 높은 카테고리</div>
-          <div style="font-size:22px; font-weight:bold; color:#111827; margin-bottom:4px;">${bestCatRate === -1 ? '-' : bestCat}</div>
-          <div style="font-size:12px; color:#6B7280;">${bestCatRate === -1 ? '0' : Math.round(bestCatRate)}% 완료</div>
+          <div style="font-size:13px; color:#7A6F62; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">🏆 가장 완료율 높은 카테고리</div>
+          <div style="font-size:22px; font-weight:bold; color:#2A2622; margin-bottom:4px;">${bestCatRate === -1 ? '-' : bestCat}</div>
+          <div style="font-size:12px; color:#7A6F62;">${bestCatRate === -1 ? '0' : Math.round(bestCatRate)}% 완료</div>
         </div>
       </div>`;
     })() }
   </div>
 
   <!-- 섹션 3: AI 월간 성찰 -->
-  <div style="background:linear-gradient(135deg,#F3E8FF,#FCE7F3); border-radius:16px; padding:24px;">
+  <div style="background:linear-gradient(135deg,#EDE7F3,#F5E3E8); border-radius:16px; padding:24px;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
       <div style="width:36px; height:36px; border-radius:50%; background:white; display:flex; align-items:center; justify-content:center; font-size:18px;">✨</div>
-      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#111827;">AI 월간 성찰</h3>
+      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#2A2622;">AI 월간 성찰</h3>
     </div>
     
     <div id="monthly-ai-result" style="margin-bottom:20px;">
       ${savedReview ? `
-        <div style="line-height:1.9;font-size:15px;color:#333;padding:8px 0;">
+        <div style="line-height:1.9;font-size:15px;color:#2A2622;padding:8px 0;">
           ${savedReview.content}
         </div>
       ` : `
         <div style="text-align:center; padding:20px;">
           <div style="font-size:40px; margin-bottom:12px;">✨</div>
-          <div style="font-size:16px; font-weight:bold; color:#374151; margin-bottom:6px;">AI 월간 성찰이 아직 없습니다</div>
-          <div style="font-size:13px; color:#6B7280;">이번 달의 활동을 분석하여 맞춤형 피드백을 제공합니다.</div>
+          <div style="font-size:16px; font-weight:bold; color:#574E45; margin-bottom:6px;">AI 월간 성찰이 아직 없습니다</div>
+          <div style="font-size:13px; color:#7A6F62;">이번 달의 활동을 분석하여 맞춤형 피드백을 제공합니다.</div>
         </div>
       `}
     </div>
 
-    <button id="monthly-ai-btn" class="ai-review-btn" onclick="generateMonthlyAIReview('${startStr}', '${endStr}')" style="width:100%; background:#8B5CF6; color:white; border:none; padding:14px; border-radius:12px; font-weight:bold; cursor:pointer;">
+    <button id="monthly-ai-btn" class="ai-review-btn" onclick="generateMonthlyAIReview('${startStr}', '${endStr}')" style="width:100%; background:#2E6488; color:white; border:none; padding:14px; border-radius:12px; font-weight:bold; cursor:pointer;">
       ${savedReview ? '🔄 다시 생성하기' : '✦ AI 성찰 생성하기'}
     </button>
   </div>`;
 bodyEl.innerHTML = html;
   } catch(e) {
     console.error(e);
-    bodyEl.innerHTML = '<div style="padding:40px; text-align:center; color:#ef4444;">데이터를 불러오는 중 오류가 발생했습니다.</div>';
+    bodyEl.innerHTML = '<div style="padding:40px; text-align:center; color:#8C3B32;">데이터를 불러오는 중 오류가 발생했습니다.</div>';
   }
 }
 
@@ -7109,47 +7201,47 @@ async function loadYearlyPage() {
 
   const html = `
   <!-- 섹션 1: 연간 지표 -->
-  <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:24px; margin-bottom:24px;">
+  <div style="background:#ffffff; border:1px solid #E4DCCF; border-radius:12px; padding:24px; margin-bottom:24px;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
-      <div style="width:36px; height:36px; border-radius:50%; background:#EDE9FE; display:flex; align-items:center; justify-content:center; font-size:18px;">📊</div>
-      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#111827;">${targetYear}년 연간 지표</h3>
+      <div style="width:36px; height:36px; border-radius:50%; background:#EDE7F3; display:flex; align-items:center; justify-content:center; font-size:18px;">📊</div>
+      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#2A2622;">${targetYear}년 연간 지표</h3>
     </div>
     
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px;">
       <!-- 루틴 실천율 -->
       <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <div style="font-size:13px; color:#6B7280; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+        <div style="font-size:13px; color:#7A6F62; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
           <span>🔄</span> 루틴 실천율
         </div>
-        <div style="font-size:28px; font-weight:bold; color:${routineRate === 0 ? '#EF4444' : (routineRate >= 50 ? '#10B981' : '#374151')}; margin-bottom:4px;">
+        <div style="font-size:28px; font-weight:bold; color:${routineRate === 0 ? '#8C3B32' : (routineRate >= 50 ? '#2F6B4F' : '#574E45')}; margin-bottom:4px;">
           ${routineRate}%
         </div>
-        <div style="font-size:13px; color:#6B7280; margin-bottom:8px;">${routineDone} / ${routineTotal} 체크</div>
-        <div style="font-size:12px; color:#9CA3AF;">★모닝:-% 🌙나이트:-%</div>
+        <div style="font-size:13px; color:#7A6F62; margin-bottom:8px;">${routineDone} / ${routineTotal} 체크</div>
+        <div style="font-size:12px; color:#9C9184;">★모닝:-% 🌙나이트:-%</div>
       </div>
       
       <!-- 할일 완료율 -->
       <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <div style="font-size:13px; color:#6B7280; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+        <div style="font-size:13px; color:#7A6F62; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
           <span>✅</span> 할일 완료율
         </div>
-        <div style="font-size:28px; font-weight:bold; color:#374151; margin-bottom:4px;">
+        <div style="font-size:28px; font-weight:bold; color:#574E45; margin-bottom:4px;">
           ${overallRate}%
         </div>
-        <div style="font-size:13px; color:#6B7280; margin-bottom:8px;">${doneAll} / ${totalAll} 완료</div>
-        <div style="font-size:12px; color:#9CA3AF;">평균 일일 할일: ${Math.round(totalAll / 365)}개</div>
+        <div style="font-size:13px; color:#7A6F62; margin-bottom:8px;">${doneAll} / ${totalAll} 완료</div>
+        <div style="font-size:12px; color:#9C9184;">평균 일일 할일: ${Math.round(totalAll / 365)}개</div>
       </div>
 
       <!-- 성찰 작성일 -->
       <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <div style="font-size:13px; color:#6B7280; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+        <div style="font-size:13px; color:#7A6F62; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
           <span>📝</span> 성찰 작성일
         </div>
-        <div style="font-size:28px; font-weight:bold; color:${reflects.length === 0 ? '#EF4444' : '#374151'}; margin-bottom:4px;">
+        <div style="font-size:28px; font-weight:bold; color:${reflects.length === 0 ? '#8C3B32' : '#574E45'}; margin-bottom:4px;">
           ${reflects.length}일
         </div>
-        <div style="font-size:13px; color:#6B7280; margin-bottom:8px;">${Math.round(reflects.length / 365 * 100)}% 작성률</div>
-        <div style="font-size:12px; color:#9CA3AF;">365일 중 ${reflects.length}일 기록</div>
+        <div style="font-size:13px; color:#7A6F62; margin-bottom:8px;">${Math.round(reflects.length / 365 * 100)}% 작성률</div>
+        <div style="font-size:12px; color:#9C9184;">365일 중 ${reflects.length}일 기록</div>
       </div>
     </div>
 
@@ -7159,47 +7251,47 @@ async function loadYearlyPage() {
         const d = items.filter(t=>t.done).length;
         const tot = items.length;
         const r = tot > 0 ? Math.round(d / tot * 100) : 0;
-        const catBorderMap  = { work:'#93C5FD', job:'#FCD34D', growth:'#6EE7B7', personal:'#FCA5A5' };
-        const catTagBg      = { work:'#DBEAFE', job:'#FEF3C7', growth:'#D1FAE5', personal:'#FEE2E2' };
-        const catTagColor   = { work:'#1D4ED8', job:'#92400E', growth:'#065F46', personal:'#991B1B' };
-        return `<div style="background:#fff; border:1px solid #e5e7eb; border-top:3px solid ${catBorderMap[cat]||'#e5e7eb'}; border-radius:8px; padding:12px;">
-          <div style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:${catTagBg[cat]||'#f3f4f6'};color:${catTagColor[cat]||'#374151'};margin-bottom:6px;">${CAT_LABEL[cat] || cat}</div>
-          <div style="font-size:18px; font-weight:bold; color:#111827; margin-bottom:2px;">${r}%</div>
-          <div style="font-size:11px; color:#6B7280;">${d} / ${tot} 완료</div>
+        const catBorderMap  = { work:'#B9D3DA', job:'#E4D3A8', growth:'#BFD8C9', personal:'#E3BDB7' };
+        const catTagBg      = { work:'#E1EEF1', job:'#F5ECD9', growth:'#E4EFE8', personal:'#F5E3E0' };
+        const catTagColor   = { work:'#2F6F7E', job:'#8A6A1F', growth:'#2F6B4F', personal:'#8C3B32' };
+        return `<div style="background:#fff; border:1px solid #E4DCCF; border-top:3px solid ${catBorderMap[cat]||'#E4DCCF'}; border-radius:8px; padding:12px;">
+          <div style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:${catTagBg[cat]||'#F0EAE0'};color:${catTagColor[cat]||'#574E45'};margin-bottom:6px;">${CAT_LABEL[cat] || cat}</div>
+          <div style="font-size:18px; font-weight:bold; color:#2A2622; margin-bottom:2px;">${r}%</div>
+          <div style="font-size:11px; color:#7A6F62;">${d} / ${tot} 완료</div>
         </div>`;
       }).join('')}
     </div>
   </div>
 
   <!-- 섹션 2: 연간 분석 -->
-  <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:24px; margin-bottom:24px;">
+  <div style="background:#ffffff; border:1px solid #E4DCCF; border-radius:12px; padding:24px; margin-bottom:24px;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
-      <div style="width:36px; height:36px; border-radius:50%; background:#FEE2E2; display:flex; align-items:center; justify-content:center; font-size:18px;">💡</div>
-      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#111827;">${targetYear}년 연간 분석</h3>
+      <div style="width:36px; height:36px; border-radius:50%; background:#F5E3E0; display:flex; align-items:center; justify-content:center; font-size:18px;">💡</div>
+      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#2A2622;">${targetYear}년 연간 분석</h3>
     </div>
 
     <!-- 실천율 카드들 -->
-    <h4 style="font-size:14px; font-weight:bold; color:#374151; margin-bottom:12px;">🎯 실천율</h4>
+    <h4 style="font-size:14px; font-weight:bold; color:#574E45; margin-bottom:12px;">🎯 실천율</h4>
     <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-      <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:14px 16px; color:#4B5563; font-size:13px; display:flex; gap:10px; align-items:center;">
-        <span style="font-size:16px;color:#F97316;">!</span> <span>${overallRate >= 50 ? '올 한 해 할일 완료율이 양호합니다. 훌륭한 해였습니다!' : '할일 완료율이 낮습니다. 새해에는 작은 습관부터 시작해보세요.'}</span>
+      <div style="background:#F5ECD9; border:1px solid #E4D3A8; border-radius:12px; padding:14px 16px; color:#574E45; font-size:13px; display:flex; gap:10px; align-items:center;">
+        <span style="font-size:16px;color:#A8712A;">!</span> <span>${overallRate >= 50 ? '올 한 해 할일 완료율이 양호합니다. 훌륭한 해였습니다!' : '할일 완료율이 낮습니다. 새해에는 작은 습관부터 시작해보세요.'}</span>
       </div>
-      <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:14px 16px; color:#4B5563; font-size:13px; display:flex; gap:10px; align-items:center;">
-        <span style="font-size:16px;color:#F97316;">!</span> <span>${routineRate >= 50 ? '규칙적인 요소를 잘 해내고 있습니다. 멋진 습관 형성이네요!' : '의식적인 노력을 통해 필수 루틴 기록에 신경을 써주세요.'}</span>
+      <div style="background:#F5ECD9; border:1px solid #E4D3A8; border-radius:12px; padding:14px 16px; color:#574E45; font-size:13px; display:flex; gap:10px; align-items:center;">
+        <span style="font-size:16px;color:#A8712A;">!</span> <span>${routineRate >= 50 ? '규칙적인 요소를 잘 해내고 있습니다. 멋진 습관 형성이네요!' : '의식적인 노력을 통해 필수 루틴 기록에 신경을 써주세요.'}</span>
       </div>
-      <div style="background:#FFFBEA; border:1px solid #FFE082; border-radius:12px; padding:14px 16px; color:#4B5563; font-size:13px; display:flex; gap:10px; align-items:center;">
-        <span style="font-size:16px;color:#F97316;">!</span> <span>${reflects.length >= 50 ? '꾸준히 성찰을 기록했습니다. 내적 성장이 돋보입니다.' : '내년엔 조금 더 자주 자신을 돌아보는 시간을 가져보세요.'}</span>
+      <div style="background:#F5ECD9; border:1px solid #E4D3A8; border-radius:12px; padding:14px 16px; color:#574E45; font-size:13px; display:flex; gap:10px; align-items:center;">
+        <span style="font-size:16px;color:#A8712A;">!</span> <span>${reflects.length >= 50 ? '꾸준히 성찰을 기록했습니다. 내적 성장이 돋보입니다.' : '내년엔 조금 더 자주 자신을 돌아보는 시간을 가져보세요.'}</span>
       </div>
     </div>
 
     <!-- 전년 대비 변화 -->
-    <h4 style="font-size:14px; font-weight:bold; color:#374151; margin-bottom:12px;">↗ 전년 대비 변화</h4>
-    <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06); font-size:13px; color:#9CA3AF; margin-bottom:20px; text-align:center;">
+    <h4 style="font-size:14px; font-weight:bold; color:#574E45; margin-bottom:12px;">↗ 전년 대비 변화</h4>
+    <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06); font-size:13px; color:#9C9184; margin-bottom:20px; text-align:center;">
       전년 대비 큰 변화가 없습니다.
     </div>
 
     <!-- 연간 패턴 -->
-    <h4 style="font-size:14px; font-weight:bold; color:#374151; margin-bottom:12px;">〰 연간 패턴</h4>
+    <h4 style="font-size:14px; font-weight:bold; color:#574E45; margin-bottom:12px;">〰 연간 패턴</h4>
     ${ (() => {
       let bMonth = 1;
       let wMonth = 1;
@@ -7223,53 +7315,53 @@ async function loadYearlyPage() {
 
       return `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
         <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-          <div style="font-size:13px; color:#6B7280; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">🏆 가장 완료율 높은 카테고리</div>
-          <div style="font-size:22px; font-weight:bold; color:#111827; margin-bottom:4px;">${bestCatRate === -1 ? '-' : bestCat}</div>
-          <div style="font-size:12px; color:#6B7280;">${bestCatRate === -1 ? '0' : Math.round(bestCatRate)}% 완료</div>
+          <div style="font-size:13px; color:#7A6F62; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">🏆 가장 완료율 높은 카테고리</div>
+          <div style="font-size:22px; font-weight:bold; color:#2A2622; margin-bottom:4px;">${bestCatRate === -1 ? '-' : bestCat}</div>
+          <div style="font-size:12px; color:#7A6F62;">${bestCatRate === -1 ? '0' : Math.round(bestCatRate)}% 완료</div>
         </div>
         <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-          <div style="font-size:13px; color:#6B7280; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">📅 가장 활발한 월</div>
-          <div style="font-size:22px; font-weight:bold; color:#111827; margin-bottom:4px;">${bMonth}월</div>
-          <div style="font-size:12px; color:#6B7280;">기록 총합 ${bMax}개 기록</div>
+          <div style="font-size:13px; color:#7A6F62; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">📅 가장 활발한 월</div>
+          <div style="font-size:22px; font-weight:bold; color:#2A2622; margin-bottom:4px;">${bMonth}월</div>
+          <div style="font-size:12px; color:#7A6F62;">기록 총합 ${bMax}개 기록</div>
         </div>
         <div style="background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-          <div style="font-size:13px; color:#6B7280; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">📉 개선이 필요한 월</div>
-          <div style="font-size:22px; font-weight:bold; color:#EF4444; margin-bottom:4px;">${wMonth}월</div>
-          <div style="font-size:12px; color:#6B7280;">기록 총합 ${wMin === 999999 ? 0 : wMin}개 기록</div>
+          <div style="font-size:13px; color:#7A6F62; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px;">📉 개선이 필요한 월</div>
+          <div style="font-size:22px; font-weight:bold; color:#8C3B32; margin-bottom:4px;">${wMonth}월</div>
+          <div style="font-size:12px; color:#7A6F62;">기록 총합 ${wMin === 999999 ? 0 : wMin}개 기록</div>
         </div>
       </div>`;
     })() }
   </div>
 
   <!-- 섹션 3: AI 연간 성찰 -->
-  <div style="background:linear-gradient(135deg,#F3E8FF,#FCE7F3); border-radius:16px; padding:24px;">
+  <div style="background:linear-gradient(135deg,#EDE7F3,#F5E3E8); border-radius:16px; padding:24px;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
       <div style="width:36px; height:36px; border-radius:50%; background:white; display:flex; align-items:center; justify-content:center; font-size:18px;">✨</div>
-      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#111827;">AI 연간 성찰</h3>
+      <h3 style="margin:0; font-size:18px; font-weight:bold; color:#2A2622;">AI 연간 성찰</h3>
     </div>
     
     <div id="yearly-ai-result" style="margin-bottom:20px;">
       ${savedReview ? `
-        <div style="line-height:1.9;font-size:15px;color:#333;padding:8px 0;">
+        <div style="line-height:1.9;font-size:15px;color:#2A2622;padding:8px 0;">
           ${savedReview.content}
         </div>
       ` : `
         <div style="text-align:center; padding:20px;">
           <div style="font-size:40px; margin-bottom:12px;">✨</div>
-          <div style="font-size:16px; font-weight:bold; color:#374151; margin-bottom:6px;">AI 연간 성찰이 아직 없습니다</div>
-          <div style="font-size:13px; color:#6B7280;">올 한 해의 활동을 분석하여 맞춤형 피드백을 제공합니다.</div>
+          <div style="font-size:16px; font-weight:bold; color:#574E45; margin-bottom:6px;">AI 연간 성찰이 아직 없습니다</div>
+          <div style="font-size:13px; color:#7A6F62;">올 한 해의 활동을 분석하여 맞춤형 피드백을 제공합니다.</div>
         </div>
       `}
     </div>
 
-    <button id="yearly-ai-btn" class="ai-review-btn" onclick="generateYearlyAIReview('${startStr}', '${endStr}')" style="width:100%; background:#8B5CF6; color:white; border:none; padding:14px; border-radius:12px; font-weight:bold; cursor:pointer;">
+    <button id="yearly-ai-btn" class="ai-review-btn" onclick="generateYearlyAIReview('${startStr}', '${endStr}')" style="width:100%; background:#2E6488; color:white; border:none; padding:14px; border-radius:12px; font-weight:bold; cursor:pointer;">
       ${savedReview ? '🔄 다시 생성하기' : '✦ AI 성찰 생성하기'}
     </button>
   </div>`;
 bodyEl.innerHTML = html;
   } catch(e) {
     console.error(e);
-    bodyEl.innerHTML = '<div style="padding:40px; text-align:center; color:#ef4444;">데이터를 불러오는 중 오류가 발생했습니다.</div>';
+    bodyEl.innerHTML = '<div style="padding:40px; text-align:center; color:#8C3B32;">데이터를 불러오는 중 오류가 발생했습니다.</div>';
   }
 }
 
@@ -7513,7 +7605,7 @@ async function pushTodoToToday(tText, projCat, btnId) {
   if (btnId) {
     const btn = document.getElementById(btnId);
     if (btn) {
-      btn.style.color = '#10b981';
+      btn.style.color = '#2F6B4F';
       btn.style.transform = 'scale(1.15)';
       setTimeout(() => {
         if (btn) {
@@ -7561,7 +7653,7 @@ function renderProjects() {
   if (targetList.length === 0) {
     grid.innerHTML = `
       <div style="grid-column: 1 / -1;" class="empty-projects">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><path d="M4 7V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3M4 7h16M4 7v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7M9 13l2 2 4-4"/></svg>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9C9184" stroke-width="2"><path d="M4 7V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3M4 7h16M4 7v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7M9 13l2 2 4-4"/></svg>
         <h3>진행중인 프로젝트가 없습니다</h3>
         <p>새 프로젝트를 추가하여 시작하세요</p>
       </div>`;
@@ -7579,9 +7671,9 @@ function renderProjects() {
       let contentHtml = '';
       if (stats.todos.length === 0) {
         contentHtml = `
-          <div style="padding:40px 20px; text-align:center; color:#9ca3af;">
+          <div style="padding:40px 20px; text-align:center; color:#9C9184;">
             <svg style="margin-bottom:12px; opacity:0.6" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-            <p style="font-weight:600; font-size:15px; color:#4b5563;">등록된 할일이 없습니다</p>
+            <p style="font-weight:600; font-size:15px; color:#574E45;">등록된 할일이 없습니다</p>
             <p style="font-size:13.5px; opacity:0.8; margin-top:4px;">아래에서 새로운 할일을 등록해보세요.</p>
           </div>
         `;
@@ -7591,8 +7683,8 @@ function renderProjects() {
           const completedBadge = (t.done && finalCompletedAt) 
             ? `<span style="
                 font-size:12px;
-                background:#e8f5e9;
-                color:#2e7d32;
+                background:#E4EFE8;
+                color:#2F6B4F;
                 border-radius:4px;
                 padding:2px 8px;
                 margin-left:8px;
@@ -7791,10 +7883,10 @@ function renderProjects() {
   }
 
   const CATEGORY_STYLES = {
-    work:     { bg: '#ffffff', border: '#93C5FD', icon: '💼', iconBg: '#7C3AED', tagBg: '#DBEAFE', tagColor: '#1D4ED8' },
-    job:      { bg: '#ffffff', border: '#FCD34D', icon: '📋', iconBg: '#7C3AED', tagBg: '#FEF3C7', tagColor: '#92400E' },
-    growth:   { bg: '#ffffff', border: '#6EE7B7', icon: '🌱', iconBg: '#7C3AED', tagBg: '#D1FAE5', tagColor: '#065F46' },
-    personal: { bg: '#ffffff', border: '#FCA5A5', icon: '💜', iconBg: '#7C3AED', tagBg: '#FEE2E2', tagColor: '#991B1B' }
+    work:     { bg: '#ffffff', border: '#B9D3DA', icon: '💼', iconBg: '#23506B', tagBg: '#E1EEF1', tagColor: '#2F6F7E' },
+    job:      { bg: '#ffffff', border: '#E4D3A8', icon: '📋', iconBg: '#23506B', tagBg: '#F5ECD9', tagColor: '#8A6A1F' },
+    growth:   { bg: '#ffffff', border: '#BFD8C9', icon: '🌱', iconBg: '#23506B', tagBg: '#E4EFE8', tagColor: '#2F6B4F' },
+    personal: { bg: '#ffffff', border: '#E3BDB7', icon: '💜', iconBg: '#23506B', tagBg: '#F5E3E0', tagColor: '#8C3B32' }
   };
 
   function renderRecurringTasks() {
@@ -7803,7 +7895,7 @@ function renderProjects() {
     grid.innerHTML = '';
     
     if (allRecurringTasks.length === 0) {
-      grid.innerHTML = '<div style="color:#9ca3af;text-align:center;padding:40px;grid-column:1/-1;">등록된 반복업무가 없습니다.</div>';
+      grid.innerHTML = '<div style="color:#9C9184;text-align:center;padding:40px;grid-column:1/-1;">등록된 반복업무가 없습니다.</div>';
       return;
     }
 
@@ -7828,7 +7920,7 @@ function renderProjects() {
       const div = document.createElement('div');
       div.className = 'rc-card';
       div.style.background = '#ffffff';
-      div.style.borderColor = '#e5e7eb';
+      div.style.borderColor = '#E4DCCF';
       div.style.borderTopColor = style.border;
       div.style.borderTopWidth = '3px';
       div.innerHTML = `
@@ -7837,7 +7929,7 @@ function renderProjects() {
           <button class="rc-delete" style="position: static; margin: 0; top: auto; right: auto;" onclick="deleteRecurringTask('${t.id}')">✕</button>
         </div>
         <div class="rc-header">
-          <div class="rc-icon-box" style="background: #7C3AED;">${style.icon}</div>
+          <div class="rc-icon-box" style="background: #23506B;">${style.icon}</div>
           <div class="rc-info">
             <h3 style="margin-bottom:4px;">${t.text}</h3>
             <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:${style.tagBg};color:${style.tagColor};">${t.category}</span>
@@ -8348,7 +8440,7 @@ function ch_renderResults(items) {
   }
   
   if (items.length === 0) {
-    container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">완료된 항목이 없습니다</div>';
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:#9C9184;">완료된 항목이 없습니다</div>';
     return;
   }
   
@@ -8362,14 +8454,14 @@ function ch_renderResults(items) {
   
   const DAY_KR = ['일','월','화','수','목','금','토'];
   const CAT_COLORS = {
-    work: '#93C5FD', job: '#FCD34D',
-    growth: '#6EE7B7', personal: '#FCA5A5'
+    work: '#B9D3DA', job: '#E4D3A8',
+    growth: '#BFD8C9', personal: '#E3BDB7'
   };
   const CAT_TAG = {
-    work: { bg: '#DBEAFE', color: '#1D4ED8' },
-    job:  { bg: '#FEF3C7', color: '#92400E' },
-    growth: { bg: '#D1FAE5', color: '#065F46' },
-    personal: { bg: '#FEE2E2', color: '#991B1B' }
+    work: { bg: '#E1EEF1', color: '#2F6F7E' },
+    job:  { bg: '#F5ECD9', color: '#8A6A1F' },
+    growth: { bg: '#E4EFE8', color: '#2F6B4F' },
+    personal: { bg: '#F5E3E0', color: '#8C3B32' }
   };
   
   let html = '';
@@ -8377,22 +8469,22 @@ function ch_renderResults(items) {
     const d = g.date;
     html += `
       <div style="margin-bottom:20px;">
-        <div style="background:#F3F4F6;padding:10px 16px;border-radius:8px;font-weight:bold;margin-bottom:8px;">
+        <div style="background:#F0EAE0;padding:10px 16px;border-radius:8px;font-weight:bold;margin-bottom:8px;">
           📅 ${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${DAY_KR[d.getDay()]}) — ${g.items.length}개 완료
         </div>
     `;
     g.items.forEach(item => {
       const cat = (item.category || 'work').toLowerCase();
-      const color = CAT_COLORS[cat] || '#9CA3AF';
+      const color = CAT_COLORS[cat] || '#9C9184';
       const icon = item.type === 'todo' ? '✅' : '📁';
       const text = item.projectName ? `${item.projectName} &gt; ${item.text}` : item.text;
       const d2 = new Date(item.completed_at);
       html += `
         <div style="display:flex;align-items:center;padding:10px 16px;background:white;border-left:4px solid ${color};border-radius:6px;margin-bottom:6px;">
           <span style="margin-right:10px;">${icon}</span>
-          <span style="background:${(CAT_TAG[cat]||{bg:'#f3f4f6'}).bg};color:${(CAT_TAG[cat]||{color:'#374151'}).color};padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;margin-right:10px;">${cat.toUpperCase()}</span>
+          <span style="background:${(CAT_TAG[cat]||{bg:'#F0EAE0'}).bg};color:${(CAT_TAG[cat]||{color:'#574E45'}).color};padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;margin-right:10px;">${cat.toUpperCase()}</span>
           <span style="flex:1;">${text}</span>
-          <span style="font-size:12px;background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:99px;">✓ ${d2.getMonth()+1}/${d2.getDate()}(${DAY_KR[d2.getDay()]}) 완료</span>
+          <span style="font-size:12px;background:#E4EFE8;color:#2F6B4F;padding:2px 8px;border-radius:99px;">✓ ${d2.getMonth()+1}/${d2.getDate()}(${DAY_KR[d2.getDay()]}) 완료</span>
         </div>
       `;
     });
