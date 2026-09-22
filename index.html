@@ -2970,6 +2970,14 @@ body {
       <div id="ch-results">
         <div style="text-align:center;padding:40px;color:#9C9184;">조건을 선택하고 검색해주세요</div>
       </div>
+
+      <!-- 오늘의 원씽 기록 (최근 30일) -->
+      <div id="ch-onething-section" style="margin-top:32px;">
+        <h3 style="font-size:16px; font-weight:700; color:#2A2622; margin-bottom:12px; display:flex; align-items:center; gap:6px;">⭐ 오늘의 원씽 기록 <span style="font-size:12px; font-weight:500; color:#9C9184;">(최근 30일)</span></h3>
+        <div id="ch-onething-results">
+          <div style="text-align:center;padding:40px;color:#9C9184;">불러오는 중...</div>
+        </div>
+      </div>
     </div>
   </main>
 </div>
@@ -4314,7 +4322,7 @@ function navigate(page) {
     else if (page === 'goals') loadGoalsData();
     else if (page === 'projects') loadProjectsData();
     else if (page === 'recurring') loadRecurringTasks();
-    else if (page === 'completed') ch_searchCompleted();
+    else if (page === 'completed') { ch_searchCompleted(); ch_loadOneThingHistory(); }
   } else {
     const todayEl = document.getElementById('page-today');
     if (todayEl) {
@@ -8501,6 +8509,66 @@ function ch_updateStats(items) {
   document.getElementById('ch-stat-todo').textContent = todoCount;
   document.getElementById('ch-stat-project').textContent = projCount;
   document.getElementById('ch-stat-total').textContent = items.length;
+}
+
+// 오늘의 원씽 이력 (최근 30일, log_date 내림차순)
+async function ch_loadOneThingHistory() {
+  const container = document.getElementById('ch-onething-results');
+  if (!container) return;
+
+  const fmt = (d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  };
+  const today = new Date();
+  const start = new Date(today);
+  start.setDate(today.getDate() - 29); // 오늘 포함 최근 30일
+  const startStr = fmt(start);
+  const endStr = fmt(today);
+
+  try {
+    const { data, error } = await sb
+      .from('daily_one_things')
+      .select('log_date, text, done')
+      .eq('user_id', currentUserId)
+      .gte('log_date', startStr)
+      .lte('log_date', endStr)
+      .order('log_date', { ascending: false });
+
+    if (error) throw error;
+
+    const items = (data || []).filter(it => it.text && it.text.trim().length > 0);
+
+    if (items.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:40px;color:#9C9184;">최근 30일간 기록된 오늘의 원씽이 없습니다</div>';
+      return;
+    }
+
+    const DAY_KR = ['일','월','화','수','목','금','토'];
+    let html = '';
+    items.forEach(it => {
+      const parts = String(it.log_date).split('-');
+      const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      const dateLabel = `${d.getMonth()+1}월 ${d.getDate()}일 (${DAY_KR[d.getDay()]})`;
+      const doneBadge = it.done
+        ? '<span style="font-size:12px;background:#E4EFE8;color:#2F6B4F;padding:2px 8px;border-radius:99px;font-weight:700;">✓ 완료</span>'
+        : '<span style="font-size:12px;background:#F0EAE0;color:#7A6F62;padding:2px 8px;border-radius:99px;font-weight:700;">미완료</span>';
+      const textColor = it.done ? '#2A2622' : '#574E45';
+      html += `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:white;border-left:4px solid #6B4E8C;border-radius:6px;margin-bottom:6px;">
+          <span style="font-size:12px;color:#7A6F62;min-width:104px;">${dateLabel}</span>
+          <span style="flex:1;color:${textColor};word-break:keep-all;">${it.text}</span>
+          ${doneBadge}
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  } catch (err) {
+    console.error('오늘의 원씽 기록 로드 실패', err);
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:#9C9184;">기록을 불러오지 못했습니다</div>';
+  }
 }
 </script>
 <script>
