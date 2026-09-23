@@ -2508,25 +2508,25 @@ body {
           <!-- Work -->
           <div class="onething-box work">
             <div class="onething-label">💼 Work (업무)</div>
-            <input type="text" id="onething-input-work" class="onething-input" placeholder="업무 카테고리 원씽을 입력하세요">
+            <textarea rows="4" id="onething-input-work" class="onething-input" placeholder="업무 카테고리 원씽을 입력하세요" oninput="autoResizeTa(this)"></textarea>
             <button id="onething-save-work" class="onething-save-btn" onclick="saveYearlyOneThing('work')">저장</button>
           </div>
           <!-- Job -->
           <div class="onething-box job">
             <div class="onething-label">📋 Job (직무)</div>
-            <input type="text" id="onething-input-job" class="onething-input" placeholder="직무 카테고리 원씽을 입력하세요">
+            <textarea rows="4" id="onething-input-job" class="onething-input" placeholder="직무 카테고리 원씽을 입력하세요" oninput="autoResizeTa(this)"></textarea>
             <button id="onething-save-job" class="onething-save-btn" onclick="saveYearlyOneThing('job')">저장</button>
           </div>
           <!-- Growth -->
           <div class="onething-box growth">
             <div class="onething-label">🌱 Growth (성장)</div>
-            <input type="text" id="onething-input-growth" class="onething-input" placeholder="성장 카테고리 원씽을 입력하세요">
+            <textarea rows="4" id="onething-input-growth" class="onething-input" placeholder="성장 카테고리 원씽을 입력하세요" oninput="autoResizeTa(this)"></textarea>
             <button id="onething-save-growth" class="onething-save-btn" onclick="saveYearlyOneThing('growth')">저장</button>
           </div>
           <!-- Personal -->
           <div class="onething-box personal">
             <div class="onething-label">💜 Personal (개인)</div>
-            <input type="text" id="onething-input-personal" class="onething-input" placeholder="개인 카테고리 원씽을 입력하세요">
+            <textarea rows="4" id="onething-input-personal" class="onething-input" placeholder="개인 카테고리 원씽을 입력하세요" oninput="autoResizeTa(this)"></textarea>
             <button id="onething-save-personal" class="onething-save-btn" onclick="saveYearlyOneThing('personal')">저장</button>
           </div>
         </div>
@@ -2643,12 +2643,12 @@ body {
             <span><span id="onething-month-label">년 월 월간 원씽</span></span>
             <button id="monthly-onething-ai-btn" style="background: linear-gradient(135deg, #2E6488 0%, #1B3E52 100%); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; text-shadow: 0 1px 1px rgba(0,0,0,0.2); box-shadow: 0 2px 6px rgba(35,80,107,0.3);" onclick="getMonthlyOneThingSuggest()">✨ AI로 이번 달 원씽 제안받기</button>
           </h3>
-          <div id="ai-monthly-onething-notice" class="monthly-ai-notice">💡 AI가 제안한 내용이에요. 확인 후 각각 '저장' 버튼을 누르세요!</div>
+          <div id="ai-monthly-onething-notice" class="monthly-ai-notice">💡 원씽 원칙에 따라 이번 달 가장 중요한 1개 영역만 제안했어요. 나머지는 비워두거나 직접 채우셔도 돼요. 확인 후 각각 '저장'을 누르세요!</div>
           <div class="onething-grid">
             <!-- Work -->
             <div class="onething-box work">
               <div class="onething-label">💼 Work (업무)</div>
-              <input type="text" id="onething-input-m-work" class="onething-input" placeholder="업무 카테고리 원씽을 입력하세요">
+              <textarea rows="4" id="onething-input-m-work" class="onething-input" placeholder="업무 카테고리 원씽을 입력하세요" oninput="autoResizeTa(this)"></textarea>
               <button id="onething-save-m-work" class="onething-save-btn" onclick="saveMonthlyOneThing('work')">저장</button>
               <div class="result-accordion">
                 <button type="button" class="result-accordion-header" onclick="toggleResultAccordion(this)">
@@ -2667,7 +2667,7 @@ body {
             <!-- Job -->
             <div class="onething-box job">
               <div class="onething-label">📋 Job (직무)</div>
-              <input type="text" id="onething-input-m-job" class="onething-input" placeholder="직무 카테고리 원씽을 입력하세요">
+              <textarea rows="4" id="onething-input-m-job" class="onething-input" placeholder="직무 카테고리 원씽을 입력하세요" oninput="autoResizeTa(this)"></textarea>
               <button id="onething-save-m-job" class="onething-save-btn" onclick="saveMonthlyOneThing('job')">저장</button>
               <div class="result-accordion">
                 <button type="button" class="result-accordion-header" onclick="toggleResultAccordion(this)">
@@ -2686,7 +2686,7 @@ body {
             <!-- Growth -->
             <div class="onething-box growth">
               <div class="onething-label">🌱 Growth (성장)</div>
-              <input type="text" id="onething-input-m-growth" class="onething-input" placeholder="성장 카테고리 원씽을 입력하세요">
+              <textarea rows="4" id="onething-input-m-growth" class="onething-input" placeholder="성장 카테고리 원씽을 입력하세요" oninput="autoResizeTa(this)"></textarea>
               <button id="onething-save-m-growth" class="onething-save-btn" onclick="saveMonthlyOneThing('growth')">저장</button>
               <div class="result-accordion">
                 <button type="button" class="result-accordion-header" onclick="toggleResultAccordion(this)">
@@ -2705,7 +2705,7 @@ body {
             <!-- Personal -->
             <div class="onething-box personal">
               <div class="onething-label">💜 Personal (개인)</div>
-              <input type="text" id="onething-input-m-personal" class="onething-input" placeholder="개인 카테고리 원씽을 입력하세요">
+              <textarea rows="4" id="onething-input-m-personal" class="onething-input" placeholder="개인 카테고리 원씽을 입력하세요" oninput="autoResizeTa(this)"></textarea>
               <button id="onething-save-m-personal" class="onething-save-btn" onclick="saveMonthlyOneThing('personal')">저장</button>
               <div class="result-accordion">
                 <button type="button" class="result-accordion-header" onclick="toggleResultAccordion(this)">
@@ -5151,15 +5151,20 @@ async function getMonthlyOneThingSuggest() {
     if (!jsonMatch) throw new Error('응답 파싱 실패');
     const result = JSON.parse(jsonMatch[0]);
 
-    const mWork = document.getElementById('onething-input-m-work');
-    const mJob = document.getElementById('onething-input-m-job');
-    const mGrowth = document.getElementById('onething-input-m-growth');
-    const mPersonal = document.getElementById('onething-input-m-personal');
-    
-    if (mWork && result.work) mWork.value = result.work;
-    if (mJob && result.job) mJob.value = result.job;
-    if (mGrowth && result.growth) mGrowth.value = result.growth;
-    if (mPersonal && result.personal) mPersonal.value = result.personal;
+    // 원씽 원칙: AI는 이번 달 최우선 1개 영역만 채우고 나머지는 빈 문자열로 반환한다.
+    // 값이 온 칸은 채우고, 빈 칸(현재 입력이 비어 있는 경우만)에는 이유를 알려주는 안내 placeholder를 넣는다.
+    const EMPTY_HINT = '💡 이번 달은 다른 영역에 집중을 추천해요. 필요하면 직접 입력하세요.';
+    ['work', 'job', 'growth', 'personal'].forEach(cat => {
+      const el = document.getElementById(`onething-input-m-${cat}`);
+      if (!el) return;
+      const suggestion = (result[cat] || '').trim();
+      if (suggestion) {
+        el.value = suggestion;
+        if (typeof autoResizeTa === 'function') autoResizeTa(el);
+      } else if (!el.value.trim()) {
+        el.placeholder = EMPTY_HINT;
+      }
+    });
 
     const notice = document.getElementById('ai-monthly-onething-notice');
     if (notice) notice.style.display = 'block';
@@ -5874,9 +5879,14 @@ function prefillWeeklyOneThingFromAI(aiText) {
   border-radius: var(--btn-radius);
   padding: 9px 12px;
   font-size: 14px;
+  line-height: 1.6;
   width: 100%;
+  min-height: 108px; /* 약 4~5줄: 제안 문장이 잘리지 않도록 */
   background: #F0EAE0;
   box-sizing: border-box;
+  font-family: inherit;
+  resize: vertical;
+  overflow: auto;
   transition: border-color 0.2s;
 }
 .onething-input:focus { border-color: #23506B; outline: none; background: #fff; }
