@@ -2250,7 +2250,7 @@ body {
           </div>
           
           <div class="add-todo-row" style="margin-top:16px;">
-            <input class="add-todo-input" id="todoInput" placeholder="복잡하고 어려운 일을 입력하세요..." onkeydown="if(event.key==='Enter'){event.preventDefault();addTodo();}">
+            <input class="add-todo-input" id="todoInput" placeholder="복잡하고 어려운 일을 입력하세요..." onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();addTodo();}">
             <button class="add-btn" onclick="addTodo()">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
               <span>추가</span>
