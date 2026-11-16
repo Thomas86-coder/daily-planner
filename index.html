@@ -3727,6 +3727,11 @@ async function generateLearningAnalysis() {
   try {
     const date = todayStr(currentDate);
 
+    if (USE_AI_COACH) {
+      await generateLearningCoach(btn, date);
+      return;
+    }
+
     // 1. 메모 조회
     const { data: lnData, error: lnErr } = await sb
       .from('learning_notes')
@@ -5347,6 +5352,137 @@ function autoResizeTa(ta) {
   ta.style.height = ta.scrollHeight + 'px';
 }
 
+// ── AI 코치 (서버 함수 ai-coach) ──
+// true: 새 ai-coach 호출 / false: 아래 기존 ai-analysis 호출 코드를 그대로 사용 (자동으로 되돌리지는 않는다)
+const USE_AI_COACH = true;
+const AI_COACH_ERROR_MSG = '분석을 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요';
+
+function escapeHtmlCoach(t) {
+  return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// 새 하루 코치 결과에서 "🎯 내일 ONE Thing: 문장" 의 한 문장을 읽는다 (없으면 빈 문자열 → 기존 방식 사용)
+function extractCoachDailyOneThing(text) {
+  const lines = String(text || '').split(/\r?\n/);
+  for (const raw of lines) {
+    const line = raw.replace(/\*\*/g, '').trim();
+    const m = line.match(/^🎯\s*내일\s*ONE\s*Thing\s*[:：]\s*(.+)$/i);
+    if (m) return m[1].trim();
+  }
+  return '';
+}
+
+// 새 배운 것 코치 결과에서 "➡️ 다음 원씽 후보" 제목 바로 아래 문장을 읽는다 (없으면 빈 문자열 → 기존 방식 사용)
+function extractCoachNextOneThing(text) {
+  const lines = String(text || '').split(/\r?\n/).map(l => l.replace(/\*\*/g, '').trim());
+  for (let i = 0; i < lines.length; i++) {
+    if (/^➡️?\s*다음\s*원씽\s*후보/.test(lines[i])) {
+      for (let j = i + 1; j < lines.length; j++) {
+        if (!lines[j]) continue;
+        if (/^(📚|🔗|🤔|❓|🎯|➡)/.test(lines[j])) return '';   // 바로 아래가 다른 제목이면 문장이 없는 것
+        return lines[j].replace(/^[-•·*]\s*/, '').replace(/^["“'‘]+/, '').replace(/["”'’]+$/, '').trim();
+      }
+    }
+  }
+  return '';
+}
+
+// 로그인한 사용자의 세션 토큰이 자동으로 붙는다. 본문은 type 과 date 만 보낸다.
+async function callAICoach(type, date) {
+  const { data, error } = await sb.functions.invoke('ai-coach', { body: { type: type, date: date } });
+  if (error) throw error;
+  return data || {};
+}
+
+// 안내 메시지만 보여 줄 때(건너뜀/거절/오류): 상세 접기 칸과 원씽 연결 버튼은 숨긴다
+function showAICoachMessage(msg) {
+  const summaryDiv = document.getElementById('ai-summary');
+  const contentDiv = document.getElementById('aiContent');
+  const resultDiv  = document.getElementById('aiResult');
+  if (!resultDiv) return;
+  if (summaryDiv) summaryDiv.innerHTML = escapeHtmlCoach(msg).replace(/\n/g, '<br>');
+  if (contentDiv) contentDiv.innerHTML = '';
+  const acc = resultDiv.querySelector('.ai-detail-accordion');
+  if (acc) acc.style.display = 'none';
+  const atBtn = document.getElementById('ai-to-onething-btn');
+  if (atBtn) atBtn.style.display = 'none';
+  resultDiv.style.display = 'block';
+}
+
+// 오늘 하루 분석 (dailyCoach)
+async function runAICoachDaily(btn, date) {
+  const label = '✨ 오늘 하루 분석받기';
+  let again = false;
+  try {
+    const data = await callAICoach('dailyCoach', date);
+    const text = (data.result || '').trim();
+    if (data.skipped === true || data.refused === true) {
+      showAICoachMessage(text || AI_COACH_ERROR_MSG);   // 메시지만 보여 주고 저장하지 않는다
+      return;
+    }
+    if (!text) throw new Error('empty result');
+    const { error: upErr } = await sb.from('reflections').upsert({
+      log_date: date,
+      ai_feedback: text,
+      updated_at: new Date().toISOString(),
+      user_id: currentUserId
+    }, { onConflict: 'log_date,user_id' });
+    if (upErr) console.error('하루 분석 저장 오류:', upErr);
+    renderAIResult(data.truncated === true ? text + '\n(답변이 잘렸어요)' : text);
+    showToast('AI 분석 완료! 🤖');
+    again = true;
+  } catch (e) {
+    console.error('AI 코치(하루) 오류:', e);
+    showToast(AI_COACH_ERROR_MSG);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = again ? label + ' (재분석)' : label;
+  }
+}
+
+// 오늘 배운 내용 분석 (learningCoach)
+async function generateLearningCoach(btn, date) {
+  const label = '📚 오늘 배운 내용 분석받기';
+  try {
+    const data = await callAICoach('learningCoach', date);
+    const text = (data.result || '').trim();
+    const resultDiv = document.getElementById('learningAiResult');
+    const contentDiv = document.getElementById('learningAiContent');
+    const ltBtn = document.getElementById('learning-to-onething-btn');
+    const toHtml = (t) => escapeHtmlCoach(t).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+    if (data.skipped === true || data.refused === true) {
+      if (resultDiv && contentDiv) {
+        contentDiv.innerHTML = toHtml(text || AI_COACH_ERROR_MSG);   // 메시지만 보여 주고 저장하지 않는다
+        resultDiv.style.display = 'block';
+      }
+      if (ltBtn) ltBtn.style.display = 'none';
+      return;
+    }
+    if (!text) throw new Error('empty result');
+    try {
+      const { error: upsertErr } = await sb
+        .from('learning_reviews')
+        .upsert({ log_date: date, content: text, user_id: currentUserId }, { onConflict: 'log_date,user_id' });
+      if (upsertErr) throw upsertErr;
+    } catch (e) {
+      console.error('배운 내용 분석 저장 오류:', e);
+      showToast('분석 결과를 저장하는 중 오류가 발생했습니다.');
+    }
+    if (resultDiv && contentDiv) {
+      contentDiv.innerHTML = toHtml(data.truncated === true ? text + '\n(답변이 잘렸어요)' : text);
+      resultDiv.style.display = 'block';
+      if (ltBtn) ltBtn.style.display = 'flex';
+    }
+    showToast('배운 내용 분석 완료! 🤖');
+  } catch (e) {
+    console.error('AI 코치(배운 것) 오류:', e);
+    showToast(AI_COACH_ERROR_MSG);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = label;
+  }
+}
+
 // ── AI 하루 분석 ──
 // ── AI 결과 렌더링 헬퍼 (삼쩜삼 원칙: 핵심 상단 크게 + 상세 아코디언) ──
 function renderAIResult(text) {
@@ -5365,8 +5501,24 @@ function renderAIResult(text) {
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\n/g, '<br>');
 
-  if (summaryDiv) summaryDiv.innerHTML = toHtml(summaryRaw);
-  if (contentDiv) contentDiv.innerHTML = toHtml(detailRaw);
+  // 안내 메시지 때문에 숨겼던 상세 접기 칸을 다시 보이게 한다
+  const accBox = resultDiv.querySelector('.ai-detail-accordion');
+  if (accBox) accBox.style.display = '';
+
+  if (detailStart < 0 && text.indexOf('🔎') >= 0) {
+    // 새 AI 코치 형식(📊 섹션 없음): 요약 칸은 비우고 전체 답변을 펼쳐 줄바꿈 그대로 보여 준다
+    const escCoach = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    if (summaryDiv) summaryDiv.innerHTML = '';
+    if (contentDiv) contentDiv.innerHTML = toHtml(escCoach(text));
+    const tg = resultDiv.querySelector('.ai-detail-toggle');
+    if (tg) {
+      tg.classList.add('open');
+      if (tg.nextElementSibling) tg.nextElementSibling.classList.add('open');
+    }
+  } else {
+    if (summaryDiv) summaryDiv.innerHTML = toHtml(summaryRaw);
+    if (contentDiv) contentDiv.innerHTML = toHtml(detailRaw);
+  }
 
   resultDiv.style.display = 'block';
 
@@ -5390,6 +5542,11 @@ async function runAIAnalysis() {
 
   try {
     const date = todayStr();
+
+    if (USE_AI_COACH) {
+      await runAICoachDaily(btn, date);
+      return;
+    }
 
     // 오늘 할일 조회
     const { data: todoList } = await sb
@@ -5573,8 +5730,10 @@ function prefillOneThingFromLearning() {
   if (!contentDiv) return;
   const text = contentDiv.innerText || contentDiv.textContent || '';
   // 🎯 섹션 추출 시도
-  const match = text.match(/🎯[^\n]*\n([^\n📚🤔➕]+)/);
-  let prefill = match ? match[1].trim() : '';
+  // 새 코치 형식이면 "➡️ 다음 원씽 후보" 바로 아래 문장을, 아니면 기존 방식을 쓴다
+  const coachNext = text.indexOf('다음 원씽 후보') >= 0 ? extractCoachNextOneThing(text) : '';
+  const match = coachNext ? null : text.match(/🎯[^\n]*\n([^\n📚🤔➕]+)/);
+  let prefill = coachNext || (match ? match[1].trim() : '');
   if (!prefill) {
     const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 5 && !l.startsWith('📚') && !l.startsWith('🤔') && !l.startsWith('➕') && !l.startsWith('🎯'));
     prefill = lines[lines.length - 1] || text.substring(0, 80).trim();
@@ -5638,7 +5797,9 @@ function prefillOneThingFromDailyAI() {
   const lastLine = lines[lines.length - 1] || lines[0] || text.substring(0, 80).trim();
   const catLabels = { work: 'Work', job: 'Job', growth: 'Growth', personal: 'Personal' };
   const catLabel = catLabels[currentCat] || currentCat;
-  const prefill = '[' + catLabel + '] ' + lastLine;
+  // 새 코치 형식이면 "🎯 내일 ONE Thing:" 뒤의 문장을, 아니면 기존처럼 마지막 줄을 쓴다
+  const coachSentence = text.indexOf('🎯 내일 ONE Thing') >= 0 ? extractCoachDailyOneThing(text) : '';
+  const prefill = '[' + catLabel + '] ' + (coachSentence || lastLine);
   const dailyInput = document.getElementById('daily-onething-input');
   if (dailyInput) {
     dailyInput.value = prefill;
